@@ -8,12 +8,14 @@ import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
  *
  * Start implementing an FSM by writing this in a new java file:
  *
+ * <code>
  * enum FSMState {
  *	  // add states here
  * }
- * public class _______ extends FSMSystem<FSMState> {
+ * public class _______ extends FSMSystem&lt;FSMState&gt; {
  *	  ...
  * }
+ * </code>
  *
  * Your compiler / IDE will tell you what methods you need to implement
  * You should also have state handlers shown in the example
