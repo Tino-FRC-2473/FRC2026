@@ -1,0 +1,15 @@
+name: Checkstyle
+
+on: push
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set up Checkstyle
+      run: sudo apt-get install -y checkstyle
+    - name: Run checkstyle
+      run: checkstyle -c checks.xml src/main/java/frc/robot
