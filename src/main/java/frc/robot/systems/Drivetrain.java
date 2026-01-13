@@ -160,7 +160,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				return DrivetrainState.TELEOP;
 			default:
 				throw new IllegalStateException(
-					"[DRIVETRAIN] Cannot get next state of an invalid current state: " + currentState.toString()
+					"[DRIVETRAIN] Cannot get next state of an invalid current state: "
+					+ currentState.toString()
 				);
 		}
 	}
