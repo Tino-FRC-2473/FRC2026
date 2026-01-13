@@ -29,7 +29,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public enum DrivetrainState {
 		TELEOP
 	}
-	
+
 	// Max linear & angular speeds
 	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_AT_12_VOLTS;
 	private static final AngularVelocity MAX_ANGULAR_SPEED =
