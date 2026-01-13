@@ -131,7 +131,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 	 * @param drivetrainConstants Drivetrain-wide constants for the swerve drive
 	 * @param modules             Constants for each specific module
 	 */
-	@SuppressWarnings("unused")
 	public CommandSwerveDrivetrain(
 		SwerveDrivetrainConstants drivetrainConstants,
 		SwerveModuleConstants<?, ?, ?>... modules
@@ -158,7 +157,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 	 *                                   CAN FD, and 100 Hz on CAN 2.0.
 	 * @param modules                    Constants for each specific module
 	 */
-	@SuppressWarnings("unused")
 	public CommandSwerveDrivetrain(
 		SwerveDrivetrainConstants drivetrainConstants,
 		double odometryUpdateFrequency,
@@ -193,7 +191,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 	 *                                  and radians
 	 * @param modules                    Constants for each specific module
 	 */
-	@SuppressWarnings("unused")
 	public CommandSwerveDrivetrain(
 		SwerveDrivetrainConstants drivetrainConstants,
 		double odometryUpdateFrequency,

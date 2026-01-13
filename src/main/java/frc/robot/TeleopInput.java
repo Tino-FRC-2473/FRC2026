@@ -12,11 +12,11 @@ import edu.wpi.first.wpilibj.PS4Controller;
  */
 public class TeleopInput {
 	/* ======================== Constants ======================== */
-	private static final int DRIVER_CONTROLLER_PORT = 0;
+	private static final int DRIVE_CONTROLLER_PORT = 0;
 
 	/* ======================== Private variables ======================== */
 	// Input objects
-	private PS4Controller driverController;
+	private PS4Controller driveController;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -25,7 +25,7 @@ public class TeleopInput {
 	 * by WPILib until teleop mode.
 	 */
 	public TeleopInput() {
-		driverController = new PS4Controller(DRIVER_CONTROLLER_PORT);
+		driveController = new PS4Controller(DRIVE_CONTROLLER_PORT);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -35,33 +35,41 @@ public class TeleopInput {
 
 	/* ------------------------ Driver Controller ------------------------ */
 	/**
-	 * Get X axis of Left Joystick.
+	 * Get X axis of the left joystick.
 	 * @return Axis value
 	 */
 	public double getDriverLeftX() {
-		return driverController.getLeftX();
+		return driveController.getLeftX();
 	}
 	/**
-	 * Get Y axis of Left Joystick.
+	 * Get Y axis of the left joystick.
 	 * @return Axis value
 	 */
 	public double getDriverLeftY() {
-		return driverController.getLeftY();
+		return driveController.getLeftY();
 	}
 
 	/**
-	 * Get X axis of Right Joystick.
+	 * Get X axis of the right joystick.
 	 * @return Axis value
 	 */
 	public double getDriverRightX() {
-		return driverController.getRightX();
+		return driveController.getRightX();
 	}
 	/**
-	 * Get Y axis of Right Joystick.
+	 * Get Y axis of the right joystick.
 	 * @return Axis value
 	 */
 	public double getDriverRightY() {
-		return driverController.getRightY();
+		return driveController.getRightY();
+	}
+
+	/**
+	 * Get share button state for drive controller.
+	 * @return Axis value
+	 */
+	public boolean isDriverReseedButtonPressed() {
+		return driveController.getOptionsButton();
 	}
 
 	/* ======================== Private methods ======================== */

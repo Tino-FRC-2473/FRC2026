@@ -10,6 +10,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -22,30 +23,39 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
+	/* ======================== Constants ======================== */
+
+	// FSM states enum
 	public enum DrivetrainState {
 		TELEOP
 	}
-
+	
+	// Max linear & angular speeds
 	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_AT_12_VOLTS;
-
-	// kSpeedAt12Volts desired top speed
-	private static final AngularVelocity MAX_ANGULAR_RATE =
+	private static final AngularVelocity MAX_ANGULAR_SPEED =
 		DrivetrainConstants.MAX_ANGULAR_VELO_RPS;
-	// 3/4 rps angle velo
 
-	/* ======================== Private variables ======================== */
-	private DrivetrainState currentState;
-	private CommandSwerveDrivetrain drivetrain;
-
+	// Drive swerve requests
 	private final SwerveRequest.FieldCentric driveFieldCentric = new SwerveRequest.FieldCentric()
 			.withDeadband(MAX_SPEED.in(MetersPerSecond)
-					* DrivetrainConstants.TRANSLATION_DEADBAND) // 4% deadband
-			.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
-					* DrivetrainConstants.ROTATION_DEADBAND) // 4% deadband
+					* DrivetrainConstants.TRANSLATION_DEADBAND)
+			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
+					* DrivetrainConstants.ROTATION_DEADBAND)
 			// Use open-loop for drive motors
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-
 	private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+
+	/* ======================== Private variables ======================== */
+
+	// Current FSM state
+	private DrivetrainState currentState;
+	// Drivetrain subsystem instance
+	private CommandSwerveDrivetrain drivetrain;
+
+
+	// Localization variables
+	private Rotation2d rotationAlignmentPose;
+	private boolean hasLocalized = false;
 
 	/**
 	 * Constructs the drivetrain subsystem.
@@ -55,6 +65,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		reset();
 	}
+
+	/* ======================== Public methods ======================== */
 
 	@Override
 	public void reset() {
@@ -85,6 +97,58 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return false;
 	}
 
+	/**
+	 * Get the drivetrain pose.
+	 *
+	 * @return the pose
+	 */
+	@AutoLogOutput(key = "Drivetrain/Pose")
+	public Pose2d getPose() {
+		return drivetrain.getState().Pose;
+	}
+
+	/**
+	 * Get the drivetrain chassis speeds.
+	 *
+	 * @return the chassis speeds
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/Chassis Speeds")
+	public ChassisSpeeds getChassisSpeeds() {
+		return drivetrain.getState().Speeds;
+	}
+
+	/**
+	 * Get the drivetrain swerve states.
+	 *
+	 * @return the swerve module states
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/States")
+	public SwerveModuleState[] getModuleStates() {
+		return drivetrain.getState().ModuleStates;
+	}
+
+	/**
+	 * Get the drivetrain swerve targets.
+	 *
+	 * @return the swerve module targets
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/Targets")
+	public SwerveModuleState[] getModuleTargets() {
+		return drivetrain.getState().ModuleTargets;
+	}
+
+	/**
+	 * Get the drivetrain swerve positions.
+	 *
+	 * @return the swerve module positions
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/Positions")
+	public SwerveModulePosition[] getModulePositions() {
+		return drivetrain.getState().ModulePositions;
+	}
+
+	/* ======================== Private methods ======================== */
+
 	@Override
 	protected DrivetrainState nextState(TeleopInput input) {
 		if (input == null) {
@@ -96,7 +160,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				return DrivetrainState.TELEOP;
 			default:
 				throw new IllegalStateException(
-					"[DRIVETRAIN] Invalid Current State for Next State: " + currentState.toString()
+					"[DRIVETRAIN] Cannot get next state of an invalid current state: " + currentState.toString()
 				);
 		}
 	}
@@ -116,7 +180,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		double thetaSpeed = MathUtil.applyDeadband(
 				-input.getDriverRightX(),
-				DrivetrainConstants.ROTATION_DEADBAND) * MAX_ANGULAR_RATE.in(RadiansPerSecond);
+				DrivetrainConstants.ROTATION_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
 
 		drivetrain.setControl(
 			driveFieldCentric
@@ -124,6 +188,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 				.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
 		);
+
+		if (input.isDriverReseedButtonPressed()) {
+			drivetrain.seedFieldCentric();
+			rotationAlignmentPose = new Rotation2d();
+			hasLocalized = false;
+		}
 	}
 
 	/**
@@ -136,53 +206,4 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return currentState;
 	}
 
-	/**
-	 * Get the pose of the drivetrain.
-	 *
-	 * @return pose of the drivetrain
-	 */
-	@AutoLogOutput(key = "Drivetrain/Pose")
-	public Pose2d getPose() {
-		return drivetrain.getState().Pose;
-	}
-
-	/**
-	 * Get the chassis speeds of the drivetrain.
-	 *
-	 * @return the drivetrain chassis speeds
-	 */
-	@AutoLogOutput(key = "Drivetrain/Swerve/Chassis Speeds")
-	public ChassisSpeeds getChassisSpeeds() {
-		return drivetrain.getState().Speeds;
-	}
-
-	/**
-	 * Get the drivetrain states.
-	 *
-	 * @return the swerve module states
-	 */
-	@AutoLogOutput(key = "Drivetrain/Swerve/States/Measured")
-	public SwerveModuleState[] getModuleStates() {
-		return drivetrain.getState().ModuleStates;
-	}
-
-	/**
-	 * Get the drivetrain targets.
-	 *
-	 * @return drivetrain targets
-	 */
-	@AutoLogOutput(key = "Drivetrain/Swerve/States/Targets")
-	public SwerveModuleState[] getModuleTargets() {
-		return drivetrain.getState().ModuleTargets;
-	}
-
-	/**
-	 * Get the drivetrain module positions.
-	 *
-	 * @return the module positions
-	 */
-	@AutoLogOutput(key = "Drivetrain/Swerve/Positions")
-	public SwerveModulePosition[] getModulePositions() {
-		return drivetrain.getState().ModulePositions;
-	}
 }
