@@ -13,6 +13,7 @@ import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.AutoHandlerSystem;
 import frc.robot.systems.AutoHandlerSystem.AutoPath;
+import frc.robot.systems.ClimberFSMSystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -25,6 +26,7 @@ public class Robot extends TimedRobot {
 	private FSMSystem<?> subSystem1;
 	private ExampleFSMSystem subSystem2;
 	private ExampleFSMSystem subSystem3;
+	private ClimberFSMSystem climberFSMSystem;
 
 	private AutoHandlerSystem autoHandler;
 
@@ -40,6 +42,7 @@ public class Robot extends TimedRobot {
 		// Instantiate all systems here
 		subSystem2 = new ExampleFSMSystem();
 		subSystem3 = new ExampleFSMSystem();
+		climberFSMSystem = new ClimberFSMSystem();
 
 		// you can swap out FSM systems if neccesary
 		// this may be needed if you want different behavior in sim
@@ -73,6 +76,7 @@ public class Robot extends TimedRobot {
 		subSystem1.reset();
 		subSystem2.reset();
 		subSystem3.reset();
+		climberFSMSystem.reset();
 	}
 
 	@Override
@@ -80,6 +84,7 @@ public class Robot extends TimedRobot {
 		subSystem1.update(input);
 		subSystem2.update(input);
 		subSystem3.update(input);
+		climberFSMSystem.update(input);
 
 		// logs motor values
 		MotorManager.update();

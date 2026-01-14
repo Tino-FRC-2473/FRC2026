@@ -2,6 +2,7 @@ package frc.robot;
 
 // WPILib Imports
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PS4Controller;
 
 /**
  * Common class for providing driver inputs during Teleop.
@@ -19,6 +20,7 @@ public class TeleopInput {
 	// Input objects
 	private Joystick leftJoystick;
 	private Joystick rightJoystick;
+	private PS4Controller ps4Controller;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -81,6 +83,35 @@ public class TeleopInput {
 	 */
 	public double getRightJoystickY() {
 		return rightJoystick.getY();
+	}
+	/**
+	 * Get the value of the climber button.
+	 * @return True if button is pressed
+	 */
+	public boolean isManualOverideButtonPressed() {
+		return ps4Controller.getTriangleButtonPressed();
+	}
+	/**
+	 * Get the value of the emergency abort button.
+	 * @return True if button is pressed
+	 */
+	public boolean isNextButtonPressed() {
+		return ps4Controller.getSquareButtonPressed();
+	}
+	/**
+	 * Get the value of the emergency abort button.
+	 * @return True if button is pressed
+	 */
+	public boolean isEmergencyAbortPressed() {
+		return ps4Controller.getR1ButtonPressed();
+	}
+
+	/**
+	 * Get the climber manual control input.
+	 * @return Control input value
+	 */
+	public double getClimberManualControl() {
+		return getRightJoystickY();
 	}
 
 	/* ======================== Private methods ======================== */
