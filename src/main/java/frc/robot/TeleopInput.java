@@ -2,6 +2,7 @@ package frc.robot;
 
 // WPILib Imports
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PS4Controller;
 
 /**
  * Common class for providing driver inputs during Teleop.
@@ -14,11 +15,13 @@ public class TeleopInput {
 	/* ======================== Constants ======================== */
 	private static final int LEFT_JOYSTICK_PORT = 0;
 	private static final int RIGHT_JOYSTICK_PORT = 1;
+	private static final int CONTROLLER_PORT = 0;
 
 	/* ======================== Private variables ======================== */
 	// Input objects
 	private Joystick leftJoystick;
 	private Joystick rightJoystick;
+	private PS4Controller controller;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -30,6 +33,47 @@ public class TeleopInput {
 		leftJoystick = new Joystick(LEFT_JOYSTICK_PORT);
 
 		rightJoystick = new Joystick(RIGHT_JOYSTICK_PORT);
+		controller = new PS4Controller(CONTROLLER_PORT);
+	}
+
+	/**
+	 * Getter for the fold button being pressed.
+	 * @return whether the fold button was pressed
+	 */
+	public boolean isFoldButtonPressed() {
+		return controller.getCircleButtonPressed();
+	}
+
+	/**
+	 * Getter for the intake button being pressed.
+	 * @return whether the intake button was pressed
+	 */
+	public boolean isIntakeButtonPressed() {
+		return controller.getTriangleButtonPressed();
+	}
+
+	/**
+	 * Getter for the intake button being released.
+	 * @return whether the intake button was released
+	 */
+	public boolean isIntakeButtonReleased() {
+		return controller.getTriangleButtonReleased();
+	}
+
+	/**
+	 * Getter for the outtake button being pressed.
+	 * @return whether the outtake button was pressed
+	 */
+	public boolean isOuttakeButtonPressed() {
+		return controller.getSquareButtonPressed();
+	}
+
+	/**
+	 * Getter for the outtake button being released.
+	 * @return whether the outtake button was released
+	 */
+	public boolean isOuttakeButtonReleased() {
+		return controller.getSquareButtonReleased();
 	}
 
 	/* ======================== Public methods ======================== */
@@ -59,14 +103,6 @@ public class TeleopInput {
 	public boolean isShooterButtonPressed() {
 		return leftJoystick.getRawButton(1);
 	}
-	/**
-	 * Get the value of the intake button.
-	 * @return True if button is pressed
-	 */
-	public boolean isIntakeButtonPressed() {
-		return leftJoystick.getRawButton(2);
-	}
-
 	/* ------------------------ Right Joystick ------------------------ */
 	/**
 	 * Get X axis of Right Joystick.
