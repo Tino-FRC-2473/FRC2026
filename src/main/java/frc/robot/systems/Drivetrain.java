@@ -31,7 +31,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	// Max linear & angular speeds
-	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_AT_12_VOLTS;
+	private static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
 	private static final AngularVelocity MAX_ANGULAR_SPEED =
 		DrivetrainConstants.MAX_ANGULAR_VELO_RPS;
 
