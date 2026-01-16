@@ -34,7 +34,7 @@ stateDiagram
   L3E --> L3R:(nextBtn) && isExtended()
   L3R --> LF:isLatched()
   AU --> AI:isLatched()
-  AI --> AD:!(DriverStation.isAutonomous())
+  I --> AD
   AD --> I:isOnGround()
   AU --> AU:!isLatched()
   AI --> AI:(DriverStation.isAutonomous())

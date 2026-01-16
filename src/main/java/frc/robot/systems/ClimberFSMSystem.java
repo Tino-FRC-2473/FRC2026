@@ -15,7 +15,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import static edu.wpi.first.units.Units.Inches;
 
-import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
+//import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -405,21 +405,6 @@ public class ClimberFSMSystem {
 						.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
 			}
 
-		}
-
-
-
-
-
-		if (Boolean.TRUE.equals(climberMotor.getMotionMagicAtTarget().getValue())) {
-			climberTiltMotor.setControl(motionRequest
-					.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
-		}
-		if (Boolean.TRUE.equals(climberMotor.getMotionMagicAtTarget().getValue()
-		// TODO: fix
-				&& Boolean.TRUE.equals(climberTiltMotor.getMotionMagicAtTarget().getValue()))) {
-			climberMotor.setControl(motionRequest.withPosition(0));
-			climberTiltMotor.setControl(motionRequest.withPosition(0));
 		}
 	}
 
