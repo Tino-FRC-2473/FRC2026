@@ -8,6 +8,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.google.flatbuffers.Constants;
 
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
@@ -19,6 +20,8 @@ import frc.robot.TeleopInput;
 import frc.robot.motors.SparkMaxWrapper;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.HardwareMap;
+import frc.robot.constants.Constants;
+import frc.robot.Robot;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
 enum FSMState {
@@ -46,6 +49,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	private TalonFXWrapper pivotMotorRight;
 	private TalonFXWrapper intakeMotor;
 	private DigitalInput groundLimitSwitch;
+	
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -71,6 +75,10 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 		groundLimitSwitch = new DigitalInput(HardwareMap.INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT);
 
 		// Reset state machine
+		pivotMotorLeft.setPosition(0);
+		pivotMotorRight.setPosition(0);
+		intakeMotor.setPosition(0);
+
 		reset();
 	}
 
@@ -147,10 +155,10 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 				}
 
 			case FOLD_OUT_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
+				if (isBottomLimitReached()) {
+					return FSMState.IDLE_OUT_STATE;
 				} else {
-					return FSMState.START_STATE;
+					return FSMState.FOLD_OUT_STATE;
 				}
 
 			case IDLE_OUT_STATE:
@@ -204,6 +212,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleFoldOutState(TeleopInput input) {
+		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.));
+		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.));
 	}
 	/**
 	 * Handle behavior in START_STATE.
@@ -232,6 +242,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleFoldInState(TeleopInput input) {
+		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.pos));
+		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.));
 	}
 
 	/**
@@ -257,4 +269,14 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	private boolean handleAutoState3() {
 		return true;
 	}
+
+	/* ======================== Private methods ======================== */
+	/**
+	 * Getter for the result of the elevator's bottom limit switch.
+	 * @return whether the limit is reached
+	 */
+	private boolean isBottomLimitReached() {
+		return groundLimitSwitch.get(); // switch is normally open
+	}
+
 }
