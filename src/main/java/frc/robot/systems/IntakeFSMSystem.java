@@ -4,10 +4,20 @@ package frc.robot.systems;
 
 // Third party Hardware Imports
 import com.revrobotics.spark.SparkMax;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.TalonFX;
+
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.DigitalInput;
 
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.motors.SparkMaxWrapper;
+import frc.robot.motors.TalonFXWrapper;
 import frc.robot.HardwareMap;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
@@ -27,9 +37,15 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 
 	/* ======================== Private variables ======================== */
 
+	private MotionMagicVoltage motionRequest;
+
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 	private SparkMax exampleMotor;
+	private TalonFXWrapper pivotMotorLeft;
+	private TalonFXWrapper pivotMotorRight;
+	private TalonFXWrapper intakeMotor;
+	private DigitalInput groundLimitSwitch;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -38,10 +54,21 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public IntakeFSMSystem() {
+
+		motionRequest = new MotionMagicVoltage(0);
+
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
 		exampleMotor = new SparkMaxWrapper(HardwareMap.CAN_ID_SPARK_SHOOTER,
 										SparkMax.MotorType.kBrushless);
+
+		//initialize motors
+		pivotMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_PIVOT_LEFT);
+		pivotMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_PIVOT_RIGHT);
+		intakeMotor = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_INTAKE);
+
+		//initialize limit switch
+		groundLimitSwitch = new DigitalInput(HardwareMap.INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT);
 
 		// Reset state machine
 		reset();
