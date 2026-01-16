@@ -56,6 +56,7 @@ public class ClimberFSMSystem {
 	private static final double GROUND = 0.0;
 	private static final Distance targetPosition = Inches.of(0.0);
 
+
 	private boolean firstStageUp = true;
 	private boolean firstStageDown = true;
 
