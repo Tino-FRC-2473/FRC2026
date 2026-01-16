@@ -398,7 +398,12 @@ public class ClimberFSMSystem {
 			}
 		}
 		if (!firstStageDown) {
-			climberMotor.setControl(motionRequest.withPosition(L1_RETRACT_POS))
+			climberMotor.setControl(motionRequest.withPosition(GROUND));
+			if (climberMotor.getMotionMagicAtTarget().getValue()) {
+				climberTiltMotor.setControl(motionRequest
+						.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
+			}
+
 		}
 
 
