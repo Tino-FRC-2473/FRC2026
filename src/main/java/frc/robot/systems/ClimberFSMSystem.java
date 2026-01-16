@@ -7,11 +7,15 @@ import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.HardwareMap;
 import frc.robot.TeleopInput;
 
+import org.littletonrobotics.junction.Logger;
+
 import frc.robot.constants.Constants;
 
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import static edu.wpi.first.units.Units.Inches;
+
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -49,8 +53,11 @@ public class ClimberFSMSystem {
 	private static final double L1_RETRACT_POS = 0.0;
 	private static final double L2_L3_EXTEND_POS = 150.0;
 	private static final double L2_L3_RETRACT_POS = 0.0;
+	private static final double GROUND = 0.0;
+	private static final Distance targetPosition = Inches.of(0.0);
 
-	private boolean firstStage = true;
+	private boolean firstStageUp = true;
+	private boolean firstStageDown = true;
 
 	/**
 	 * Create ClimberFSMSystem and initialize to starting state. Also perform any
@@ -184,10 +191,36 @@ public class ClimberFSMSystem {
 		currentState = nextState(input);
 	}
 
+	public void updateLogging() {
+		Logger.recordOutput("Climber encoder absolute",
+			climberMotor.getPosition().getValueAsDouble());
+		Logger.recordOutput("Climber encoder relative",
+			climberMotor.getPosition().getValueAsDouble());
+		Logger.recordOutput("Climber encoder degrees",
+			climberTiltMotor.getPosition().getValueAsDouble());
+		Logger.recordOutput("Climber velocity", climberMotor.getVelocity().getValueAsDouble());
+		Logger.recordOutput("Climber applied voltage",
+			climberMotor.getMotorVoltage().getValueAsDouble());
+		Logger.recordOutput("Climber state", currentState.toString());
+		Logger.recordOutput("Climber control request", climberMotor.getAppliedControl().toString());
+		Logger.recordOutput("Climber switch pressed?", isGroundLimitSwitchPressed());
+		Logger.recordOutput("Climber target position", targetPosition);
+		Logger.recordOutput("Climber height inches", getClimberHeightInches());
+		Logger.recordOutput("Climber is latched?", isLatched());
+		Logger.recordOutput("Climber is on ground?", isOnGround());
+		Logger.recordOutput("Climber is extended L1?", isExtendedL1());
+		Logger.recordOutput("Climber is extended L2 or L3?", isExtendedL2OrL3());
+		Logger.recordOutput("Climber up first stage?", firstStageUp);
+		Logger.recordOutput("Climber down first stage?", firstStageDown);
+	}
+
 	private double getClimberHeightInches() {
 		return climberMotor.getPosition().getValueAsDouble();
 	}
 
+	private boolean isGroundLimitSwitchPressed() {
+		return groundLimitSwitch.get();
+	}
 	private boolean isLatched() {
 		// TODO Auto-generated method stub
 		return false;
@@ -354,10 +387,18 @@ public class ClimberFSMSystem {
 	}
 
 	private void handleAutoDownState(TeleopInput input) {
-		climberMotor.setControl(motionRequest.withPosition(L1_EXTEND_POS));
-		if (climberMotor.getMotionMagicAtTarget().getValue()) {
-			climberTiltMotor.setControl(motionRequest
-					.withPosition(Constants.CLIMBER_TILT_EXTEND_POS));
+		if (firstStageDown) {
+			climberMotor.setControl(motionRequest.withPosition(L1_EXTEND_POS));
+			if (climberMotor.getMotionMagicAtTarget().getValue()) {
+				climberTiltMotor.setControl(motionRequest
+						.withPosition(Constants.CLIMBER_TILT_EXTEND_POS));
+				if (climberTiltMotor.getMotionMagicAtTarget().getValue()) {
+					firstStageDown = false;
+				}
+			}
+		}
+		if (!firstStageDown) {
+			climberMotor.setControl(motionRequest.withPosition(L1_RETRACT_POS))
 		}
 
 
@@ -377,17 +418,17 @@ public class ClimberFSMSystem {
 	}
 
 	private void handleAutoUpState(TeleopInput input) {
-		if (firstStage) {
+		if (firstStageUp) {
 			climberTiltMotor.setControl(motionRequest
 					.withPosition(Constants.CLIMBER_TILT_EXTEND_POS));
 			if (Boolean.TRUE.equals(climberTiltMotor.getMotionMagicAtTarget().getValue())) {
 				climberMotor.setControl(motionRequest.withPosition(L1_EXTEND_POS));
 				if (Boolean.TRUE.equals(climberMotor.getMotionMagicAtTarget().getValue())) {
-					firstStage = false;
+					firstStageUp = false;
 				}
 			}
 		}
-		if (!firstStage) {
+		if (!firstStageUp) {
 			climberTiltMotor.setControl(motionRequest
 					.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
 			if (Boolean.TRUE.equals(climberMotor.getMotionMagicAtTarget().getValue())) {
