@@ -9,7 +9,7 @@ import com.revrobotics.spark.SparkMax;
 import frc.robot.TeleopInput;
 import frc.robot.motors.SparkMaxWrapper;
 import frc.robot.HardwareMap;
-import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
+
 
 enum FSMState {
 	START_STATE,
@@ -73,18 +73,8 @@ public class ExampleFSMSystem extends FSMSystem<FSMState> {
 		setCurrentState(nextState(input));
 	}
 
-	@Override
-	public boolean updateAutonomous(AutoFSMState autoState) {
-		switch (autoState) {
-			case STATE1:
-				return handleAutoState1();
-			case STATE2:
-				return handleAutoState2();
-			case STATE3:
-				return handleAutoState3();
-			default:
-				return true;
-		}
+	private boolean shouldIntake(TeleopInput input) {
+		return input.isIntakeButtonPressed() || getWantedState() == FSMState.OTHER_STATE;
 	}
 
 	/* ======================== Protected methods ======================== */
@@ -93,7 +83,7 @@ public class ExampleFSMSystem extends FSMSystem<FSMState> {
 	protected FSMState nextState(TeleopInput input) {
 		switch (getCurrentState()) {
 			case START_STATE:
-				if (input != null) {
+				if (input != null && shouldIntake(input)) {
 					return FSMState.OTHER_STATE;
 				} else {
 					return FSMState.START_STATE;

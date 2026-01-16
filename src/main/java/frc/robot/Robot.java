@@ -11,8 +11,6 @@ import frc.robot.systems.ExampleFSMSystem;
 import frc.robot.systems.FSMSystem;
 import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.motors.MotorManager;
-import frc.robot.systems.AutoHandlerSystem;
-import frc.robot.systems.AutoHandlerSystem.AutoPath;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -25,8 +23,6 @@ public class Robot extends TimedRobot {
 	private FSMSystem<?> subSystem1;
 	private ExampleFSMSystem subSystem2;
 	private ExampleFSMSystem subSystem3;
-
-	private AutoHandlerSystem autoHandler;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -50,18 +46,15 @@ public class Robot extends TimedRobot {
 			subSystem1 = new PlaceholderFSMSystem();
 		}
 
-		autoHandler = new AutoHandlerSystem((ExampleFSMSystem) subSystem1, subSystem2, subSystem3);
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
-		autoHandler.reset(AutoPath.PATH1);
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-		autoHandler.update();
 
 		// logs motor values
 		MotorManager.update();
