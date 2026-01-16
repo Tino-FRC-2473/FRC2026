@@ -1,5 +1,7 @@
 package frc.robot.constants;
 
+import static edu.wpi.first.units.Units.Degree;
+
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
@@ -33,6 +35,6 @@ public class Constants {
 	public static final double CLIMBER_POSITION_TOLERANCE_L2_L3 = 0;
 	public static final double CLIMBER_JOYSTICK_DEADBAND = 0;
 	public static final double CLIMBER_MANUAL_SCALE = 0;
-	public static final Angle CLIMBER_TILT_EXTEND_POS = null;
-	public static final Angle CLIMBER_TILT_RETRACT_POS = null;
+	public static final Angle CLIMBER_TILT_EXTEND_POS = Angle.ofRelativeUnits(45, Degree);
+	public static final Angle CLIMBER_TILT_RETRACT_POS = Angle.ofRelativeUnits(0, Degree);
 }
