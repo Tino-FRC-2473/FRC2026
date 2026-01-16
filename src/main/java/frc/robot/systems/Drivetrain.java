@@ -10,7 +10,6 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -31,7 +30,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	// Max linear & angular speeds
-	private static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
+	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
 	private static final AngularVelocity MAX_ANGULAR_SPEED =
 		DrivetrainConstants.MAX_ANGULAR_VELO_RPS;
 
@@ -43,7 +42,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					* DrivetrainConstants.ROTATION_DEADBAND)
 			// Use open-loop for drive motors
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-	private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
 
 	/* ======================== Private variables ======================== */
 
@@ -51,11 +49,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private DrivetrainState currentState;
 	// Drivetrain subsystem instance
 	private CommandSwerveDrivetrain drivetrain;
-
-
-	// Localization variables
-	private Rotation2d rotationAlignmentPose;
-	private boolean hasLocalized = false;
 
 	/**
 	 * Constructs the drivetrain subsystem.
@@ -192,8 +185,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		if (input.isDriverReseedButtonPressed()) {
 			drivetrain.seedFieldCentric();
-			rotationAlignmentPose = new Rotation2d();
-			hasLocalized = false;
 		}
 	}
 
