@@ -16,8 +16,14 @@ public class Constants {
 	public static final double INTAKE_KI = 0.00;
 	public static final double INTAKE_KD = 0.00;
 
+	//Intake Unit Conversion
+	public static final double INTAKE_ROTS_TO_INCHES = 15 / (2 * Math.PI);
+
 	public static final double INTAKE_CRUISE_VELO = 600;
 	public static final double INTAKE_TARGET_ACCEL = 1800;
 	public static final double INTAKE_EXPO_KV = 0.12;
+
+	//other
+	public static final int UPDATE_FREQUENCY_HZ = 100;
 }
   

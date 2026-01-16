@@ -4,23 +4,30 @@ package frc.robot.systems;
 
 // Third party Hardware Imports
 import com.revrobotics.spark.SparkMax;
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.google.flatbuffers.Constants;
+import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DigitalInput;
 
+import static edu.wpi.first.units.Units.Inches;
+
 // Robot Imports
+import frc.robot.constants.Constants;
 import frc.robot.TeleopInput;
 import frc.robot.motors.SparkMaxWrapper;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.HardwareMap;
-import frc.robot.constants.Constants;
 import frc.robot.Robot;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
@@ -49,6 +56,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	private TalonFXWrapper pivotMotorRight;
 	private TalonFXWrapper intakeMotor;
 	private DigitalInput groundLimitSwitch;
+	private DigitalInput topLimitSwitch;
+	
 	
 
 	/* ======================== Constructor ======================== */
@@ -61,6 +70,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 
 		motionRequest = new MotionMagicVoltage(0);
 
+
+
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
 		exampleMotor = new SparkMaxWrapper(HardwareMap.CAN_ID_SPARK_SHOOTER,
@@ -69,10 +80,89 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 		//initialize motors
 		pivotMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_PIVOT_LEFT);
 		pivotMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_PIVOT_RIGHT);
+
+		
 		intakeMotor = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_INTAKE);
+
+		var talonFXConfigs = new TalonFXConfiguration();
+
+		pivotMotorLeft.setControl(new Follower(pivotMotorRight.getDeviceID(), MotorAlignmentValue.Opposed));
+		
+		var outputConfigs = talonFXConfigs.MotorOutput;
+		outputConfigs.NeutralMode = NeutralModeValue.Brake; 
+
+		// apply sw limit
+		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
+		swLimitSwitch.ForwardSoftLimitEnable = true; // enable top limit
+		swLimitSwitch.ReverseSoftLimitEnable = true; // enable bottom limit
+		swLimitSwitch.ForwardSoftLimitThreshold = Constants.INTAKE_UPPER_TARGET.in;
+		swLimitSwitch.ReverseSoftLimitThreshold = Inches.of(0).in(Inches);
+
+		var sensorConfig = talonFXConfigs.Feedback;
+		sensorConfig.SensorToMechanismRatio = Constants.INTAKE_ROTS_TO_INCHES;
+
+		var slot0Configs = talonFXConfigs.Slot0;
+		slot0Configs.GravityType = GravityTypeValue.Elevator_Static;
+		slot0Configs.kG = Constants.INTAKE_KG;
+		slot0Configs.kS = Constants.INTAKE_KS;
+		slot0Configs.kV = Constants.INTAKE_KV;
+		slot0Configs.kA = Constants.INTAKE_KA;
+		slot0Configs.kP = Constants.INTAKE_KP;
+		slot0Configs.kI = Constants.INTAKE_KI;
+		slot0Configs.kD = Constants.INTAKE_KD;
+		slot0Configs.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
+
+		var motionMagicConfigs = talonFXConfigs.MotionMagic;
+		motionMagicConfigs.MotionMagicCruiseVelocity = Constants.INTAKE_CRUISE_VELO;
+		motionMagicConfigs.MotionMagicAcceleration = Constants.INTAKE_TARGET_ACCEL;
+		motionMagicConfigs.MotionMagicExpo_kV = Constants.INTAKE_EXPO_KV;
+
+		pivotMotorLeft.getConfigurator().apply(talonFXConfigs);
+
+		BaseStatusSignal.setUpdateFrequencyForAll(
+				Constants.UPDATE_FREQUENCY_HZ,
+				pivotMotorLeft.getPosition(),
+				pivotMotorLeft.getVelocity(),
+				pivotMotorLeft.getAcceleration(),
+				pivotMotorLeft.getMotorVoltage(),
+				pivotMotorLeft.getRotorPosition(),
+				pivotMotorLeft.getRotorVelocity()
+		);
+
+		pivotMotorLeft.optimizeBusUtilization();
+
+		pivotMotorRight.getConfigurator().apply(talonFXConfigs);
+
+		BaseStatusSignal.setUpdateFrequencyForAll(
+				Constants.UPDATE_FREQUENCY_HZ,
+				pivotMotorRight.getPosition(),
+				pivotMotorRight.getVelocity(),
+				pivotMotorRight.getAcceleration(),
+				pivotMotorRight.getMotorVoltage(),
+				pivotMotorRight.getRotorPosition(),
+				pivotMotorRight.getRotorVelocity()
+		);
+
+		pivotMotorRight.optimizeBusUtilization();
+
+		intakeMotor.getConfigurator().apply(talonFXConfigs);
+
+		BaseStatusSignal.setUpdateFrequencyForAll(
+				Constants.UPDATE_FREQUENCY_HZ,
+				intakeMotor.getPosition(),
+				intakeMotor.getVelocity(),
+				intakeMotor.getAcceleration(),
+				intakeMotor.getMotorVoltage(),
+				intakeMotor.getRotorPosition(),
+				intakeMotor.getRotorVelocity()
+		);
+
+		intakeMotor.optimizeBusUtilization();
+			
 
 		//initialize limit switch
 		groundLimitSwitch = new DigitalInput(HardwareMap.INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT);
+		topLimitSwitch = new DigitalInput(HardwareMap.INTAKE_TOP_LIMIT_SWITCH_DIO_PORT);
 
 		// Reset state machine
 		pivotMotorLeft.setPosition(0);
@@ -187,10 +277,10 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 				}
 
 			case FOLD_IN_STATE:
-				if (input != null) {
-					return FSMState.OTHER_STATE;
+				if (isTopLimitReached()) {
+					return FSMState.IDLE_IN_STATE;
 				} else {
-					return FSMState.START_STATE;
+					return FSMState.FOLD_IN_STATE;
 				}
 
 			default:
@@ -243,7 +333,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 */
 	private void handleFoldInState(TeleopInput input) {
 		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.pos));
-		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.));
+		pivotMotorRight.setControl(motionRequest.withPosition(null));
 	}
 
 	/**
@@ -263,6 +353,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	}
 
 	/**
+	 * |
 	 * Performs action for auto STATE3.
 	 * @return if the action carried out has finished executing
 	 */
@@ -277,6 +368,10 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 */
 	private boolean isBottomLimitReached() {
 		return groundLimitSwitch.get(); // switch is normally open
+	}
+
+	private boolean isTopLimitReached() {
+		return topLimitSwitch.get(); // switch is normally open
 	}
 
 }
