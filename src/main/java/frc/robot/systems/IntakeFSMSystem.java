@@ -302,8 +302,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleFoldOutState(TeleopInput input) {
-		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.));
-		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.));
+		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.INTAKE_GROUND_TARGET));
 	}
 	/**
 	 * Handle behavior in START_STATE.
@@ -332,8 +331,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleFoldInState(TeleopInput input) {
-		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.pos));
-		pivotMotorRight.setControl(motionRequest.withPosition(null));
+		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.INTAKE_UPPER_TARGET));
 	}
 
 	/**
