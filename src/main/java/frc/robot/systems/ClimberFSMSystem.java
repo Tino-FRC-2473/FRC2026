@@ -1,9 +1,10 @@
 package frc.robot.systems;
 
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DriverStation;
+
 import frc.robot.HardwareMap;
 import frc.robot.TeleopInput;
 
@@ -31,8 +32,8 @@ public class ClimberFSMSystem {
 		L1_EXTEND,
 		L1_RETRACT,
 		AUTO_DOWN,
-		AUTO_UP,
-		AUTO_IDLE,
+		AUTO_UP_1,
+		AUTO_UP_2,
 		LOCKED_FINAL
 	}
 
@@ -45,13 +46,13 @@ public class ClimberFSMSystem {
 	// TODO: Update these positions based on actual climber design
 	// private static final Distance EXAMPLE_POS = Inches.of(100.0);
 	private static final double L1_EXTEND_POS = 100.0;
-	private static final double L1_RETRACT_POS = 0.0;
+	private static final double L1_RETRACT_POS = 5.0;
 	private static final double GROUND = 0.0;
 	private static final Distance TARGET_POSITION = Inches.of(0.0);
 
 
-	private boolean firstStageUp = true;
-	private boolean firstStageDown = true;
+
+
 
 	/**
 	 * Create ClimberFSMSystem and initialize to starting state. Also perform any
@@ -102,10 +103,7 @@ public class ClimberFSMSystem {
 
 		climberMotor.setPosition(0);
 
-
-		climberMotor.setPosition(0);
 	}
-
 	/**
 	 * Get the current FSM state.
 	 *
@@ -146,8 +144,8 @@ public class ClimberFSMSystem {
 			case L1_EXTEND -> handleL1ExtendState(input);
 			case L1_RETRACT -> handleL1RetractState(input);
 			case AUTO_DOWN -> handleAutoDownState(input);
-			case AUTO_UP -> handleAutoUpState(input);
-			case AUTO_IDLE -> handleIdleState(input);
+			case AUTO_UP_1 -> handleL1ExtendState(input);
+			case AUTO_UP_2 -> handleL1RetractState(input);
 			case LOCKED_FINAL -> handleIdleState(input);
 			default -> throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -172,7 +170,6 @@ public class ClimberFSMSystem {
 		Logger.recordOutput("Climber switch pressed?", isGroundLimitSwitchPressed());
 		Logger.recordOutput("Climber target position", TARGET_POSITION);
 		Logger.recordOutput("Climber height inches", getClimberHeightInches());
-		Logger.recordOutput("Climber is latched?", isLatched());
 		Logger.recordOutput("Climber is on ground?", isOnGround());
 		Logger.recordOutput("Climber is extended L1?", isExtendedL1());
 		Logger.recordOutput("Climber up first stage?", firstStageUp);
@@ -186,10 +183,7 @@ public class ClimberFSMSystem {
 	private boolean isGroundLimitSwitchPressed() {
 		return groundLimitSwitch.get();
 	}
-	private boolean isLatched() {
-		// TODO Auto-generated method stub
-		return false;
-	}
+
 
 	private boolean isOnGround() {
 		return groundLimitSwitch.get();
@@ -198,6 +192,11 @@ public class ClimberFSMSystem {
 	private boolean isExtendedL1() {
 		double height = getClimberHeightInches();
 		return height >= L1_EXTEND_POS - Constants.CLIMBER_POSITION_TOLERANCE_L1;
+	}
+
+	private boolean isRetractedL1() {
+		double height = getClimberHeightInches();
+		return height <= L1_RETRACT_POS + Constants.CLIMBER_POSITION_TOLERANCE_L1;
 	}
 
 	private ClimberFSMState nextState(TeleopInput input) {
@@ -219,16 +218,16 @@ public class ClimberFSMSystem {
 					return ClimberFSMState.IDLE;
 				}
 				return ClimberFSMState.IDLE;
-			case AUTO_UP:
-				if (isLatched()) {
-					return ClimberFSMState.AUTO_IDLE;
+			case AUTO_UP_1:
+				if (isExtendedL1()) {
+					return ClimberFSMState.IDLE;
 				}
-				return ClimberFSMState.AUTO_UP;
-			case AUTO_IDLE:
-				if (!DriverStation.isAutonomous()) {
-					return ClimberFSMState.AUTO_DOWN;
+				return ClimberFSMState.AUTO_UP_1;
+			case AUTO_UP_2:
+				if (isRetractedL1()) {
+					return ClimberFSMState.IDLE;
 				}
-				return ClimberFSMState.AUTO_IDLE;
+				return ClimberFSMState.AUTO_UP_2;
 			case AUTO_DOWN:
 				if (isOnGround()) {
 					return ClimberFSMState.IDLE;
@@ -290,24 +289,4 @@ public class ClimberFSMSystem {
 		}
 	}
 
-	private void handleAutoUpState(TeleopInput input) {
-		if (firstStageUp) {
-			// climberTiltMotor.setControl(motionRequest
-			// 		.withPosition(Constants.CLIMBER_TILT_EXTEND_POS));
-			if (Boolean.TRUE.equals(climberTiltMotor.getMotionMagicAtTarget().getValue())) {
-				climberMotor.setControl(motionRequest.withPosition(L1_EXTEND_POS));
-				if (Boolean.TRUE.equals(climberMotor.getMotionMagicAtTarget().getValue())) {
-					firstStageUp = false;
-				}
-			}
-		}
-		if (!firstStageUp) {
-			// climberTiltMotor.setControl(motionRequest
-			// 		.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
-			if (Boolean.TRUE.equals(climberMotor.getMotionMagicAtTarget().getValue())) {
-				climberMotor.setControl(motionRequest.withPosition(L1_RETRACT_POS));
-			}
-		}
-
-	}
 }
