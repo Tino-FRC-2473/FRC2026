@@ -5,11 +5,14 @@ package frc.robot;
 
 // WPILib Imports
 import edu.wpi.first.wpilibj.TimedRobot;
-
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.systems.Auto;
 // Systems
 import frc.robot.systems.ExampleFSMSystem;
 import frc.robot.systems.FSMSystem;
 import frc.robot.systems.PlaceholderFSMSystem;
+import frc.robot.systems.TestFSMSystem;
 import frc.robot.motors.MotorManager;
 
 /**
@@ -21,7 +24,7 @@ public class Robot extends TimedRobot {
 
 	// Systems
 	private FSMSystem<?> subSystem1;
-	private ExampleFSMSystem subSystem2;
+	private TestFSMSystem subSystem2;
 	private ExampleFSMSystem subSystem3;
 
 	/**
@@ -34,7 +37,7 @@ public class Robot extends TimedRobot {
 		input = new TeleopInput();
 
 		// Instantiate all systems here
-		subSystem2 = new ExampleFSMSystem();
+		subSystem2 = new TestFSMSystem();
 		subSystem3 = new ExampleFSMSystem();
 
 		// you can swap out FSM systems if neccesary
@@ -51,11 +54,18 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
+		subSystem1.reset();
+		subSystem2.reset();
+		subSystem3.reset();
+		CommandScheduler.getInstance().schedule(
+			Auto.getAuto(subSystem2)
+		);
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-
+		subSystem2.update(null);
+		CommandScheduler.getInstance().run();
 		// logs motor values
 		MotorManager.update();
 	}

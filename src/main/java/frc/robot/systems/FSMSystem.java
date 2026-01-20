@@ -116,7 +116,7 @@ public abstract class FSMSystem<S> {
 				throw new IllegalStateException("Same FSM observed state commands cannot be parralelized");
 			}
 			isObserved = true;
-			setCurrentState(wantedState);
+			setWantedState(wantedState);
 		}
 
 		@Override
@@ -140,6 +140,7 @@ public abstract class FSMSystem<S> {
 		@Override
 		public void end(boolean interrupted) {
 			super.end(interrupted);
+			setWantedState(null);
 			isObserved = false;
 		}
 
@@ -156,12 +157,12 @@ public abstract class FSMSystem<S> {
 	}
 
 	/**
-	 * Constructs and returns an observed state command with END_ON_ENTRY exit behavior.
+	 * Constructs and returns an observed state command with END_ON_EXIT exit behavior.
 	 * @param goalState the goal & exit state.
 	 * @return the command.
 	 */
 	public Command getStateCommand(S state) {
-		return new ObservedStateCommand(state, state, ExitBehavior.END_ON_ENTRY);
+		return new ObservedStateCommand(state, state, ExitBehavior.END_ON_EXIT);
 	}
 
 	/**

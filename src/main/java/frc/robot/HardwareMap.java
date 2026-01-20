@@ -34,6 +34,6 @@ public final class HardwareMap {
 	 * @return if the hardware for the example FSM is present
 	 */
 	public static boolean isExampleFSMEnabled() {
-		return true;
+		return false;
 	}
 }
