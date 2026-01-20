@@ -20,16 +20,18 @@ stateDiagram
   L1R --> LF
   L1E --> I:emergencyAbort()
   L1R --> I:emergencyAbort()
-  I --> AD
   AD --> I:isOnGround()
   AU1 --> I:L1_EXTEND
   AU2 --> I:L1_RETRACT
-  AD --> AD:!isOnGround()
+  I --> AD1: autoDownBtn
+  AD1 --> AD2: autoDownBtn
   I:IDLE
   MDC:MANUAL_DIRECT_CONTROL
   L1E:L1_EXTEND
   L1R:L1_RETRACT
   LF:LOCKED_FINAL
   AU1:AUTO_UP_ONE
-  AD:AUTO_DOWN
   AU2:AUTO_UP_TWO
+  AD1:AUTO_DOWN_ONE
+  AD2:AUTO_DOWN_TWO
+  

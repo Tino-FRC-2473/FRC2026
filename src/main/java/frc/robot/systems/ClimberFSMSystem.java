@@ -228,7 +228,7 @@ public class ClimberFSMSystem {
 				return ClimberFSMState.AUTO_UP_2;
 			case AUTO_DOWN:
 				if (isOnGround()) {
-					//TODO: retract climber back to 0
+					handleResetToZero();
 					return ClimberFSMState.IDLE;
 				}
 				return ClimberFSMState.AUTO_DOWN;
@@ -276,6 +276,14 @@ public class ClimberFSMSystem {
 	private void handleL1RetractState(TeleopInput input) {
 		if (climberMotor.getMotionMagicAtTarget().getValue()) {
 			climberMotor.setControl(motionRequest.withPosition(L1_RETRACT_POS));
+		}
+	}
+
+	private void handleResetToZero() {
+		if (isGroundLimitSwitchPressed()) {
+			climberMotor.set(0);
+		} else {
+			climberMotor.setControl(motionRequest.withPosition(GROUND));
 		}
 	}
 }
