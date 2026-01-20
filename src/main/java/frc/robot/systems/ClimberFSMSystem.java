@@ -54,6 +54,7 @@ public class ClimberFSMSystem {
 	private static final double L1_RETRACT_POS = 5.0;
 	private static final double GROUND = 0.0;
 	private static final Distance TARGET_POSITION = Inches.of(0.0);
+	private static boolean isAutoDownUsed = false;
 
 
 
@@ -216,7 +217,8 @@ public class ClimberFSMSystem {
 
 		switch (currentState) {
 			case IDLE:
-				if (input.isDownButtonPressed()) {
+				if (input.isDownButtonPressed() && (!isAutoDownUsed)) {
+					isAutoDownUsed = true;
 					return ClimberFSMState.AUTO_DOWN_1;
 				}
 				if (input.isManualOverideButtonPressed()) {
