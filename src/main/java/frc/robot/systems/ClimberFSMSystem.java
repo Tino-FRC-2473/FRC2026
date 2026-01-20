@@ -289,7 +289,7 @@ public class ClimberFSMSystem {
 		}
 	}
 
-	private void handleResetToZero() {
+	private void handleResetToZero(TeleopInput input) {
 		if (isGroundLimitSwitchPressed()) {
 			climberMotor.set(0);
 		} else {
