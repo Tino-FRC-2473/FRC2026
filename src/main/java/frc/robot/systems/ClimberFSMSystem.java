@@ -180,7 +180,8 @@ public class ClimberFSMSystem {
 		Logger.recordOutput("Climber switch pressed?", isGroundLimitSwitchPressed());
 		Logger.recordOutput("Climber height inches", getClimberHeightInches());
 		Logger.recordOutput("Climber is at bottom?", isGroundLimitSwitchPressed());
-		Logger.recordOutput("Climber is extended L1?", getClimberHeightInches() >= L1_EXTEND_POS - Constants.CLIMBER_POSITION_TOLERANCE_L1);
+		Logger.recordOutput("Climber is extended L1?", getClimberHeightInches()
+			>= L1_EXTEND_POS - Constants.CLIMBER_POSITION_TOLERANCE_L1);
 	}
 
 	private double getClimberHeightInches() {
