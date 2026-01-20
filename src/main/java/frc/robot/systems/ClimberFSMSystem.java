@@ -170,7 +170,7 @@ public class ClimberFSMSystem {
 		Logger.recordOutput("Climber switch pressed?", isGroundLimitSwitchPressed());
 		Logger.recordOutput("Climber target position", TARGET_POSITION);
 		Logger.recordOutput("Climber height inches", getClimberHeightInches());
-		Logger.recordOutput("Climber is on ground?", isOnGround());
+		Logger.recordOutput("Climber is at bottom?", isGroundLimitSwitchPressed());
 		Logger.recordOutput("Climber is extended L1?", isExtendedL1());
 	}
 
@@ -178,12 +178,7 @@ public class ClimberFSMSystem {
 		return climberMotor.getPosition().getValueAsDouble();
 	}
 
-	private boolean isGroundLimitSwitchPressed() {
-		return groundLimitSwitch.get();
-	}
-
-
-	private boolean isOnGround() {
+	private boolean isGroundLimitSwitchPressed(){
 		return groundLimitSwitch.get();
 	}
 
@@ -256,10 +251,10 @@ public class ClimberFSMSystem {
 	private void handleManualDirectControlState(TeleopInput input) {
 		double manualControlValue = MathUtil.applyDeadband(input.getClimberManualControl(),
 				Constants.CLIMBER_JOYSTICK_DEADBAND);
-		if (isOnGround()) {
+		if (isGroundLimitSwitchPressed()) {
 			climberMotor.setPosition(0);
 		}
-		if (!(isOnGround() && manualControlValue < 0)) {
+		if (!(isGroundLimitSwitchPressed() && manualControlValue < 0)) {
 			climberMotor.set(manualControlValue * Constants.CLIMBER_MANUAL_SCALE);
 		} else {
 			climberMotor.set(0);
