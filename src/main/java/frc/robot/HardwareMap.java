@@ -14,7 +14,7 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_DRIVE_BACK_LEFT = 4;
 	public static final int CAN_ID_SPARK_SHOOTER = 5;
 	// TODO: Update this CAN ID when the climber motor controller is added
-	public static final int CAN_ID_CLIMBER = 6;
+	public static final int CAN_ID_CLIMBER_LEFT = 6;
 	public static final int CAN_ID_CLIMBER_TILT = 7;
 
 	// Pneumatics channel numbers

@@ -12,6 +12,7 @@ import org.littletonrobotics.junction.Logger;
 
 import frc.robot.constants.Constants;
 
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import static edu.wpi.first.units.Units.Inches;
@@ -22,6 +23,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 //import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
@@ -39,7 +41,8 @@ public class ClimberFSMSystem {
 		LOCKED_FINAL
 	}
 
-	private final TalonFX climberMotor;
+	private final TalonFX climberMotorLeft;
+	private final TalonFX climberMotorRight;
 	private final DigitalInput groundLimitSwitch;
 
 	private ClimberFSMState currentState;
@@ -62,7 +65,8 @@ public class ClimberFSMSystem {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public ClimberFSMSystem() {
-		climberMotor = new TalonFX(HardwareMap.CAN_ID_CLIMBER);
+		climberMotorLeft = new TalonFX(HardwareMap.CAN_ID_CLIMBER_LEFT);
+		climberMotorRight = new TalonFX(HardwareMap.CAN_ID_CLIMBER_RIGHT);
 
 		motionRequest = new MotionMagicVoltage(0);
 		configureMotor();
@@ -71,6 +75,8 @@ public class ClimberFSMSystem {
 	}
 
 	private void configureMotor() {
+
+		climberMotorRight.setControl(new Follower(climberMotorLeft.getDeviceID(), MotorAlignmentValue.Opposed));
 		var talonFXConfigs = new TalonFXConfiguration();
 		var outputConfigs = talonFXConfigs.MotorOutput;
 		outputConfigs.NeutralMode = NeutralModeValue.Brake;
@@ -101,9 +107,11 @@ public class ClimberFSMSystem {
 		motionMagicConfigs.MotionMagicAcceleration = Constants.CLIMBER_TARGET_ACCEL;
 		motionMagicConfigs.MotionMagicExpo_kV = Constants.CLIMBER_EXPO_KV;
 
-		climberMotor.getConfigurator().apply(talonFXConfigs);
+		climberMotorLeft.getConfigurator().apply(talonFXConfigs);
+		climberMotorRight.getConfigurator().apply(talonFXConfigs);
 
-		climberMotor.setPosition(0);
+		climberMotorLeft.setPosition(0);
+		climberMotorRight.setPosition(0);
 
 	}
 	/**
@@ -162,14 +170,14 @@ public class ClimberFSMSystem {
 
 	public void updateLogging() {
 		Logger.recordOutput("Climber encoder absolute",
-			climberMotor.getPosition().getValueAsDouble());
+			climberMotorLeft.getPosition().getValueAsDouble());
 		Logger.recordOutput("Climber encoder relative",
-			climberMotor.getPosition().getValueAsDouble());
-		Logger.recordOutput("Climber velocity", climberMotor.getVelocity().getValueAsDouble());
+			climberMotorLeft.getPosition().getValueAsDouble());
+		Logger.recordOutput("Climber velocity", climberMotorLeft.getVelocity().getValueAsDouble());
 		Logger.recordOutput("Climber applied voltage",
-			climberMotor.getMotorVoltage().getValueAsDouble());
+			climberMotorLeft.getMotorVoltage().getValueAsDouble());
 		Logger.recordOutput("Climber state", currentState.toString());
-		Logger.recordOutput("Climber control request", climberMotor.getAppliedControl().toString());
+		Logger.recordOutput("Climber control request", climberMotorLeft.getAppliedControl().toString());
 		Logger.recordOutput("Climber switch pressed?", isGroundLimitSwitchPressed());
 		Logger.recordOutput("Climber target position", TARGET_POSITION);
 		Logger.recordOutput("Climber height inches", getClimberHeightInches());
@@ -178,7 +186,7 @@ public class ClimberFSMSystem {
 	}
 
 	private double getClimberHeightInches() {
-		return climberMotor.getPosition().getValueAsDouble();
+		return climberMotorLeft.getPosition().getValueAsDouble();
 	}
 
 	private boolean isGroundLimitSwitchPressed(){
@@ -260,40 +268,40 @@ public class ClimberFSMSystem {
 	}
 
 	private void handleIdleState(TeleopInput input) {
-		climberMotor.set(0);
+		climberMotorLeft.set(0);
 	}
 
 	private void handleManualDirectControlState(TeleopInput input) {
 		double manualControlValue = MathUtil.applyDeadband(input.getClimberManualControl(),
 				Constants.CLIMBER_JOYSTICK_DEADBAND);
 		if (isGroundLimitSwitchPressed()) {
-			climberMotor.setPosition(0);
+			climberMotorLeft.setPosition(0);
 		}
 		if (!(isGroundLimitSwitchPressed() && manualControlValue < 0)) {
-			climberMotor.set(manualControlValue * Constants.CLIMBER_MANUAL_SCALE);
+			climberMotorLeft.set(manualControlValue * Constants.CLIMBER_MANUAL_SCALE);
 		} else {
-			climberMotor.set(0);
+			climberMotorLeft.set(0);
 		}
 	}
 
 	private void handleL1ExtendState(TeleopInput input) {
-		if (climberMotor.getMotionMagicAtTarget().getValue()) {
-			climberMotor.setControl(motionRequest.withPosition(L1_EXTEND_POS));
+		if (climberMotorLeft.getMotionMagicAtTarget().getValue()) {
+			climberMotorLeft.setControl(motionRequest.withPosition(L1_EXTEND_POS));
 		}
 
 	}
 
 	private void handleL1RetractState(TeleopInput input) {
-		if (climberMotor.getMotionMagicAtTarget().getValue()) {
-			climberMotor.setControl(motionRequest.withPosition(L1_RETRACT_POS));
+		if (climberMotorLeft.getMotionMagicAtTarget().getValue()) {
+			climberMotorLeft.setControl(motionRequest.withPosition(L1_RETRACT_POS));
 		}
 	}
 
 	private void handleResetToZero(TeleopInput input) {
 		if (isGroundLimitSwitchPressed()) {
-			climberMotor.set(0);
+			climberMotorLeft.set(0);
 		} else {
-			climberMotor.setControl(motionRequest.withPosition(GROUND));
+			climberMotorLeft.setControl(motionRequest.withPosition(GROUND));
 		}
 	}
 }

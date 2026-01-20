@@ -69,6 +69,10 @@ public class TeleopInput {
 		return leftJoystick.getRawButton(2);
 	}
 
+	public boolean isDownButtonPressed() {
+		return true;
+	}
+
 	/* ------------------------ Right Joystick ------------------------ */
 	/**
 	 * Get X axis of Right Joystick.
