@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.input;
 
 // WPILib Imports
 import edu.wpi.first.wpilibj.Joystick;
@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.Joystick;
  * polling input values. Systems may query TeleopInput via its getter methods
  * for inputs by value, but may not access the internal input objects.
  */
-public class TeleopInput {
+public final class TeleopInput implements Input {
 	/* ======================== Constants ======================== */
 	private static final int LEFT_JOYSTICK_PORT = 0;
 	private static final int RIGHT_JOYSTICK_PORT = 1;
@@ -38,47 +38,35 @@ public class TeleopInput {
 	// control mapping is hidden from other classes.
 
 	/* ------------------------ Left Joystick ------------------------ */
-	/**
-	 * Get X axis of Left Joystick.
-	 * @return Axis value
-	 */
+
+	@Override
 	public double getLeftJoystickX() {
 		return leftJoystick.getX();
 	}
-	/**
-	 * Get Y axis of Left Joystick.
-	 * @return Axis value
-	 */
+
+	@Override
 	public double getLeftJoystickY() {
 		return leftJoystick.getY();
 	}
-	/**
-	 * Get the value of the shooter button.
-	 * @return True if button is pressed
-	 */
+
+	@Override
 	public boolean isShooterButtonPressed() {
 		return leftJoystick.getRawButton(1);
 	}
-	/**
-	 * Get the value of the intake button.
-	 * @return True if button is pressed
-	 */
+
+	@Override
 	public boolean isIntakeButtonPressed() {
 		return leftJoystick.getRawButton(2);
 	}
 
 	/* ------------------------ Right Joystick ------------------------ */
-	/**
-	 * Get X axis of Right Joystick.
-	 * @return Axis value
-	 */
+
+	@Override
 	public double getRightJoystickX() {
 		return rightJoystick.getX();
 	}
-	/**
-	 * Get Y axis of Right Joystick.
-	 * @return Axis value
-	 */
+
+	@Override
 	public double getRightJoystickY() {
 		return rightJoystick.getY();
 	}

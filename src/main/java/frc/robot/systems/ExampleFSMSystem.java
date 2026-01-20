@@ -5,10 +5,9 @@ package frc.robot.systems;
 // Third party Hardware Imports
 import com.revrobotics.spark.SparkMax;
 
-// Robot Imports
-import frc.robot.TeleopInput;
 import frc.robot.motors.SparkMaxWrapper;
 import frc.robot.HardwareMap;
+import frc.robot.input.Input;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
 enum FSMState {
@@ -57,7 +56,7 @@ public class ExampleFSMSystem extends FSMSystem<FSMState> {
 	}
 
 	@Override
-	public void update(TeleopInput input) {
+	public void update(Input input) {
 		switch (getCurrentState()) {
 			case START_STATE:
 				handleStartState(input);
@@ -90,7 +89,7 @@ public class ExampleFSMSystem extends FSMSystem<FSMState> {
 	/* ======================== Protected methods ======================== */
 
 	@Override
-	protected FSMState nextState(TeleopInput input) {
+	protected FSMState nextState(Input input) {
 		switch (getCurrentState()) {
 			case START_STATE:
 				if (input != null) {
@@ -110,18 +109,18 @@ public class ExampleFSMSystem extends FSMSystem<FSMState> {
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartState(TeleopInput input) {
+	private void handleStartState(Input input) {
 		exampleMotor.set(0);
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleOtherState(TeleopInput input) {
+	private void handleOtherState(Input input) {
 		exampleMotor.set(MOTOR_RUN_POWER);
 	}
 

@@ -1,6 +1,6 @@
 package frc.robot.systems;
 
-import frc.robot.TeleopInput;
+import frc.robot.input.TeleopInput;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
 enum IdentityStateSpace {

@@ -1,6 +1,7 @@
 package frc.robot.systems;
 
-import frc.robot.TeleopInput;
+import frc.robot.input.Input;
+import frc.robot.input.TeleopInput;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
 /**
@@ -57,10 +58,9 @@ public abstract class FSMSystem<S> {
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *		the robot is in autonomous mode.
+	 * @param input Global Input reflecting the input to the robot
 	 */
-	public abstract void update(TeleopInput input);
+	public abstract void update(Input input);
 
 	/**
 	 * Performs specific action based on the autoState passed in.
