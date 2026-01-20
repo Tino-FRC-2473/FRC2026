@@ -2,23 +2,16 @@ package frc.robot.systems;
 
 // WPILib Imports
 
-// Third party Hardware Imports
-import com.revrobotics.spark.SparkMax;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DigitalInput;
 
 import static edu.wpi.first.units.Units.Inches;
@@ -27,10 +20,8 @@ import static edu.wpi.first.units.Units.Radians;
 // Robot Imports
 import frc.robot.constants.Constants;
 import frc.robot.TeleopInput;
-import frc.robot.motors.SparkMaxWrapper;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.HardwareMap;
-import frc.robot.Robot;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
 enum FSMState {
@@ -45,8 +36,6 @@ enum FSMState {
 public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	/* ======================== Constants ======================== */
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
-
 	/* ======================== Private variables ======================== */
 
 	private MotionMagicVoltage pivotMotionRequest;
@@ -54,7 +43,6 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private SparkMax exampleMotor;
 	private TalonFXWrapper pivotMotorLeft;
 	private TalonFXWrapper pivotMotorRight;
 	private TalonFXWrapper intakeMotor;
@@ -78,8 +66,6 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
-		exampleMotor = new SparkMaxWrapper(HardwareMap.CAN_ID_SPARK_SHOOTER,
-										SparkMax.MotorType.kBrushless);
 
 		//initialize motors
 		pivotMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_PIVOT_LEFT);
@@ -324,7 +310,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleFoldOutState(TeleopInput input) {
-		pivotMotorLeft.setControl(pivotMotionRequest.withPosition(Constants.INTAKE_GROUND_TARGET));
+		pivotMotorRight.setControl(pivotMotionRequest.withPosition(Constants.INTAKE_GROUND_TARGET));
 	}
 	/**
 	 * Handle behavior in START_STATE.
@@ -355,7 +341,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleFoldInState(TeleopInput input) {
-		pivotMotorLeft.setControl(pivotMotionRequest.withPosition(Constants.INTAKE_UPPER_TARGET));
+		pivotMotorRight.setControl(pivotMotionRequest.withPosition(Constants.INTAKE_UPPER_TARGET));
 	}
 
 	/**
