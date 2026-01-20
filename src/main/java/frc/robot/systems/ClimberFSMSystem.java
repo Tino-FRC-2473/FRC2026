@@ -30,10 +30,6 @@ public class ClimberFSMSystem {
 		MANUAL_DIRECT_CONTROL,
 		L1_EXTEND,
 		L1_RETRACT,
-		L2_EXTEND,
-		L2_RETRACT,
-		L3_EXTEND,
-		L3_RETRACT,
 		AUTO_DOWN,
 		AUTO_UP,
 		AUTO_IDLE,
@@ -41,7 +37,6 @@ public class ClimberFSMSystem {
 	}
 
 	private final TalonFX climberMotor;
-	private final TalonFX climberTiltMotor;
 	private final DigitalInput groundLimitSwitch;
 
 	private ClimberFSMState currentState;
@@ -51,8 +46,6 @@ public class ClimberFSMSystem {
 	// private static final Distance EXAMPLE_POS = Inches.of(100.0);
 	private static final double L1_EXTEND_POS = 100.0;
 	private static final double L1_RETRACT_POS = 0.0;
-	private static final double L2_L3_EXTEND_POS = 150.0;
-	private static final double L2_L3_RETRACT_POS = 0.0;
 	private static final double GROUND = 0.0;
 	private static final Distance TARGET_POSITION = Inches.of(0.0);
 
@@ -67,7 +60,6 @@ public class ClimberFSMSystem {
 	 */
 	public ClimberFSMSystem() {
 		climberMotor = new TalonFX(HardwareMap.CAN_ID_CLIMBER);
-		climberTiltMotor = new TalonFX(HardwareMap.CAN_ID_CLIMBER_TILT);
 
 		motionRequest = new MotionMagicVoltage(0);
 		configureMotor();
@@ -110,31 +102,6 @@ public class ClimberFSMSystem {
 
 		climberMotor.setPosition(0);
 
-		var tiltConfigs = new TalonFXConfiguration();
-		var tiltOutputConfigs = tiltConfigs.MotorOutput;
-		tiltOutputConfigs.NeutralMode = NeutralModeValue.Brake;
-
-		var sensorTiltconfig = tiltConfigs.Feedback;
-		sensorTiltconfig.SensorToMechanismRatio = Constants.CLIMBER_TILT_ROTS_TO_ANGLE;
-
-		var slot0tilt = tiltConfigs.Slot0;
-		// TODO: Verify this is the correct gravity compensation type
-		slot0tilt.GravityType = GravityTypeValue.Arm_Cosine;
-		slot0tilt.kG = Constants.CLIMBER_TILT_KG;
-		slot0tilt.kS = Constants.CLIMBER_TILT_KS;
-		slot0tilt.kV = Constants.CLIMBER_TILT_KV;
-		slot0tilt.kA = Constants.CLIMBER_TILT_KA;
-		slot0tilt.kP = Constants.CLIMBER_TILT_KP;
-		slot0tilt.kI = Constants.CLIMBER_TILT_KI;
-		slot0tilt.kD = Constants.CLIMBER_TILT_KD;
-		slot0tilt.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
-
-		var motionMagicConfigstilt = tiltConfigs.MotionMagic;
-		motionMagicConfigstilt.MotionMagicCruiseVelocity = Constants.CLIMBER_TILT_CRUISE_VELO;
-		motionMagicConfigstilt.MotionMagicAcceleration = Constants.CLIMBER_TILT_TARGET_ACCEL;
-		motionMagicConfigstilt.MotionMagicExpo_kV = Constants.CLIMBER_TILT_EXPO_KV;
-
-		// climberTiltMotor.getConfigurator().apply(tiltConfigs);
 
 		climberMotor.setPosition(0);
 	}
@@ -178,10 +145,6 @@ public class ClimberFSMSystem {
 			case MANUAL_DIRECT_CONTROL -> handleManualDirectControlState(input);
 			case L1_EXTEND -> handleL1ExtendState(input);
 			case L1_RETRACT -> handleL1RetractState(input);
-			case L2_EXTEND -> handleL2ExtendState(input);
-			case L2_RETRACT -> handleL2RetractState(input);
-			case L3_EXTEND -> handleL3ExtendState(input);
-			case L3_RETRACT -> handleL3RetractState(input);
 			case AUTO_DOWN -> handleAutoDownState(input);
 			case AUTO_UP -> handleAutoUpState(input);
 			case AUTO_IDLE -> handleIdleState(input);
@@ -201,8 +164,6 @@ public class ClimberFSMSystem {
 			climberMotor.getPosition().getValueAsDouble());
 		Logger.recordOutput("Climber encoder relative",
 			climberMotor.getPosition().getValueAsDouble());
-		Logger.recordOutput("Climber encoder degrees",
-			climberTiltMotor.getPosition().getValueAsDouble());
 		Logger.recordOutput("Climber velocity", climberMotor.getVelocity().getValueAsDouble());
 		Logger.recordOutput("Climber applied voltage",
 			climberMotor.getMotorVoltage().getValueAsDouble());
@@ -214,7 +175,6 @@ public class ClimberFSMSystem {
 		Logger.recordOutput("Climber is latched?", isLatched());
 		Logger.recordOutput("Climber is on ground?", isOnGround());
 		Logger.recordOutput("Climber is extended L1?", isExtendedL1());
-		Logger.recordOutput("Climber is extended L2 or L3?", isExtendedL2OrL3());
 		Logger.recordOutput("Climber up first stage?", firstStageUp);
 		Logger.recordOutput("Climber down first stage?", firstStageDown);
 	}
@@ -238,11 +198,6 @@ public class ClimberFSMSystem {
 	private boolean isExtendedL1() {
 		double height = getClimberHeightInches();
 		return height >= L1_EXTEND_POS - Constants.CLIMBER_POSITION_TOLERANCE_L1;
-	}
-
-	private boolean isExtendedL2OrL3() {
-		double height = getClimberHeightInches();
-		return height >= L2_L3_EXTEND_POS - Constants.CLIMBER_POSITION_TOLERANCE_L2_L3;
 	}
 
 	private ClimberFSMState nextState(TeleopInput input) {
@@ -279,14 +234,6 @@ public class ClimberFSMSystem {
 					return ClimberFSMState.IDLE;
 				}
 				return ClimberFSMState.AUTO_DOWN;
-			case L3_RETRACT:
-				if (input.isEmergencyAbortPressed()) {
-					return ClimberFSMState.IDLE;
-				}
-				if (isLatched()) {
-					return ClimberFSMState.LOCKED_FINAL;
-				}
-				return ClimberFSMState.L3_RETRACT;
 			case L1_EXTEND:
 				if (input.isEmergencyAbortPressed()) {
 					return ClimberFSMState.IDLE;
@@ -299,32 +246,6 @@ public class ClimberFSMSystem {
 				}
 				return ClimberFSMState.L1_EXTEND;
 			case L1_RETRACT:
-			case L2_EXTEND:
-			case L2_RETRACT:
-			case L3_EXTEND:
-				if (input.isEmergencyAbortPressed()) {
-					return ClimberFSMState.IDLE;
-				}
-
-				boolean shouldAdvanceLatched = (input.isNextButtonPressed() && isLatched());
-				if (shouldAdvanceLatched) {
-					if (currentState == ClimberFSMState.L1_RETRACT) {
-						return ClimberFSMState.L2_EXTEND;
-					} else if (currentState == ClimberFSMState.L2_RETRACT) {
-						return ClimberFSMState.L3_EXTEND;
-					}
-				}
-
-				boolean shouldAdvanceExtendedL2OrL3 = (input.isNextButtonPressed()
-						&& isExtendedL2OrL3());
-				if (shouldAdvanceExtendedL2OrL3) {
-					if (currentState == ClimberFSMState.L2_EXTEND) {
-						return ClimberFSMState.L2_RETRACT;
-					} else if (currentState == ClimberFSMState.L3_EXTEND) {
-						return ClimberFSMState.L3_RETRACT;
-					}
-				}
-				return getCurrentState();
 			default:
 				throw new UnsupportedOperationException("Unknown state");
 		}
@@ -332,7 +253,6 @@ public class ClimberFSMSystem {
 
 	private void handleIdleState(TeleopInput input) {
 		climberMotor.set(0);
-		// climberTiltMotor.set(0);
 	}
 
 	private void handleManualDirectControlState(TeleopInput input) {
@@ -361,48 +281,12 @@ public class ClimberFSMSystem {
 		}
 	}
 
-	private void handleL2ExtendState(TeleopInput input) {
-		if (climberMotor.getMotionMagicAtTarget().getValue()) {
-			climberMotor.setControl(motionRequest.withPosition(L2_L3_EXTEND_POS));
-		}
-	}
-
-	private void handleL2RetractState(TeleopInput input) {
-		if (climberMotor.getMotionMagicAtTarget().getValue()) {
-			climberMotor.setControl(motionRequest.withPosition(L2_L3_RETRACT_POS));
-		}
-	}
-
-	private void handleL3ExtendState(TeleopInput input) {
-		if (climberMotor.getMotionMagicAtTarget().getValue()) {
-			climberMotor.setControl(motionRequest.withPosition(L2_L3_EXTEND_POS));
-		}
-	}
-
-	private void handleL3RetractState(TeleopInput input) {
-		if (climberMotor.getMotionMagicAtTarget().getValue()) {
-			climberMotor.setControl(motionRequest.withPosition(L2_L3_RETRACT_POS));
-		}
-	}
-
 	private void handleAutoDownState(TeleopInput input) {
 		if (firstStageDown) {
 			climberMotor.setControl(motionRequest.withPosition(L1_EXTEND_POS));
-			// if (climberMotor.getMotionMagicAtTarget().getValue()) {
-			// 	climberTiltMotor.setControl(motionRequest
-			// 			.withPosition(Constants.CLIMBER_TILT_EXTEND_POS));
-			// 	if (climberTiltMotor.getMotionMagicAtTarget().getValue()) {
-			// 		firstStageDown = false;
-			// 	}
-			// }
 		}
 		if (!firstStageDown) {
 			climberMotor.setControl(motionRequest.withPosition(GROUND));
-			// if (climberMotor.getMotionMagicAtTarget().getValue()) {
-			// 	climberTiltMotor.setControl(motionRequest
-			// 			.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
-			// }
-
 		}
 	}
 
@@ -426,15 +310,4 @@ public class ClimberFSMSystem {
 		}
 
 	}
-
-	private void handleAutoIdleState(TeleopInput input) {
-		// climberTiltMotor.set(0);
-		climberMotor.set(0);
-	}
-
-	private void handleLockedFinalState(TeleopInput input) {
-		// climberTiltMotor.set(0);
-		climberMotor.set(0);
-	}
-
 }
