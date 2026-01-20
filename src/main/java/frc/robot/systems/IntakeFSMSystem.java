@@ -1,7 +1,7 @@
 package frc.robot.systems;
 
 // WPILib Imports
-
+import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
@@ -11,6 +11,7 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
+
 
 import edu.wpi.first.wpilibj.DigitalInput;
 
@@ -48,8 +49,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	private TalonFXWrapper intakeMotor;
 	private DigitalInput groundLimitSwitch;
 	private DigitalInput topLimitSwitch;
-	
-	
+
+
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -71,16 +72,17 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 		pivotMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_PIVOT_LEFT);
 		pivotMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_PIVOT_RIGHT);
 
-		
+
 		intakeMotor = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_INTAKE);
 
 		var talonFXConfigs = new TalonFXConfiguration();
 		var intakeConfigs = new TalonFXConfiguration();
 
-		pivotMotorLeft.setControl(new Follower(pivotMotorRight.getDeviceID(), MotorAlignmentValue.Opposed));
-		
+		pivotMotorLeft.setControl(new Follower(pivotMotorRight.getDeviceID(),
+			MotorAlignmentValue.Opposed));
+
 		var outputConfigs = talonFXConfigs.MotorOutput;
-		outputConfigs.NeutralMode = NeutralModeValue.Brake; 
+		outputConfigs.NeutralMode = NeutralModeValue.Brake;
 
 		// apply sw limit
 		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
@@ -166,7 +168,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 		);
 
 		intakeMotor.optimizeBusUtilization();
-			
+
 
 		//initialize limit switch
 		groundLimitSwitch = new DigitalInput(HardwareMap.INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT);
@@ -207,7 +209,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 			case IDLE_OUT_STATE:
 				handleIdleOutState(input);
 				break;
-			
+
 			case INTAKE_STATE:
 				handleIntakeState(input);
 				break;
@@ -225,6 +227,60 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 		}
 		setCurrentState(nextState(input));
 	}
+
+	/**
+	 * Updates the logging information for the elevator system.
+	 */
+	public void updateLogging() {
+		Logger.recordOutput("Left pivot encoder", pivotMotorLeft.getPosition().getValueAsDouble());
+		Logger.recordOutput("Right pivot encoder",
+			pivotMotorRight.getPosition().getValueAsDouble());
+		Logger.recordOutput("Intake encoder",
+			intakeMotor.getPosition().getValueAsDouble());
+
+		Logger.recordOutput("Left pivot velocity", pivotMotorLeft.getVelocity().getValueAsDouble());
+		Logger.recordOutput("Right pivot velocity",
+			pivotMotorRight.getVelocity().getValueAsDouble());
+		Logger.recordOutput("Intake velocity", intakeMotor.getVelocity().getValueAsDouble());
+
+		Logger.recordOutput("Pivot bottom limit switch pressed", isBottomLimitReached());
+		Logger.recordOutput("Pivot top limit switch pressed", isTopLimitReached());
+
+		Logger.recordOutput("Intake State", getCurrentState().toString());
+		Logger.recordOutput("Left Pivot Motor Voltage",
+			pivotMotorLeft.getMotorVoltage().getValueAsDouble());
+		Logger.recordOutput("Right Pivot Motor Voltage",
+			pivotMotorRight.getMotorVoltage().getValueAsDouble());
+		Logger.recordOutput("Intake/Outtake Motor Voltage",
+			intakeMotor.getMotorVoltage().getValueAsDouble());
+
+		Logger.recordOutput("Left Pivot Motor Accel",
+			pivotMotorLeft.getAcceleration().getValueAsDouble());
+		Logger.recordOutput("Right Pivot Motor Accel",
+			pivotMotorRight.getAcceleration().getValueAsDouble());
+
+		Logger.recordOutput("LEFT PIVOT ROTR POS",
+			pivotMotorLeft.getRotorPosition().getValueAsDouble());
+		Logger.recordOutput("LEFT PIVOT ROTR VELO",
+			pivotMotorLeft.getRotorVelocity().getValueAsDouble());
+
+		Logger.recordOutput("RIGHT PIVOT ROTR POS",
+			pivotMotorRight.getRotorPosition().getValueAsDouble());
+		Logger.recordOutput("RIGHT PIVOT ROTR VELO",
+			pivotMotorRight.getRotorVelocity().getValueAsDouble());
+
+		Logger.recordOutput("INTAKE ROTR POS",
+			intakeMotor.getRotorPosition().getValueAsDouble());
+		Logger.recordOutput("INTAKE ROTR VELO",
+			intakeMotor.getRotorVelocity().getValueAsDouble());
+
+		/*telemetry and logging: currently not necessary
+		MechLogging.getInstance().updateElevatorPose3d(Angle.ofBaseUnits(
+			elevatorSim.getPositionMeters(), Radians
+		));
+		*/
+	}
+
 
 	@Override
 	public boolean updateAutonomous(AutoFSMState autoState) {
@@ -262,9 +318,9 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 			case IDLE_OUT_STATE:
 				if (input.isIntakeButtonPressed()) {
 					return FSMState.INTAKE_STATE;
-				} else if(input.isOuttakeButtonPressed()){
+				} else if (input.isOuttakeButtonPressed()) {
 					return FSMState.OUTTAKE_STATE;
-				} else if(input.isFoldButtonPressed()){
+				} else if (input.isFoldButtonPressed()) {
 					return FSMState.FOLD_IN_STATE;
 				} else {
 					return FSMState.IDLE_OUT_STATE;

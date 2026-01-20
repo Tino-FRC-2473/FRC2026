@@ -1,13 +1,12 @@
 package frc.robot.constants;
-
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 
 
 public class Constants {
-    public static Angle INTAKE_GROUND_TARGET = Units.Radians.of(2.6);
-    public static Angle INTAKE_UPPER_TARGET = Units.Radians.of(0);
-    public static final double INTAKE_KG = 0.20;
+	public static final Angle INTAKE_GROUND_TARGET = Units.Radians.of(2.6);
+	public static final Angle INTAKE_UPPER_TARGET = Units.Radians.of(0);
+	public static final double INTAKE_KG = 0.20;
 	public static final double INTAKE_KS = 0.1;
 	public static final double INTAKE_KV = 0.001;
 	public static final double INTAKE_KA = 0.0;
@@ -27,4 +26,3 @@ public class Constants {
 	//other
 	public static final int UPDATE_FREQUENCY_HZ = 100;
 }
-  
