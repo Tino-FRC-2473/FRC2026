@@ -34,6 +34,8 @@ public class ClimberFSMSystem {
 		AUTO_DOWN,
 		AUTO_UP_1,
 		AUTO_UP_2,
+		AUTO_DOWN_1,
+		AUTO_DOWN_2,
 		LOCKED_FINAL
 	}
 
@@ -143,7 +145,8 @@ public class ClimberFSMSystem {
 			case MANUAL_DIRECT_CONTROL -> handleManualDirectControlState(input);
 			case L1_EXTEND -> handleL1ExtendState(input);
 			case L1_RETRACT -> handleL1RetractState(input);
-			// case AUTO_DOWN -> handleAutoDownState(input);
+			case AUTO_DOWN_1 -> handleL1ExtendState(input);
+			case AUTO_DOWN_2 -> handleResetToZero(input);
 			case AUTO_UP_1 -> handleL1ExtendState(input);
 			case AUTO_UP_2 -> handleL1RetractState(input);
 			case LOCKED_FINAL -> handleIdleState(input);
@@ -182,6 +185,11 @@ public class ClimberFSMSystem {
 		return groundLimitSwitch.get();
 	}
 
+	private boolean isOnGround() {
+		double height = getClimberHeightInches();
+		return (height <= 0.0 || isGroundLimitSwitchPressed());
+	}
+
 	private boolean isExtendedL1() {
 		double height = getClimberHeightInches();
 		return height >= L1_EXTEND_POS - Constants.CLIMBER_POSITION_TOLERANCE_L1;
@@ -199,6 +207,9 @@ public class ClimberFSMSystem {
 
 		switch (currentState) {
 			case IDLE:
+				if (input.isDownButtonPressed()) {
+					return ClimberFSMState.AUTO_DOWN_1;
+				}
 				if (input.isManualOverideButtonPressed()) {
 					return ClimberFSMState.MANUAL_DIRECT_CONTROL;
 				}
@@ -221,12 +232,16 @@ public class ClimberFSMSystem {
 					return ClimberFSMState.IDLE;
 				}
 				return ClimberFSMState.AUTO_UP_2;
-			case AUTO_DOWN:
+			case AUTO_DOWN_1:
+				if (input.isDownButtonPressed() && isExtendedL1()) {
+					return ClimberFSMState.AUTO_DOWN_2;
+				}
+				return ClimberFSMState.AUTO_DOWN_1;
+			case AUTO_DOWN_2:
 				if (isOnGround()) {
-					handleResetToZero();
 					return ClimberFSMState.IDLE;
 				}
-				return ClimberFSMState.AUTO_DOWN;
+				return ClimberFSMState.AUTO_DOWN_2;
 			case L1_EXTEND:
 				if (input.isEmergencyAbortPressed()) {
 					return ClimberFSMState.IDLE;
