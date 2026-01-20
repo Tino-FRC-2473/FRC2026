@@ -18,7 +18,7 @@ import static edu.wpi.first.units.Units.Inches;
 //import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VoltageOut;
+//import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -54,7 +54,7 @@ public class ClimberFSMSystem {
 	private static final double L2_L3_EXTEND_POS = 150.0;
 	private static final double L2_L3_RETRACT_POS = 0.0;
 	private static final double GROUND = 0.0;
-	private static final Distance targetPosition = Inches.of(0.0);
+	private static final Distance TARGET_POSITION = Inches.of(0.0);
 
 
 	private boolean firstStageUp = true;
@@ -134,7 +134,7 @@ public class ClimberFSMSystem {
 		motionMagicConfigstilt.MotionMagicAcceleration = Constants.CLIMBER_TILT_TARGET_ACCEL;
 		motionMagicConfigstilt.MotionMagicExpo_kV = Constants.CLIMBER_TILT_EXPO_KV;
 
-		climberTiltMotor.getConfigurator().apply(tiltConfigs);
+		// climberTiltMotor.getConfigurator().apply(tiltConfigs);
 
 		climberMotor.setPosition(0);
 	}
@@ -192,6 +192,10 @@ public class ClimberFSMSystem {
 		currentState = nextState(input);
 	}
 
+	/**
+	 * Update logging values for this system.
+	 */
+
 	public void updateLogging() {
 		Logger.recordOutput("Climber encoder absolute",
 			climberMotor.getPosition().getValueAsDouble());
@@ -205,7 +209,7 @@ public class ClimberFSMSystem {
 		Logger.recordOutput("Climber state", currentState.toString());
 		Logger.recordOutput("Climber control request", climberMotor.getAppliedControl().toString());
 		Logger.recordOutput("Climber switch pressed?", isGroundLimitSwitchPressed());
-		Logger.recordOutput("Climber target position", targetPosition);
+		Logger.recordOutput("Climber target position", TARGET_POSITION);
 		Logger.recordOutput("Climber height inches", getClimberHeightInches());
 		Logger.recordOutput("Climber is latched?", isLatched());
 		Logger.recordOutput("Climber is on ground?", isOnGround());
@@ -328,7 +332,7 @@ public class ClimberFSMSystem {
 
 	private void handleIdleState(TeleopInput input) {
 		climberMotor.set(0);
-		climberTiltMotor.set(0);
+		// climberTiltMotor.set(0);
 	}
 
 	private void handleManualDirectControlState(TeleopInput input) {
@@ -345,7 +349,6 @@ public class ClimberFSMSystem {
 	}
 
 	private void handleL1ExtendState(TeleopInput input) {
-		climberTiltMotor.setControl(motionRequest.withPosition(Constants.CLIMBER_TILT_EXTEND_POS));
 		if (climberMotor.getMotionMagicAtTarget().getValue()) {
 			climberMotor.setControl(motionRequest.withPosition(L1_EXTEND_POS));
 		}
@@ -353,35 +356,30 @@ public class ClimberFSMSystem {
 	}
 
 	private void handleL1RetractState(TeleopInput input) {
-		climberTiltMotor.setControl(motionRequest.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
 		if (climberMotor.getMotionMagicAtTarget().getValue()) {
 			climberMotor.setControl(motionRequest.withPosition(L1_RETRACT_POS));
 		}
 	}
 
 	private void handleL2ExtendState(TeleopInput input) {
-		climberTiltMotor.setControl(motionRequest.withPosition(Constants.CLIMBER_TILT_EXTEND_POS));
 		if (climberMotor.getMotionMagicAtTarget().getValue()) {
 			climberMotor.setControl(motionRequest.withPosition(L2_L3_EXTEND_POS));
 		}
 	}
 
 	private void handleL2RetractState(TeleopInput input) {
-		climberTiltMotor.setControl(motionRequest.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
 		if (climberMotor.getMotionMagicAtTarget().getValue()) {
 			climberMotor.setControl(motionRequest.withPosition(L2_L3_RETRACT_POS));
 		}
 	}
 
 	private void handleL3ExtendState(TeleopInput input) {
-		climberTiltMotor.setControl(motionRequest.withPosition(Constants.CLIMBER_TILT_EXTEND_POS));
 		if (climberMotor.getMotionMagicAtTarget().getValue()) {
 			climberMotor.setControl(motionRequest.withPosition(L2_L3_EXTEND_POS));
 		}
 	}
 
 	private void handleL3RetractState(TeleopInput input) {
-		climberTiltMotor.setControl(motionRequest.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
 		if (climberMotor.getMotionMagicAtTarget().getValue()) {
 			climberMotor.setControl(motionRequest.withPosition(L2_L3_RETRACT_POS));
 		}
@@ -390,28 +388,28 @@ public class ClimberFSMSystem {
 	private void handleAutoDownState(TeleopInput input) {
 		if (firstStageDown) {
 			climberMotor.setControl(motionRequest.withPosition(L1_EXTEND_POS));
-			if (climberMotor.getMotionMagicAtTarget().getValue()) {
-				climberTiltMotor.setControl(motionRequest
-						.withPosition(Constants.CLIMBER_TILT_EXTEND_POS));
-				if (climberTiltMotor.getMotionMagicAtTarget().getValue()) {
-					firstStageDown = false;
-				}
-			}
+			// if (climberMotor.getMotionMagicAtTarget().getValue()) {
+			// 	climberTiltMotor.setControl(motionRequest
+			// 			.withPosition(Constants.CLIMBER_TILT_EXTEND_POS));
+			// 	if (climberTiltMotor.getMotionMagicAtTarget().getValue()) {
+			// 		firstStageDown = false;
+			// 	}
+			// }
 		}
 		if (!firstStageDown) {
 			climberMotor.setControl(motionRequest.withPosition(GROUND));
-			if (climberMotor.getMotionMagicAtTarget().getValue()) {
-				climberTiltMotor.setControl(motionRequest
-						.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
-			}
+			// if (climberMotor.getMotionMagicAtTarget().getValue()) {
+			// 	climberTiltMotor.setControl(motionRequest
+			// 			.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
+			// }
 
 		}
 	}
 
 	private void handleAutoUpState(TeleopInput input) {
 		if (firstStageUp) {
-			climberTiltMotor.setControl(motionRequest
-					.withPosition(Constants.CLIMBER_TILT_EXTEND_POS));
+			// climberTiltMotor.setControl(motionRequest
+			// 		.withPosition(Constants.CLIMBER_TILT_EXTEND_POS));
 			if (Boolean.TRUE.equals(climberTiltMotor.getMotionMagicAtTarget().getValue())) {
 				climberMotor.setControl(motionRequest.withPosition(L1_EXTEND_POS));
 				if (Boolean.TRUE.equals(climberMotor.getMotionMagicAtTarget().getValue())) {
@@ -420,8 +418,8 @@ public class ClimberFSMSystem {
 			}
 		}
 		if (!firstStageUp) {
-			climberTiltMotor.setControl(motionRequest
-					.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
+			// climberTiltMotor.setControl(motionRequest
+			// 		.withPosition(Constants.CLIMBER_TILT_RETRACT_POS));
 			if (Boolean.TRUE.equals(climberMotor.getMotionMagicAtTarget().getValue())) {
 				climberMotor.setControl(motionRequest.withPosition(L1_RETRACT_POS));
 			}
@@ -430,12 +428,12 @@ public class ClimberFSMSystem {
 	}
 
 	private void handleAutoIdleState(TeleopInput input) {
-		climberTiltMotor.set(0);
+		// climberTiltMotor.set(0);
 		climberMotor.set(0);
 	}
 
 	private void handleLockedFinalState(TeleopInput input) {
-		climberTiltMotor.set(0);
+		// climberTiltMotor.set(0);
 		climberMotor.set(0);
 	}
 
