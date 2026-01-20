@@ -2,9 +2,8 @@ package frc.robot.systems;
 
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.wpilibj.DigitalInput;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.HardwareMap;
 import frc.robot.TeleopInput;
 
@@ -50,10 +49,9 @@ public class ClimberFSMSystem {
 
 	// TODO: Update these positions based on actual climber design
 	// private static final Distance EXAMPLE_POS = Inches.of(100.0);
-	private static final double L1_EXTEND_POS = 100.0;
-	private static final double L1_RETRACT_POS = 5.0;
-	private static final double GROUND = 0.0;
-	private static final Distance TARGET_POSITION = Inches.of(0.0);
+	private static final double L1_EXTEND_POS = Constants.L1_EXTEND_POS;
+	private static final double L1_RETRACT_POS = Constants.L1_RETRACT_POS;
+	private static final double GROUND = Constants.GROUND;
 	private static boolean isAutoDownUsed = false;
 
 
@@ -181,7 +179,6 @@ public class ClimberFSMSystem {
 		Logger.recordOutput("Climber control request",
 			climberMotorLeft.getAppliedControl().toString());
 		Logger.recordOutput("Climber switch pressed?", isGroundLimitSwitchPressed());
-		Logger.recordOutput("Climber target position", TARGET_POSITION);
 		Logger.recordOutput("Climber height inches", getClimberHeightInches());
 		Logger.recordOutput("Climber is at bottom?", isGroundLimitSwitchPressed());
 		Logger.recordOutput("Climber is extended L1?", isExtendedL1());

@@ -37,4 +37,7 @@ public class Constants {
 	public static final double CLIMBER_MANUAL_SCALE = 0;
 	public static final Angle CLIMBER_TILT_EXTEND_POS = Angle.ofRelativeUnits(45, Degree);
 	public static final Angle CLIMBER_TILT_RETRACT_POS = Angle.ofRelativeUnits(0, Degree);
+	public static final double L1_EXTEND_POS = 20.0;
+	public static final double L1_RETRACT_POS = 5.0;
+	public static final double GROUND = 0.0;
 }
