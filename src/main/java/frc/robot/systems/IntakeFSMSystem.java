@@ -7,6 +7,7 @@ import com.revrobotics.spark.SparkMax;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -21,6 +22,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DigitalInput;
 
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Radians;
 
 // Robot Imports
 import frc.robot.constants.Constants;
@@ -47,7 +49,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 
 	/* ======================== Private variables ======================== */
 
-	private MotionMagicVoltage motionRequest;
+	private MotionMagicVoltage pivotMotionRequest;
+	private MotionMagicVelocityVoltage intakeMotionRequest;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
@@ -68,7 +71,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 */
 	public IntakeFSMSystem() {
 
-		motionRequest = new MotionMagicVoltage(0);
+		pivotMotionRequest = new MotionMagicVoltage(0);
+		intakeMotionRequest = new MotionMagicVelocityVoltage(0);
 
 
 
@@ -85,6 +89,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 		intakeMotor = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_INTAKE);
 
 		var talonFXConfigs = new TalonFXConfiguration();
+		var intakeConfigs = new TalonFXConfiguration();
 
 		pivotMotorLeft.setControl(new Follower(pivotMotorRight.getDeviceID(), MotorAlignmentValue.Opposed));
 		
@@ -95,7 +100,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
 		swLimitSwitch.ForwardSoftLimitEnable = true; // enable top limit
 		swLimitSwitch.ReverseSoftLimitEnable = true; // enable bottom limit
-		swLimitSwitch.ForwardSoftLimitThreshold = Constants.INTAKE_UPPER_TARGET.in;
+		swLimitSwitch.ForwardSoftLimitThreshold = Constants.INTAKE_UPPER_TARGET.in(Radians);
 		swLimitSwitch.ReverseSoftLimitThreshold = Inches.of(0).in(Inches);
 
 		var sensorConfig = talonFXConfigs.Feedback;
@@ -112,10 +117,27 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 		slot0Configs.kD = Constants.INTAKE_KD;
 		slot0Configs.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
-		var motionMagicConfigs = talonFXConfigs.MotionMagic;
-		motionMagicConfigs.MotionMagicCruiseVelocity = Constants.INTAKE_CRUISE_VELO;
-		motionMagicConfigs.MotionMagicAcceleration = Constants.INTAKE_TARGET_ACCEL;
-		motionMagicConfigs.MotionMagicExpo_kV = Constants.INTAKE_EXPO_KV;
+		var slot1Configs = intakeConfigs.Slot0;
+		slot1Configs.GravityType = GravityTypeValue.Elevator_Static;
+		slot1Configs.kG = Constants.INTAKE_KG;
+		slot1Configs.kS = Constants.INTAKE_KS;
+		slot1Configs.kV = Constants.INTAKE_KV;
+		slot1Configs.kA = Constants.INTAKE_KA;
+		slot1Configs.kP = Constants.INTAKE_KP;
+		slot1Configs.kI = Constants.INTAKE_KI;
+		slot1Configs.kD = Constants.INTAKE_KD;
+		slot1Configs.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
+
+		var pivotMotionMagicConfigs = talonFXConfigs.MotionMagic;
+		pivotMotionMagicConfigs.MotionMagicCruiseVelocity = Constants.INTAKE_CRUISE_VELO;
+		pivotMotionMagicConfigs.MotionMagicAcceleration = Constants.INTAKE_TARGET_ACCEL;
+		pivotMotionMagicConfigs.MotionMagicExpo_kV = Constants.INTAKE_EXPO_KV;
+
+		var intakeMotionMagicConfigs = intakeConfigs.MotionMagic;
+		intakeMotionMagicConfigs.MotionMagicCruiseVelocity = Constants.INTAKE_CRUISE_VELO;
+		intakeMotionMagicConfigs.MotionMagicAcceleration = Constants.INTAKE_TARGET_ACCEL;
+		intakeMotionMagicConfigs.MotionMagicExpo_kV = Constants.INTAKE_EXPO_KV;
+
 
 		pivotMotorLeft.getConfigurator().apply(talonFXConfigs);
 
@@ -145,7 +167,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 
 		pivotMotorRight.optimizeBusUtilization();
 
-		intakeMotor.getConfigurator().apply(talonFXConfigs);
+		intakeMotor.getConfigurator().apply(intakeConfigs);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				Constants.UPDATE_FREQUENCY_HZ,
@@ -302,7 +324,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleFoldOutState(TeleopInput input) {
-		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.INTAKE_GROUND_TARGET));
+		pivotMotorLeft.setControl(pivotMotionRequest.withPosition(Constants.INTAKE_GROUND_TARGET));
 	}
 	/**
 	 * Handle behavior in START_STATE.
@@ -317,6 +339,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIntakeState(TeleopInput input) {
+		intakeMotor.setControl(intakeMotionRequest.withVelocity(Constants.INTAKE_TARGET_VELOCITY));
 	}
 	/**
 	 * Handle behavior in START_STATE.
@@ -324,6 +347,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleOuttakeState(TeleopInput input) {
+		intakeMotor.setControl(intakeMotionRequest.withVelocity(Constants.OUTTAKE_TARGET_VELOCITY));
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
@@ -331,7 +355,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleFoldInState(TeleopInput input) {
-		pivotMotorLeft.setControl(motionRequest.withPosition(Constants.INTAKE_UPPER_TARGET));
+		pivotMotorLeft.setControl(pivotMotionRequest.withPosition(Constants.INTAKE_UPPER_TARGET));
 	}
 
 	/**

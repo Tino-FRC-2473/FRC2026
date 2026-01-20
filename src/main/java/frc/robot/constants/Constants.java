@@ -15,6 +15,8 @@ public class Constants {
 	public static final double INTAKE_KP = 3.0;
 	public static final double INTAKE_KI = 0.00;
 	public static final double INTAKE_KD = 0.00;
+	public static final double INTAKE_TARGET_VELOCITY = 10.0;
+	public static final double OUTTAKE_TARGET_VELOCITY = -10.0;
 
 	//Intake Unit Conversion
 	public static final double INTAKE_ROTS_TO_INCHES = 15 / (2 * Math.PI);
