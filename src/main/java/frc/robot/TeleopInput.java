@@ -69,6 +69,10 @@ public class TeleopInput {
 		return leftJoystick.getRawButton(2);
 	}
 
+	/**
+	 * Get boolean determining if the down button is pressed.
+	 * @return true or false depending on state of button
+	 */
 	public boolean isDownButtonPressed() {
 		return true;
 	}

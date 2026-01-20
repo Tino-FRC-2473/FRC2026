@@ -24,6 +24,7 @@ public final class HardwareMap {
 	// Place jumper from DIO pin 9 to GND to indicate this is a test setup
 	private static final int DIO_TEST_SETUP_CHANNEL = 9;
 	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT = 0; // DIO port for
+	public static final int CAN_ID_CLIMBER_RIGHT = 0;
 			//climber ground limit switch
 	private static DigitalInput testBoardPin = new DigitalInput(HardwareMap.DIO_TEST_SETUP_CHANNEL);
 	/**

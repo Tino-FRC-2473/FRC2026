@@ -75,8 +75,8 @@ public class ClimberFSMSystem {
 	}
 
 	private void configureMotor() {
-
-		climberMotorRight.setControl(new Follower(climberMotorLeft.getDeviceID(), MotorAlignmentValue.Opposed));
+		climberMotorRight.setControl(new Follower(
+			climberMotorLeft.getDeviceID(), MotorAlignmentValue.Opposed));
 		var talonFXConfigs = new TalonFXConfiguration();
 		var outputConfigs = talonFXConfigs.MotorOutput;
 		outputConfigs.NeutralMode = NeutralModeValue.Brake;
@@ -177,7 +177,8 @@ public class ClimberFSMSystem {
 		Logger.recordOutput("Climber applied voltage",
 			climberMotorLeft.getMotorVoltage().getValueAsDouble());
 		Logger.recordOutput("Climber state", currentState.toString());
-		Logger.recordOutput("Climber control request", climberMotorLeft.getAppliedControl().toString());
+		Logger.recordOutput("Climber control request",
+			climberMotorLeft.getAppliedControl().toString());
 		Logger.recordOutput("Climber switch pressed?", isGroundLimitSwitchPressed());
 		Logger.recordOutput("Climber target position", TARGET_POSITION);
 		Logger.recordOutput("Climber height inches", getClimberHeightInches());
@@ -189,7 +190,7 @@ public class ClimberFSMSystem {
 		return climberMotorLeft.getPosition().getValueAsDouble();
 	}
 
-	private boolean isGroundLimitSwitchPressed(){
+	private boolean isGroundLimitSwitchPressed() {
 		return groundLimitSwitch.get();
 	}
 
