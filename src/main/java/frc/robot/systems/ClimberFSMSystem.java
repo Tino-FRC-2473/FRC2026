@@ -47,8 +47,7 @@ public class ClimberFSMSystem {
 	private ClimberFSMState currentState;
 	private MotionMagicVoltage motionRequest;
 
-	// TODO: Update these positions based on actual climber design
-	// private static final Distance EXAMPLE_POS = Inches.of(100.0);
+
 	private static final double L1_EXTEND_POS = Constants.L1_EXTEND_POS;
 	private static final double L1_RETRACT_POS = Constants.L1_RETRACT_POS;
 	private static final double GROUND = Constants.GROUND;
@@ -181,7 +180,7 @@ public class ClimberFSMSystem {
 		Logger.recordOutput("Climber switch pressed?", isGroundLimitSwitchPressed());
 		Logger.recordOutput("Climber height inches", getClimberHeightInches());
 		Logger.recordOutput("Climber is at bottom?", isGroundLimitSwitchPressed());
-		Logger.recordOutput("Climber is extended L1?", isExtendedL1());
+		Logger.recordOutput("Climber is extended L1?", getClimberHeightInches() >= L1_EXTEND_POS - Constants.CLIMBER_POSITION_TOLERANCE_L1);
 	}
 
 	private double getClimberHeightInches() {
@@ -288,7 +287,6 @@ public class ClimberFSMSystem {
 		if (climberMotorLeft.getMotionMagicAtTarget().getValue()) {
 			climberMotorLeft.setControl(motionRequest.withPosition(L1_EXTEND_POS));
 		}
-
 	}
 
 	private void handleL1RetractState(TeleopInput input) {
