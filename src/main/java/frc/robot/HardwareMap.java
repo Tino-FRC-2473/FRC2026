@@ -17,6 +17,9 @@ public final class HardwareMap {
 	public static final int CAN_ID_CLIMBER_LEFT = 6;
 	public static final int CAN_ID_CLIMBER_RIGHT = 7;
 
+
+	public static final int CAN_ID_EXAMPLE_FSM = 67;
+
 	// Pneumatics channel numbers
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_FORWARD = 1;
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_REVERSE = 2;
