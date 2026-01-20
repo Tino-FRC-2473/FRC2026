@@ -33,11 +33,10 @@ stateDiagram
   L3R --> I:emergencyAbort()
   L3E --> L3R:(nextBtn) && isExtended()
   L3R --> LF:isLatched()
-  AU --> AI:isLatched()
   I --> AD
   AD --> I:isOnGround()
-  AU --> AU:!isLatched()
-  AI --> AI:(DriverStation.isAutonomous())
+  AU1 --> I:L1_EXTEND
+  AU2 --> I:L1_RETRACT
   AD --> AD:!isOnGround()
   I:IDLE
   MDC:MANUAL_DIRECT_CONTROL
@@ -48,7 +47,7 @@ stateDiagram
   L3E:L3_EXTEND
   L3R:L3_RETRACT
   LF:LOCKED_FINAL
-  AU:AUTO_UP
+  AU1:AUTO_UP_ONE
   AI:AUTO_IDLE
   AD:AUTO_DOWN
-```
+  AU2:AUTO_UP_TWO
