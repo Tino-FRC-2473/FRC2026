@@ -143,7 +143,7 @@ public class ClimberFSMSystem {
 			case MANUAL_DIRECT_CONTROL -> handleManualDirectControlState(input);
 			case L1_EXTEND -> handleL1ExtendState(input);
 			case L1_RETRACT -> handleL1RetractState(input);
-			case AUTO_DOWN -> handleAutoDownState(input);
+			// case AUTO_DOWN -> handleAutoDownState(input);
 			case AUTO_UP_1 -> handleL1ExtendState(input);
 			case AUTO_UP_2 -> handleL1RetractState(input);
 			case LOCKED_FINAL -> handleIdleState(input);
@@ -172,8 +172,6 @@ public class ClimberFSMSystem {
 		Logger.recordOutput("Climber height inches", getClimberHeightInches());
 		Logger.recordOutput("Climber is on ground?", isOnGround());
 		Logger.recordOutput("Climber is extended L1?", isExtendedL1());
-		Logger.recordOutput("Climber up first stage?", firstStageUp);
-		Logger.recordOutput("Climber down first stage?", firstStageDown);
 	}
 
 	private double getClimberHeightInches() {
@@ -230,6 +228,7 @@ public class ClimberFSMSystem {
 				return ClimberFSMState.AUTO_UP_2;
 			case AUTO_DOWN:
 				if (isOnGround()) {
+					//TODO: retract climber back to 0
 					return ClimberFSMState.IDLE;
 				}
 				return ClimberFSMState.AUTO_DOWN;
@@ -279,14 +278,4 @@ public class ClimberFSMSystem {
 			climberMotor.setControl(motionRequest.withPosition(L1_RETRACT_POS));
 		}
 	}
-
-	private void handleAutoDownState(TeleopInput input) {
-		if (firstStageDown) {
-			climberMotor.setControl(motionRequest.withPosition(L1_EXTEND_POS));
-		}
-		if (!firstStageDown) {
-			climberMotor.setControl(motionRequest.withPosition(GROUND));
-		}
-	}
-
 }
