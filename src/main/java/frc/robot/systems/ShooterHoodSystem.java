@@ -40,6 +40,7 @@ enum FSMState {
 }
 
 public class ShooterFSMSystem extends FSMSystem<FSMState> {
+	//IMPORTANT NOTE: THIS WILL NOTE BUILD AS THIS IS JUST A FRAMEWORK AND DOES NOT HAVE ANY DEFINED INPUT FUNCTIONS OR CLASSES YET.
 	/* ======================== Constants ======================== */
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
