@@ -1,6 +1,6 @@
 package frc.robot.systems;
 
-import frc.robot.input.TeleopInput;
+import frc.robot.input.Input;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
 enum IdentityStateSpace {
@@ -18,7 +18,7 @@ public class PlaceholderFSMSystem extends FSMSystem<IdentityStateSpace> {
 	}
 
 	@Override
-	public void update(TeleopInput input) { }
+	public void update(Input input) { }
 
 	@Override
 	public boolean updateAutonomous(AutoFSMState autoState) {
@@ -26,7 +26,7 @@ public class PlaceholderFSMSystem extends FSMSystem<IdentityStateSpace> {
 	}
 
 	@Override
-	protected IdentityStateSpace nextState(TeleopInput input) {
+	protected IdentityStateSpace nextState(Input input) {
 		return IdentityStateSpace.STATE;
 	}
 

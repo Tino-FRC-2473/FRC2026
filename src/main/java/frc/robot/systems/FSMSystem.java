@@ -1,7 +1,6 @@
 package frc.robot.systems;
 
 import frc.robot.input.Input;
-import frc.robot.input.TeleopInput;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
 /**
@@ -78,6 +77,6 @@ public abstract class FSMSystem<S> {
 	 *		the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
-	protected abstract S nextState(TeleopInput input);
+	protected abstract S nextState(Input input);
 
 }

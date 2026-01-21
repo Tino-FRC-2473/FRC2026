@@ -1,76 +1,60 @@
 package frc.robot.input;
+import java.util.function.Function;
 
-// WPILib Imports
-import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PS4Controller;
+import edu.wpi.first.wpilibj.event.BooleanEvent;
+import edu.wpi.first.wpilibj.event.EventLoop;
+import frc.robot.input.InputTypes.DoubleSignal;
+import frc.robot.input.InputTypes.BooleanSignal;
 
 /**
  * Common class for providing driver inputs during Teleop.
  *
+ *
  * This class is the sole owner of WPILib input objects and is responsible for
  * polling input values. Systems may query TeleopInput via its getter methods
  * for inputs by value, but may not access the internal input objects.
+ *
  */
-public final class TeleopInput implements Input {
-	/* ======================== Constants ======================== */
-	private static final int LEFT_JOYSTICK_PORT = 0;
-	private static final int RIGHT_JOYSTICK_PORT = 1;
+public final class TeleopInput extends Input {
 
-	/* ======================== Private variables ======================== */
-	// Input objects
-	private Joystick leftJoystick;
-	private Joystick rightJoystick;
+	public static final int DRIVE_PORT = 0;
+	public static final int MECH_PORT = 1;
 
-	/* ======================== Constructor ======================== */
+	private PS4Controller driveController;
+	private PS4Controller mechController;
+
 	/**
-	 * Create a TeleopInput and register input devices. Note that while inputs
-	 * are registered at robot initialization, valid values will not be provided
-	 * by WPILib until teleop mode.
+	 * Constructs a TeleopInput using the constants defined in this file.
 	 */
 	public TeleopInput() {
-		leftJoystick = new Joystick(LEFT_JOYSTICK_PORT);
-
-		rightJoystick = new Joystick(RIGHT_JOYSTICK_PORT);
-	}
-
-	/* ======================== Public methods ======================== */
-	// Getter methods for fetch input values should be defined here.
-	// Method names should be descriptive of the behavior, so the
-	// control mapping is hidden from other classes.
-
-	/* ------------------------ Left Joystick ------------------------ */
-
-	@Override
-	public double getLeftJoystickX() {
-		return leftJoystick.getX();
+		driveController = new PS4Controller(DRIVE_PORT);
+		mechController = new PS4Controller(MECH_PORT);
 	}
 
 	@Override
-	public double getLeftJoystickY() {
-		return leftJoystick.getY();
+	public Function<EventLoop, BooleanEvent> getButton(BooleanSignal key) {
+		return switch (key) {
+
+			// add / remove cases to reflect the InputTypes
+			case EXAMPLE_BUTTON -> mechController::square;
+			case EXAMPLE_BUTTON2 -> mechController::circle;
+
+			default -> throw new IllegalArgumentException("Unknown button action");
+		};
 	}
 
 	@Override
-	public boolean isShooterButtonPressed() {
-		return leftJoystick.getRawButton(1);
+	public double getAxis(DoubleSignal key) {
+		return switch (key) {
+
+			// add / remove cases to reflect the InputTypes
+			case DRIVE_LEFT_X -> driveController.getLeftX();
+			case DRIVE_LEFT_Y -> driveController.getLeftY();
+			case DRIVE_RIGHT_X -> driveController.getRightX();
+
+			default -> throw new IllegalArgumentException("Unknown axis action");
+		};
 	}
-
-	@Override
-	public boolean isIntakeButtonPressed() {
-		return leftJoystick.getRawButton(2);
-	}
-
-	/* ------------------------ Right Joystick ------------------------ */
-
-	@Override
-	public double getRightJoystickX() {
-		return rightJoystick.getX();
-	}
-
-	@Override
-	public double getRightJoystickY() {
-		return rightJoystick.getY();
-	}
-
-	/* ======================== Private methods ======================== */
 
 }
