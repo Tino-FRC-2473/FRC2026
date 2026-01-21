@@ -5,11 +5,11 @@ package frc.robot.systems;
 // Third party Hardware Imports
 import com.revrobotics.spark.SparkMax;
 
-import frc.robot.HardwareMap;
+
 // Robot Imports
 import frc.robot.TeleopInput;
+import frc.robot.HardwareMap;
 import frc.robot.motors.SparkMaxWrapper;
-//import frc.robot.HardwareMap;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
 enum FSMState {
@@ -26,7 +26,7 @@ public class ExampleFSMSystem extends FSMSystem<FSMState> {
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private SparkMax exampleMotor;
+	private SparkMaxWrapper exampleMotor;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -37,8 +37,16 @@ public class ExampleFSMSystem extends FSMSystem<FSMState> {
 	public ExampleFSMSystem() {
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
-		exampleMotor = new SparkMaxWrapper(HardwareMap.CAN_ID_EXAMPLE_FSM,
-										SparkMax.MotorType.kBrushless);
+
+		// Initialize the example motor if the hardware is present.
+		if (HardwareMap.isExampleFSMEnabled()) {
+			// Use the example CAN ID from HardwareMap. Use SparkMax motor type
+			// kBrushless to match the wrapper expectations.
+			exampleMotor = new SparkMaxWrapper(0,
+					SparkMax.MotorType.kBrushless);
+		} else {
+			exampleMotor = null;
+		}
 
 		// Reset state machine
 		reset();
@@ -59,6 +67,10 @@ public class ExampleFSMSystem extends FSMSystem<FSMState> {
 
 	@Override
 	public void update(TeleopInput input) {
+		if (!HardwareMap.isExampleFSMEnabled()) {
+			// Hardware not present, do nothing
+			return;
+		}
 		switch (getCurrentState()) {
 			case START_STATE:
 				handleStartState(input);

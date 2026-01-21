@@ -41,4 +41,5 @@ public class Constants {
 	public static final double L1_EXTEND_POS = 20.0;
 	public static final double L1_RETRACT_POS = 5.0;
 	public static final double GROUND = 0.0;
+	public static final int CONTROL_REQUEST_SUBSTRING_START_INDEX = 9;
 }

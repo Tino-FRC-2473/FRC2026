@@ -16,6 +16,8 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import static edu.wpi.first.units.Units.Inches;
 
+
+
 //import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -54,9 +56,6 @@ public class ClimberFSMSystem {
 	private static boolean isAutoDownUsed = false;
 
 
-
-
-
 	/**
 	 * Create ClimberFSMSystem and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
@@ -65,7 +64,8 @@ public class ClimberFSMSystem {
 	public ClimberFSMSystem() {
 		climberMotorLeft = new TalonFX(HardwareMap.CAN_ID_CLIMBER_LEFT);
 		climberMotorRight = new TalonFX(HardwareMap.CAN_ID_CLIMBER_RIGHT);
-
+		climberMotorLeft.setControl(new Follower(HardwareMap.CAN_ID_CLIMBER_RIGHT,
+			MotorAlignmentValue.Opposed));
 		motionRequest = new MotionMagicVoltage(0);
 		configureMotor();
 		groundLimitSwitch = new DigitalInput(HardwareMap.CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT);
@@ -146,6 +146,8 @@ public class ClimberFSMSystem {
 			return;
 		}
 
+		Logger.recordOutput("Climber/Current State", currentState.toString());
+
 		switch (currentState) {
 			case IDLE -> handleIdleState(input);
 			case MANUAL_DIRECT_CONTROL -> handleManualDirectControlState(input);
@@ -160,6 +162,7 @@ public class ClimberFSMSystem {
 		}
 
 		currentState = nextState(input);
+		updateLogging();
 	}
 
 	/**
@@ -167,20 +170,19 @@ public class ClimberFSMSystem {
 	 */
 
 	public void updateLogging() {
-		Logger.recordOutput("Climber encoder absolute",
+		Logger.recordOutput("Climber/Position",
 			climberMotorLeft.getPosition().getValueAsDouble());
-		Logger.recordOutput("Climber encoder relative",
-			climberMotorLeft.getPosition().getValueAsDouble());
-		Logger.recordOutput("Climber velocity", climberMotorLeft.getVelocity().getValueAsDouble());
-		Logger.recordOutput("Climber applied voltage",
+		Logger.recordOutput("Climber/Velocity",
+			climberMotorLeft.getVelocity().getValueAsDouble());
+		Logger.recordOutput("Climber/Applied Voltage",
 			climberMotorLeft.getMotorVoltage().getValueAsDouble());
-		Logger.recordOutput("Climber state", currentState.toString());
-		Logger.recordOutput("Climber control request",
-			climberMotorLeft.getAppliedControl().toString());
-		Logger.recordOutput("Climber switch pressed?", isGroundLimitSwitchPressed());
-		Logger.recordOutput("Climber height inches", getClimberHeightInches());
-		Logger.recordOutput("Climber is at bottom?", isGroundLimitSwitchPressed());
-		Logger.recordOutput("Climber is extended L1?", getClimberHeightInches()
+		Logger.recordOutput("Climber/Control Request",
+			climberMotorLeft.getAppliedControl().toString().
+				substring(Constants.CONTROL_REQUEST_SUBSTRING_START_INDEX));
+		Logger.recordOutput("Climber/Switch Pressed?", isGroundLimitSwitchPressed());
+		Logger.recordOutput("Climber/Height Inches", getClimberHeightInches());
+		Logger.recordOutput("Climber/Is At Bottom?", isGroundLimitSwitchPressed());
+		Logger.recordOutput("Climber/Is Extended L1?", getClimberHeightInches()
 			>= L1_EXTEND_POS - Constants.CLIMBER_POSITION_TOLERANCE_L1);
 	}
 

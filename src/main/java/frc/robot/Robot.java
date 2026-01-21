@@ -3,8 +3,12 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
-// WPILib Imports
-import edu.wpi.first.wpilibj.TimedRobot;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+
+
+
 
 // Systems
 import frc.robot.systems.ExampleFSMSystem;
@@ -19,7 +23,7 @@ import frc.robot.systems.ClimberFSMSystem;
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation.
  */
-public class Robot extends TimedRobot {
+public class Robot extends LoggedRobot {
 	private TeleopInput input;
 
 	// Systems
@@ -53,7 +57,9 @@ public class Robot extends TimedRobot {
 			subSystem1 = new PlaceholderFSMSystem();
 		}
 
-		autoHandler = new AutoHandlerSystem((ExampleFSMSystem) subSystem1, subSystem2, subSystem3);
+		Logger.recordMetadata("sdfjdsj", "ljsdlfkjsdlfj");
+		Logger.addDataReceiver(new NT4Publisher());
+		Logger.start();
 	}
 
 	@Override

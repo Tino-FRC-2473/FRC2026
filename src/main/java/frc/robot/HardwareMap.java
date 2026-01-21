@@ -12,13 +12,12 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_DRIVE_BACK_RIGHT = 2;
 	public static final int CAN_ID_SPARK_DRIVE_FRONT_LEFT = 3;
 	public static final int CAN_ID_SPARK_DRIVE_BACK_LEFT = 4;
-	public static final int CAN_ID_SPARK_SHOOTER = 5;
 	// TODO: Update this CAN ID when the climber motor controller is added
 	public static final int CAN_ID_CLIMBER_LEFT = 6;
 	public static final int CAN_ID_CLIMBER_RIGHT = 7;
 
 
-	public static final int CAN_ID_EXAMPLE_FSM = 67;
+
 
 	// Pneumatics channel numbers
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_FORWARD = 1;
@@ -42,6 +41,6 @@ public final class HardwareMap {
 	 * @return if the hardware for the example FSM is present
 	 */
 	public static boolean isExampleFSMEnabled() {
-		return true;
+		return false;
 	}
 }
