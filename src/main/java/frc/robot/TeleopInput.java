@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj.PS4Controller;
 // WPILib Imports
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PS4Controller;
@@ -22,6 +23,11 @@ public class TeleopInput {
 	private Joystick leftJoystick;
 	private Joystick rightJoystick;
 	private PS4Controller controller;
+	private static final int DRIVE_CONTROLLER_PORT = 0;
+
+	/* ======================== Private variables ======================== */
+	// Input objects
+	private PS4Controller driveController;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -90,6 +96,7 @@ public class TeleopInput {
 	 */
 	public boolean isOuttakeButtonReleased() {
 		return controller.getSquareButtonReleased();
+		driveController = new PS4Controller(DRIVE_CONTROLLER_PORT);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -97,42 +104,44 @@ public class TeleopInput {
 	// Method names should be descriptive of the behavior, so the
 	// control mapping is hidden from other classes.
 
-	/* ------------------------ Left Joystick ------------------------ */
+	/* ------------------------ Driver Controller ------------------------ */
 	/**
-	 * Get X axis of Left Joystick.
+	 * Get X axis of the left joystick.
 	 * @return Axis value
 	 */
-	public double getLeftJoystickX() {
-		return leftJoystick.getX();
+	public double getDriverLeftX() {
+		return driveController.getLeftX();
 	}
 	/**
-	 * Get Y axis of Left Joystick.
+	 * Get Y axis of the left joystick.
 	 * @return Axis value
 	 */
-	public double getLeftJoystickY() {
-		return leftJoystick.getY();
-	}
-	/**
-	 * Get the value of the shooter button.
-	 * @return True if button is pressed
-	 */
-	public boolean isShooterButtonPressed() {
-		return leftJoystick.getRawButton(1);
+	public double getDriverLeftY() {
+		return driveController.getLeftY();
 	}
 	/* ------------------------ Right Joystick ------------------------ */
+
 	/**
-	 * Get X axis of Right Joystick.
+	 * Get X axis of the right joystick.
 	 * @return Axis value
 	 */
-	public double getRightJoystickX() {
-		return rightJoystick.getX();
+	public double getDriverRightX() {
+		return driveController.getRightX();
 	}
 	/**
-	 * Get Y axis of Right Joystick.
+	 * Get Y axis of the right joystick.
 	 * @return Axis value
 	 */
-	public double getRightJoystickY() {
-		return rightJoystick.getY();
+	public double getDriverRightY() {
+		return driveController.getRightY();
+	}
+
+	/**
+	 * Get share button state for drive controller.
+	 * @return Axis value
+	 */
+	public boolean isDriverReseedButtonPressed() {
+		return driveController.getOptionsButton();
 	}
 
 	/* ======================== Private methods ======================== */
