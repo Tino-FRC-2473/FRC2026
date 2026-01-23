@@ -60,7 +60,7 @@ public abstract class FSMSystem<S> {
 	 * @param states the set of states to scan for
 	 * @return the command
 	 */
-	public ObservedStateCommand constructObservedStateCommand(
+	public ObservedStateCommand watchForStatesCommand(
 		@SuppressWarnings("unchecked") S... states) {
 		return new ObservedStateCommand(states);
 	}

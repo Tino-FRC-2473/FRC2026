@@ -79,7 +79,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				break;
 			default:
 				throw new IllegalStateException(
-					"[DRIVETRAIN] Invalid Current State: " + currentState.toString()
+					"[DRIVETRAIN] Cannot update an invalid current state: "
+					+ currentState.toString()
 				);
 		}
 

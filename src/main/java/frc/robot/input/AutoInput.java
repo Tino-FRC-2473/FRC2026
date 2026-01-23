@@ -16,7 +16,7 @@ import frc.robot.input.InputTypes.ButtonInput;
 
 public final class AutoInput extends Input {
 
-	public static final int PULSE_DURATION_TICKS = 5;
+	public static final int DEFAULT_PRESS_DURATION = 5;
 
 	private Map<ButtonInput, Boolean> buttonValues;
 	private Map<AxialInput, Double> axesValues;
@@ -41,7 +41,7 @@ public final class AutoInput extends Input {
 
 	/**
 	 * Returns an instant command that toggles the button value.
-	 * @param button the button to set
+	 * @param button the button to toggle
 	 * @return the command
 	 */
 	public Command toggleButtonCommand(ButtonInput button) {
@@ -49,15 +49,24 @@ public final class AutoInput extends Input {
 	}
 
 	/**
-	 * Returns an instant command that toggles and then untoggles a button shortly after.
-	 * This is intended to be used to simulates a brief button press.
-	 * @param button the button to set
+	 * Returns an instant command that briefly presses a button.
+	 * @param button the button to press
 	 * @return the command
 	 */
-	public Command pulseButtonCommand(ButtonInput button) {
+	public Command pressButtonCommand(ButtonInput button) {
+		return pressButtonCommand(button, DEFAULT_PRESS_DURATION);
+	}
+
+	/**
+	 * Returns an instant command that briefly presses a button.
+	 * @param button the button to press
+	 * @param duration the duration of the press in seconds
+	 * @return the command
+	 */
+	public Command pressButtonCommand(ButtonInput button, int duration) {
 		return new SequentialCommandGroup(
 			toggleButtonCommand(button),
-			new WaitCommand(PULSE_DURATION_TICKS * Robot.defaultPeriodSecs),
+			new WaitCommand(duration * Robot.defaultPeriodSecs),
 			toggleButtonCommand(button)
 		);
 	}

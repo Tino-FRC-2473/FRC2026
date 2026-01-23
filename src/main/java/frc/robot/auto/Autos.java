@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.input.AutoInput;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.systems.Drivetrain;
+import frc.robot.systems.Drivetrain.DrivetrainState;
 
 public class Autos {
 
@@ -20,8 +21,8 @@ public class Autos {
 	 */
 	public static Command getTestAuto(AutoInput input, Drivetrain drivetrain) {
 		return new AutoBuilder()
-			.doNext(input.pulseButtonCommand(ButtonInput.RESEED_DRIVETRAIN))
-			.doNext(drivetrain.constructObservedStateCommand(Drivetrain.DrivetrainState.TELEOP))
+			.doNext(input.pressButtonCommand(ButtonInput.RESEED_DRIVETRAIN))
+			.doNext(drivetrain.watchForStatesCommand(DrivetrainState.TELEOP))
 			.close();
 	}
 

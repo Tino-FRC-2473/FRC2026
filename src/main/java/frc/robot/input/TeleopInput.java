@@ -18,8 +18,8 @@ import frc.robot.input.InputTypes.ButtonInput;
  */
 public final class TeleopInput extends Input {
 
-	public static final int DRIVE_PORT = 0;
-	public static final int MECH_PORT = 1;
+	public static final int DRIVE_CONTROLLER_PORT = 0;
+	public static final int MECH_CONTROLLER_PORT = 1;
 
 	private PS4Controller driveController;
 	private PS4Controller mechController;
@@ -28,8 +28,8 @@ public final class TeleopInput extends Input {
 	 * Constructs a TeleopInput using the constants defined in this file.
 	 */
 	public TeleopInput() {
-		driveController = new PS4Controller(DRIVE_PORT);
-		mechController = new PS4Controller(MECH_PORT);
+		driveController = new PS4Controller(DRIVE_CONTROLLER_PORT);
+		mechController = new PS4Controller(MECH_CONTROLLER_PORT);
 	}
 
 	@Override
