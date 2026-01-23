@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj.PS4Controller;
 // WPILib Imports
 import edu.wpi.first.wpilibj.PS4Controller;
 
@@ -36,18 +37,22 @@ public class TeleopInput {
 	// Method names should be descriptive of the behavior, so the
 	// control mapping is hidden from other classes.
 
-	/* ------------------------ Left Joystick ------------------------ */
+	/* ------------------------ Driver Controller ------------------------ */
 	/**
-	 * Get X axis of Left Joystick.
+	 * Get X axis of the left joystick.
 	 * @return Axis value
 	 */
+	public double getDriverLeftX() {
+		return driveController.getLeftX();
 	public double getLeftJoystickX() {
 		return mechController.getLeftX();
 	}
 	/**
-	 * Get Y axis of Left Joystick.
+	 * Get Y axis of the left joystick.
 	 * @return Axis value
 	 */
+	public double getDriverLeftY() {
+		return driveController.getLeftY();
 	public double getLeftJoystickY() {
 		return mechController.getLeftY();
 	}
@@ -58,10 +63,13 @@ public class TeleopInput {
 	public boolean isShooterButtonPressed() {
 		return mechController.getRawButton(1);
 	}
+
 	/**
-	 * Get the value of the intake button.
-	 * @return True if button is pressed
+	 * Get X axis of the right joystick.
+	 * @return Axis value
 	 */
+	public double getDriverRightX() {
+		return driveController.getRightX();
 	public boolean isIntakeButtonPressed() {
 		return mechController.getRawButton(2);
 	}
@@ -73,19 +81,22 @@ public class TeleopInput {
 	public boolean isDownButtonPressed() {
 		return true;
 	}
-
-	/* ------------------------ Right Joystick ------------------------ */
 	/**
-	 * Get X axis of Right Joystick.
+	 * Get Y axis of the right joystick.
 	 * @return Axis value
 	 */
+	public double getDriverRightY() {
+		return driveController.getRightY();
 	public double getRightJoystickX() {
 		return mechController.getRightX();
 	}
+
 	/**
-	 * Get Y axis of Right Joystick.
+	 * Get share button state for drive controller.
 	 * @return Axis value
 	 */
+	public boolean isDriverReseedButtonPressed() {
+		return driveController.getOptionsButton();
 	public double getRightJoystickY() {
 		return mechController.getRightY();
 	}

@@ -7,16 +7,17 @@ import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+
 
 
 
 // Systems
-import frc.robot.systems.ExampleFSMSystem;
-import frc.robot.systems.FSMSystem;
-import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.motors.MotorManager;
+import frc.robot.systems.Drivetrain;
 import frc.robot.systems.AutoHandlerSystem;
-import frc.robot.systems.AutoHandlerSystem.AutoPath;
 import frc.robot.systems.ClimberFSMSystem;
 
 /**
@@ -27,9 +28,7 @@ public class Robot extends LoggedRobot {
 	private TeleopInput input;
 
 	// Systems
-	private FSMSystem<?> subSystem1;
-	private ExampleFSMSystem subSystem2;
-	private ExampleFSMSystem subSystem3;
+	private Drivetrain drivetrain;
 	private ClimberFSMSystem climberFSMSystem;
 
 	private AutoHandlerSystem autoHandler;
@@ -43,34 +42,24 @@ public class Robot extends LoggedRobot {
 		System.out.println("robotInit");
 		input = new TeleopInput();
 
-		// Instantiate all systems here
-		subSystem2 = new ExampleFSMSystem();
-		subSystem3 = new ExampleFSMSystem();
-		climberFSMSystem = new ClimberFSMSystem();
-
-		// you can swap out FSM systems if neccesary
-		// this may be needed if you want different behavior in sim
-		// do not instantiate something that would try to use hardware you don't have
-		if (HardwareMap.isExampleFSMEnabled()) {
-			subSystem1 = new ExampleFSMSystem();
-		} else {
-			subSystem1 = new PlaceholderFSMSystem();
-		}
-
-		Logger.recordMetadata("sdfjdsj", "ljsdlfkjsdlfj");
+		Logger.recordMetadata("FRC 2473", "REBUILT");
 		Logger.addDataReceiver(new NT4Publisher());
 		Logger.start();
+
+		// Instantiate all systems here
+		if (HardwareMap.isDrivetrainEnabled()) {
+			drivetrain = new Drivetrain();
+		}
+		climberFSMSystem = new ClimberFSMSystem();
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
-		autoHandler.reset(AutoPath.PATH1);
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-		autoHandler.update();
 
 		// logs motor values
 		MotorManager.update();
@@ -79,17 +68,13 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
-		subSystem1.reset();
-		subSystem2.reset();
-		subSystem3.reset();
+		drivetrain.reset();
 		climberFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		subSystem1.update(input);
-		subSystem2.update(input);
-		subSystem3.update(input);
+		drivetrain.update(input);
 		climberFSMSystem.update(input);
 
 		// logs motor values
