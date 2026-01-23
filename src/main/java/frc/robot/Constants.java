@@ -17,6 +17,10 @@ public class Constants {
 		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speed, and so on
 		public static final double TRANSLATIONAL_DAMP = 1;
 		public static final double ROTATIONAL_DAMP = 1;
+
+		public static final int PIGEON2_CAN_ID = 1;
+		public static final String CAN_BUS_NAME = "Drivetrain";
+
 	}
 
 	public static final class ModuleConstants {
@@ -33,5 +37,9 @@ public class Constants {
 		public static final double STEER_D = 0.5;
 		public static final double STEER_V = 0.1;
 		public static final double STEER_S = 0;
+	}
+
+	public static final class VisionConstants {
+		public static final String LIMELIGHT_NAME = "limelight-four";
 	}
 }

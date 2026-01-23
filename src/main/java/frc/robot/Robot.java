@@ -7,11 +7,15 @@ import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import frc.robot.Constants.VisionConstants;
+
 // WPILib Imports
 
 // Systems
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
+import frc.robot.systems.Vision;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -22,6 +26,8 @@ public class Robot extends LoggedRobot {
 
 	// Systems
 	private Drivetrain drivetrain;
+	private Vision vision;
+	private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -39,7 +45,9 @@ public class Robot extends LoggedRobot {
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
 			drivetrain = new Drivetrain();
+			vision = new Vision(drivetrain::addVisionMeasurement, () -> drivetrain.getDrivetrainRotation(), VisionConstants.LIMELIGHT_NAME);
 		}
+
 	}
 
 	@Override
@@ -101,5 +109,7 @@ public class Robot extends LoggedRobot {
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
-	public void robotPeriodic() { }
+	public void robotPeriodic() { 
+		vision.periodic();
+	}
 }

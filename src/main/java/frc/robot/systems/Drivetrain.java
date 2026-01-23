@@ -7,15 +7,25 @@ import org.littletonrobotics.junction.AutoLogOutput;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.wpilibj2.command.PIDCommand;
 import frc.robot.Constants.DrivetrainConstants;
+import frc.robot.Constants.VisionConstants;
+import frc.robot.Constants;
 import frc.robot.TeleopInput;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
@@ -49,7 +59,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private DrivetrainState currentState;
 	// Drivetrain subsystem instance
 	private CommandSwerveDrivetrain drivetrain;
-
 	/**
 	 * Constructs the drivetrain subsystem.
 	 */
@@ -140,6 +149,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return drivetrain.getState().ModulePositions;
 	}
 
+	@AutoLogOutput(key = "Drivetrain/Rotation")
+	public Rotation3d getDrivetrainRotation() {
+		return drivetrain.getPigeon2().getRotation3d();
+	}
+
 	/* ======================== Private methods ======================== */
 
 	@Override
@@ -196,6 +210,25 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@AutoLogOutput(key = "Drivetrain/Current State")
 	public DrivetrainState getCurrentState() {
 		return currentState;
+	}
+
+	/**
+	 * Adds a new timestamped vision measurement.
+	 *
+	 * @param visionPoseMeters The pose of the robot in the camera's coordinate
+	 *                         frame
+	 * @param timestampSeconds The timestamp of the measurement
+	 * @param visionStdDevs    The standard deviations of the measurement in the x,
+	 *                         y, and theta directions
+	 */
+	public void addVisionMeasurement(
+			Pose2d visionPoseMeters,
+			double timestampSeconds,
+			Matrix<N3, N1> visionStdDevs) {
+		drivetrain.addVisionMeasurement(
+				visionPoseMeters,
+				timestampSeconds,
+				visionStdDevs);
 	}
 
 }
