@@ -2,6 +2,12 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import com.google.flatbuffers.FlexBuffers.Vector;
+
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
 
 public class Constants {
@@ -41,5 +47,6 @@ public class Constants {
 
 	public static final class VisionConstants {
 		public static final String LIMELIGHT_NAME = "limelight-four";
+		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(0.02, 0.02, Math.toRadians(1));
 	}
 }

@@ -5,6 +5,9 @@ import static edu.wpi.first.units.Units.DegreesPerSecond;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.math.Matrix;
@@ -16,6 +19,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import frc.robot.Constants.VisionConstants;
 import limelight.Limelight;
 import limelight.networktables.AngularVelocity3d;
 import limelight.networktables.LimelightPoseEstimator;
@@ -24,6 +28,7 @@ import limelight.networktables.LimelightPoseEstimator.EstimationMode;
 import limelight.networktables.LimelightSettings.LEDMode;
 import limelight.networktables.Orientation3d;
 import limelight.networktables.PoseEstimate;
+import edu.wpi.first.math.geometry.Transform3d;
 
 public class Vision {
 
@@ -37,7 +42,7 @@ public class Vision {
         limelight = new Limelight(limelightName);
         limelight.getSettings()
              .withLimelightLEDMode(LEDMode.PipelineControl)
-             .withCameraOffset(new Pose3d())
+             .withCameraOffset(new Transform3d())
              .save();
         this.visionConsumer = visionConsumer;
     }
@@ -50,9 +55,8 @@ public class Vision {
 
         Optional<PoseEstimate> visionEstimate = BotPose.BLUE_MEGATAG2.get(limelight);
         visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
-            //TODO: Actually add some math to figure out stdevs
-            Matrix<N3, N1> stdDevs = VecBuilder.fill(1.0, 1.0, 1.0);
-            visionConsumer.accept(poseEstimate.pose.toPose2d(), poseEstimate.timestampSeconds, stdDevs);
+            Logger.recordOutput("Vision/MT2Pose", poseEstimate.pose.toPose2d());
+            visionConsumer.accept(poseEstimate.pose.toPose2d(), poseEstimate.timestampSeconds, VisionConstants.LL4_STDEVS);
         });
     }
 
