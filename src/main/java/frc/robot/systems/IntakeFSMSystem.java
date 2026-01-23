@@ -31,7 +31,8 @@ enum FSMState {
 	IDLE_OUT_STATE,
 	INTAKE_STATE,
 	OUTTAKE_STATE,
-	FOLD_IN_STATE
+	FOLD_IN_STATE,
+	PARTIAL_OUT_STATE
 }
 
 public class IntakeFSMSystem extends FSMSystem<FSMState> {
@@ -96,13 +97,13 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 
 		var slot0Configs = talonFXConfigs.Slot0;
 		slot0Configs.GravityType = GravityTypeValue.Elevator_Static;
-		slot0Configs.kG = Constants.INTAKE_KG;
-		slot0Configs.kS = Constants.INTAKE_KS;
-		slot0Configs.kV = Constants.INTAKE_KV;
-		slot0Configs.kA = Constants.INTAKE_KA;
-		slot0Configs.kP = Constants.INTAKE_KP;
-		slot0Configs.kI = Constants.INTAKE_KI;
-		slot0Configs.kD = Constants.INTAKE_KD;
+		slot0Configs.kG = Constants.PIVOT_KG;
+		slot0Configs.kS = Constants.PIVOT_KS;
+		slot0Configs.kV = Constants.PIVOT_KV;
+		slot0Configs.kA = Constants.PIVOT_KA;
+		slot0Configs.kP = Constants.PIVOT_KP;
+		slot0Configs.kI = Constants.PIVOT_KI;
+		slot0Configs.kD = Constants.PIVOT_KD;
 		slot0Configs.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
 		var slot1Configs = intakeConfigs.Slot0;
@@ -222,6 +223,10 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 				handleFoldInState(input);
 				break;
 
+			case PARTIAL_OUT_STATE:
+				handlePartialOutState(input);
+				break;
+
 			default:
 				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
 		}
@@ -302,8 +307,10 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	protected FSMState nextState(TeleopInput input) {
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
-				if (input.isFoldButtonPressed()) {
+				if (input.isFoldOutButtonPressed()) {
 					return FSMState.FOLD_OUT_STATE;
+				} else if (input.isPartialOutButtonPressed()) {
+					return FSMState.PARTIAL_OUT_STATE;
 				} else {
 					return FSMState.IDLE_IN_STATE;
 				}
@@ -315,13 +322,24 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 					return FSMState.FOLD_OUT_STATE;
 				}
 
+			case PARTIAL_OUT_STATE:
+				if (input.isFoldOutButtonPressed()) {
+					return FSMState.FOLD_OUT_STATE;
+				} else if (input.isFoldInButtonPressed()) {
+					return FSMState.FOLD_IN_STATE;
+				} else {
+					return FSMState.PARTIAL_OUT_STATE;
+				}
+
 			case IDLE_OUT_STATE:
 				if (input.isIntakeButtonPressed()) {
 					return FSMState.INTAKE_STATE;
 				} else if (input.isOuttakeButtonPressed()) {
 					return FSMState.OUTTAKE_STATE;
-				} else if (input.isFoldButtonPressed()) {
+				} else if (input.isFoldInButtonPressed()) {
 					return FSMState.FOLD_IN_STATE;
+				} else if (input.isPartialOutButtonPressed()) {
+					return FSMState.PARTIAL_OUT_STATE;
 				} else {
 					return FSMState.IDLE_OUT_STATE;
 				}
@@ -367,6 +385,14 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 */
 	private void handleFoldOutState(TeleopInput input) {
 		pivotMotorRight.setControl(pivotMotionRequest.withPosition(Constants.INTAKE_GROUND_TARGET));
+	}
+	/**
+	 * Handle behavior in PARTIAL_OUT_STATE.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *        the robot is in autonomous mode.
+	 */
+	private void handlePartialOutState(TeleopInput input) {
+		pivotMotorRight.setControl(pivotMotionRequest.withPosition(Constants.PARTIAL_OUT_POSITION));
 	}
 	/**
 	 * Handle behavior in START_STATE.

@@ -37,11 +37,27 @@ public class TeleopInput {
 	}
 
 	/**
-	 * Getter for the fold button being pressed.
-	 * @return whether the fold button was pressed
+	 * Getter for the fold in button being pressed.
+	 * @return whether the fold in button was pressed
 	 */
-	public boolean isFoldButtonPressed() {
+	public boolean isFoldInButtonPressed() {
 		return controller.getCircleButtonPressed();
+	}
+
+	/**
+	 * Getter for the fold out button being pressed.
+	 * @return whether the fold out button was pressed
+	 */
+	public boolean isFoldOutButtonPressed() {
+		return controller.getCircleButtonPressed();
+	}
+
+	/**
+	 * Getter for the partial out button being pressed.
+	 * @return whether the partial out button was pressed
+	 */
+	public boolean isPartialOutButtonPressed() {
+		return controller.getOptionsButtonPressed();
 	}
 
 	/**
