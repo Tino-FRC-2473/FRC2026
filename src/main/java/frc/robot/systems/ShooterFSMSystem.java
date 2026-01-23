@@ -19,6 +19,9 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.BaseStatusSignal;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 // Robot Imports
 import frc.robot.TeleopInput;
@@ -33,14 +36,12 @@ enum FSMState {
 	IDLE_STATE,
 	SHOOTER_PREP_STATE,
 	PASSER_PREP_STATE,
-	SHOOTER_INTAKE_STATE,
-	PASSER_INTAKE_STATE,
+	INTAKE_STATE,
 	MANUAL_PREP_STATE,
-	MANUAL_INTAKE_STATE
 }
 
 public class ShooterFSMSystem extends FSMSystem<FSMState> {
-	//IMPORTANT NOTE: THIS WILL NOTE BUILD AS THIS IS JUST A FRAMEWORK AND DOES NOT HAVE ANY DEFINED INPUT FUNCTIONS OR CLASSES YET.
+	//IMPORTANT NOTE: THIS WILL NOTE BUILD AS THIS IS JUST A FRAMEWORK AND DOES NOT HAVE ANY DEFINED INPUT FUNCTIONS OR CLASSES YET THAT WOULD BE PRESENT IN THE FULL CODE.
 	/* ======================== Constants ======================== */
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -53,12 +54,19 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	private FSMState curState;
 	//for curPose, we need to find the height of the shooter from the floor for calculations.
 	private Pose2d curPose;
+	private Pose3d outpostPose;
+	private Pose3d hubPose;
+	private Pose3d target3Pose; //probably going to be the mirrored side of the outpost
+	private List<Pose3d> targetPoses;
 	private TalonFX flywheelMotor;
 	private TalonFX indexMotor;
 	private ShooterHoodSystem hood;
-	private boolean flywheelAtSpeed;
-	private boolean hoodAtAngle;
-
+	private double flywheelSpeed;
+	private double flywheelTargetSpeed;
+	private double hoodAngle;
+	private double hoodTargetAngle;
+	private FSMState pastState;
+	
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -69,12 +77,13 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	public ShooterFSMSystem(){
 		curPose = new Pose2d();
 		flywheelMotor = new TalonFXWrapper(
-			HardwareMap.CAN_ID_FLYWHEEL
+			HardwareMap.CAN_ID_FLYWHEEL //not made yet
 		);
 		indexMotor = new TalonFXWrapper(
-			HardwareMap.CAN_ID_INDEX
+			HardwareMap.CAN_ID_INDEX //not made yet
 		);
 		hood = new ShooterHoodSystem();
+		reset();
 	}
 	
 	public ShooterFSMSystem(DriveFSMSystem driveSystem) {
@@ -97,6 +106,14 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	// overridden methods don't require javadocs
 	// however, you may want to add implementation specific javadocs
 
+	public boolean isAtSpeed(){
+		return (flywheelSpeed == flywheelTargetSpeed);
+	}
+
+	public boolean isAtAngle(){
+		return (hoodAngle == hoodTargetAngle);
+	}
+	
 	@Override
 	public void reset() {
 		setCurrentState(FSMState.IDLE_STATE);
@@ -107,6 +124,7 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 
 	@Override
 	public void update(TeleopInput input) {
+		Logger.recordOutput("curState", curState);
 		switch (getCurrentState()) {
 			case IDLE_STATE:
 				handleIdleState(input);
@@ -120,20 +138,12 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 				handlePasserPrepState(input);
 				break;
 
-			case SHOOTER_INTAKE_STATE:
-				handleShooterIntakeState(input);
-				break;
-
-			case PASSER_INTAKE_STATE:
-				handlePasserIntakeState(input);
+			case INTAKE_STATE:
+				handleIntakeState(input);
 				break;
 
 			case MANUAL_PREP_STATE:
 				handleManualPrepState(input);
-				break;
-			
-			case MANUAL_INTAKE_STATE:
-				handleManualIntakeState(input);
 				break;
 			
 			default:
@@ -163,96 +173,105 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 		switch (getCurrentState()) {
 			case IDLE_STATE:
 				if (input != null && input.isRightBumperPressed()) {
-					return FSMState.PASSER_PREP_STATE;
+					pastState = curState;
+					curState = FSMState.PASSER_PREP_STATE;
+					return curState;
 				} else if (input != null && input.isLeftBumperPressed()) {
-					return FSMState.MANUAL_PREP_STATE;
+					pastState = curState;
+					curState = FSMState.SHOOTER_PREP_STATE;
+					return curState;
+				} else if (input != null && input.isLeftTriggerPressed()){
+					pastState = curState;
+					curState = FSMState.MANUAL_PREP_STATE;
+					return curState;
 				}
 
 			case PASSER_PREP_STATE:
-
 				if (input.isTouchpadPressed()){
-					return FSMState.IDLE_STATE;
+					pastState = curState;
+					curState = FSMState.IDLE_STATE;
+					return curState;
 				}
-				if (input.isRightBumperPressed()){
-					return FSMState.SHOOTER_PREP_STATE;
+				if (input.isLeftBumperPressed()){
+					pastState = curState;
+					curState = FSMState.SHOOTER_PREP_STATE;
+					return curState;
 				} 
-				if (input.isLeftBumperPressed()){
-					return FSMState.MANUAL_PREP_STATE;
+				if (input.isLeftTriggerPressed()){
+					pastState = curState;
+					curState = FSMState.MANUAL_PREP_STATE;
+					return curState;
 				}
-				if (flywheelAtSpeed && hoodAtAngle && input.isRightTriggerPressed()){
-					return FSMState.PASSER_INTAKE_STATE;
+				if (isAtSpeed() && isAtAngle() && input.isRightTriggerPressed()){ //need to make sure to change colors for if its at speed and at angle so that they know when to pull triggers
+					pastState = curState;
+					curState = FSMState.INTAKE_STATE;
+					return curState;
 				}
 
-			case PASSER_INTAKE_STATE:
-				if (!flywheelAtSpeed || !hoodAtAngle || !input.isRightTriggerPressed()){
-					return FSMState.PASSER_PREP_STATE;
+			case INTAKE_STATE:
+				if (!isAtSpeed() || !isAtAngle() || !input.isRightTriggerPressed()){
+					indexMotor.set(0);
+					return pastState; //pastState should only store shooter_prep, passer_prep, and manual_prep
 				}
 
 				if (input.isTouchpadPressed()){
-					return FSMState.IDLE_STATE;
+					pastState = curState;
+					curState = FSMState.IDLE_STATE;
+					return curState;
 				}
 
 				if (input.isRightBumperPressed()){
-					return FSMState.SHOOTER_PREP_STATE;
+					pastState = curState;
+					curState = FSMState.PASSER_PREP_STATE;
+					return curState;
 				}
 
 				if (input.isLeftBumperPressed()){
-					return FSMState.MANUAL_PREP_STATE;
+					pastState = curState;
+					curState = FSMState.SHOOTER_PREP_STATE;
+					return curState;
+				}
+
+				if (input.isLeftTriggerPressed()){
+					pastState = curState;
+					curState = FSMState.MANUAL_PREP_STATE;
+					return curState;
 				}
 			
 			case SHOOTER_PREP_STATE:
 				if (input.isTouchpadPressed()){
-					return FSMState.IDLE_STATE;
+					pastState = curState;
+					curState = FSMState.IDLE_STATE;
+					return curState;
 				}
 				if (input.isRightBumperPressed()){
-					return FSMState.SHOOTER_PREP_STATE;
+					pastState = curState;
+					curState = FSMState.PASSER_PREP_STATE;
+					return curState;
 				} 
-				if (input.isLeftBumperPressed()){
-					return FSMState.MANUAL_PREP_STATE;
+				if (input.isLeftTriggerPressed()){
+					pastState = curState;
+					curState = FSMState.MANUAL_PREP_STATE;
+					return curState;
 				}
-				if (flywheelAtSpeed && hoodAtAngle && input.isRightTriggerPressed()){
-					return FSMState.PASSER_INTAKE_STATE;
-				}
-			
-			case SHOOTER_INTAKE_STATE:
-				if (!flywheelAtSpeed || !hoodAtAngle || !input.isRightTriggerPressed()){
-					return FSMState.SHOOTER_PREP_STATE;
-				}
-
-				if (input.isTouchpadPressed()){
-					return FSMState.IDLE_STATE;
-				}
-
-				if (input.isRightBumperPressed()){
-					return FSMState.PASSER_PREP_STATE;
-				}
-
-				if (input.isLeftBumperPressed()){
-					return FSMState.MANUAL_PREP_STATE;
+				if (isAtSpeed() && isAtAngle() && input.isRightTriggerPressed()){
+					pastState = curState;
+					curState = FSMState.INTAKE_STATE;
+					return curState;
 				}
 
 			case MANUAL_PREP_STATE:
+			//Manual can only go to idle (we need the button inputs for right and left bumper to adjust manually)
 				if (input.isTouchpadPressed()){
-					return FSMState.IDLE_STATE;
-				}
-			
-				if (input.isRightBumperPressed()){
-					return FSMState.PASSER_PREP_STATE;
+					pastState = curState;
+					curState = FSMState.IDLE_STATE;
+					return curState;
 				}
 
-				if (flywheelAtSpeed && hoodAtAngle && input.isRightTriggerPressed()){
-					return FSMState.MANUAL_INTAKE_STATE;
-				}
-			
-			case MANUAL_INTAKE_STATE:
-				if (!flywheelAtSpeed || !hoodAtAngle || !input.isRightTriggerPressed() || input.isLeftBumperPressed()){
-					return FSMState.MANUAL_PREP_STATE;
-				}
-				if (input.isTouchpadPressed()){
-					return FSMState.IDLE_STATE;
-				}
-				if (input.isRightBumperPressed()){
-					return FSMState.PASSER_PREP_STATE;
+				if (isAtSpeed() && isAtAngle() && input.isRightTriggerPressed()){
+					pastState = curState;
+					curState = FSMState.INTAKE_STATE;
+					return curState;
 				}
 				
 
@@ -270,7 +289,8 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	private void handleIdleState(TeleopInput input) {
 		flywheelMotor.set(0);
 		indexMotor.set(0);
-		hood.setAngle(0);
+		hood.setHoodAngle(20); //20 degrees from the vertical is the base angle
+		//hood remains at current angle.
 
 	}
 	/**
@@ -294,22 +314,12 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	}
 
 	/**
-	 * Handle behavior in PASSER_INTAKE_STATE.
+	 * Handle behavior in INTAKE_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handlePasserIntakeState(TeleopInput input) {
-		//turn on indexer motor to some value based off of the other values
-		
-	}
-
-	/**
-	 * Handle behavior in SHOOTER_INTAKE_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleShooterIntakeState(TeleopInput input) {
-		//turn on indexer motor to some value based off of the other values
+	private void handleIntakeState(TeleopInput input) {
+		indexMotor.set(flywheelTargetSpeed);
 		
 	}
 
@@ -319,10 +329,20 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleManualPrepState(TeleopInput input) {
-		if (input.isLeftBumperPressed()){
+
+		//FOR MANUAL ONLY: Right Bumper will be used as a deincrementer. Do not confuse this with triggering Passer Prep.
+		//FOR MANUAL ONLY: Left Bumper will be used to adjust hood angle. Do not confuse this with triggering Shooter Prep.
+		if (input.isLeftBumperPressed() && input.isRightBumperPressed()){
+			hood.setHoodAngle(hoodTargetAngle - 5);
+			//decrease hood angle by 5 degrees
+		} else if (input.isLeftBumperPressed()){
+			hood.setHoodAngle(hoodTargetAngle + 5);
 			//increase hood angle by 5 degrees
 		}
-		if (input.isLeftTriggerPressed()){
+
+		if (input.isLeftTriggerPressed() && input.isRightBumperPressed()){
+			//decrease flywheel speed by some constant
+		} else if (input.isLeftTriggerPressed()){
 			//increase flywheel speed by some constant
 		}
 
@@ -330,15 +350,6 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 		
 	}
 
-	/**
-	 * Handle behavior in MANUAL_INTAKE_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleManualIntakeState(TeleopInput input) {
-		//turn on indexMotor to some constant based on the other values
-		
-	}
 
 	/**
 	 * Performs action for auto STATE1.
@@ -378,12 +389,8 @@ public class ShooterHoodSystem{
 		return hoodMotor;
 	}
 
-	public void setHoodMotor(double hoodSpeed){
-		hoodMotor.set(hoodSpeed);
-	}
-
-	public void setAngle(double angle){
-		//functionality to be added, this will handle actually moving the hood
+	public void setHoodAngle(double hoodAngle){
+		//functionality to be added
 	}
 
 }
