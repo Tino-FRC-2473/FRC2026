@@ -72,6 +72,6 @@ public abstract class Input {
 	 * @param key the axis identifier
 	 * @return the axis value
 	 */
-	abstract double getAxis(DoubleSignal key);
+	public abstract double getAxis(DoubleSignal key);
 
 }

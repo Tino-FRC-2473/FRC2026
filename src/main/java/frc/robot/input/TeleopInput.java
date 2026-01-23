@@ -37,8 +37,7 @@ public final class TeleopInput extends Input {
 		return switch (key) {
 
 			// add / remove cases to reflect the InputTypes
-			case EXAMPLE_BUTTON -> mechController::square;
-			case EXAMPLE_BUTTON2 -> mechController::circle;
+			case DRIVE_RESEED -> mechController::options;
 
 			default -> throw new IllegalArgumentException("Unknown button action");
 		};

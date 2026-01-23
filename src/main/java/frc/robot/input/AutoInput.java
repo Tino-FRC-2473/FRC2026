@@ -57,7 +57,7 @@ public final class AutoInput extends Input {
 	public Command pulseButtonCommand(BooleanSignal button) {
 		return new SequentialCommandGroup(
 			toggleButtonCommand(button),
-			new WaitCommand(PULSE_DURATION_TICKS * Robot.kDefaultPeriod),
+			new WaitCommand(PULSE_DURATION_TICKS * Robot.defaultPeriodSecs),
 			toggleButtonCommand(button)
 		);
 	}

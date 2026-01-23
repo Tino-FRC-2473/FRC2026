@@ -4,7 +4,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.input.AutoInput;
 import frc.robot.input.InputTypes.BooleanSignal;
-import frc.robot.systems.ExampleFSMSystem;
+import frc.robot.systems.Drivetrain;
 
 public class Autos {
 
@@ -15,11 +15,11 @@ public class Autos {
 	 * @param exampleMechanism an instance of the ExampleFSMSystem
 	 * @return the constructed Command
 	 */
-	public static Command constructAuto1(AutoInput input, ExampleFSMSystem exampleMechanism) {
+	public static Command constructAuto1(AutoInput input, Drivetrain exampleMechanism) {
 		return new SequentialCommandGroup(
-			input.pulseButtonCommand(BooleanSignal.EXAMPLE_BUTTON),
+			input.pulseButtonCommand(BooleanSignal.DRIVE_RESEED),
 			exampleMechanism.constructObservedStateCommand(
-				ExampleFSMSystem.FSMState.OTHER_STATE
+				Drivetrain.DrivetrainState.TELEOP
 			)
 		);
 	}

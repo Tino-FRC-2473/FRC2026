@@ -3,30 +3,29 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+
 // WPILib Imports
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 // Systems
-import frc.robot.systems.ExampleFSMSystem;
-import frc.robot.systems.FSMSystem;
-import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.commands.Autos;
 import frc.robot.input.AutoInput;
 import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
+import frc.robot.systems.Drivetrain;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation.
  */
-public class Robot extends TimedRobot {
+public class Robot extends LoggedRobot {
 	private Input input;
 
 	// Systems
-	private FSMSystem<?> subSystem1;
-	private ExampleFSMSystem subSystem2;
-	private ExampleFSMSystem subSystem3;
+	private Drivetrain drivetrain;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -36,17 +35,13 @@ public class Robot extends TimedRobot {
 	public void robotInit() {
 		System.out.println("robotInit");
 
-		// Instantiate all systems here
-		subSystem2 = new ExampleFSMSystem();
-		subSystem3 = new ExampleFSMSystem();
+		Logger.recordMetadata("FRC 2473", "REBUILT");
+		Logger.addDataReceiver(new NT4Publisher());
+		Logger.start();
 
-		// you can swap out FSM systems if neccesary
-		// this may be needed if you want different behavior in sim
-		// do not instantiate something that would try to use hardware you don't have
-		if (HardwareMap.isExampleFSMEnabled()) {
-			subSystem1 = new ExampleFSMSystem();
-		} else {
-			subSystem1 = new PlaceholderFSMSystem();
+		// Instantiate all systems here
+		if (HardwareMap.isDrivetrainEnabled()) {
+			drivetrain = new Drivetrain();
 		}
 
 	}
@@ -56,15 +51,13 @@ public class Robot extends TimedRobot {
 		System.out.println("-------- Autonomous Init --------");
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
-		CommandScheduler.getInstance().schedule(Autos.constructAuto1(autoInput, subSystem2));
+		CommandScheduler.getInstance().schedule(Autos.constructAuto1(autoInput, drivetrain));
 
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-		subSystem1.update(input);
-		subSystem2.update(input);
-		subSystem3.update(input);
+		drivetrain.update(input);
 		input.update();
 		CommandScheduler.getInstance().run();
 
@@ -77,16 +70,12 @@ public class Robot extends TimedRobot {
 		System.out.println("-------- Teleop Init --------");
 		input = new TeleopInput();
 		CommandScheduler.getInstance().cancelAll();
-		subSystem1.reset();
-		subSystem2.reset();
-		subSystem3.reset();
+		drivetrain.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		subSystem1.update(input);
-		subSystem2.update(input);
-		subSystem3.update(input);
+		drivetrain.update(input);
 		input.update();
 
 		// logs motor values

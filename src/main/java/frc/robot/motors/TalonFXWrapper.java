@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Volts;
 import static java.lang.Math.PI;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -63,7 +64,7 @@ public class TalonFXWrapper extends TalonFX implements LoggedMotor {
 	 */
 	public TalonFXWrapper(int deviceId, String canbus, DCMotor motorConfigs) {
 		// Initialize motor
-		super(deviceId, canbus);
+		super(deviceId, new CANBus(canbus));
 		init();
 
 		// Create sim instance

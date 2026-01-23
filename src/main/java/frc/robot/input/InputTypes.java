@@ -13,8 +13,7 @@ public class InputTypes {
 	// enum of buttons, change this as needed
 	// make sure to change TeleopInput to support the new input type
 	public enum BooleanSignal {
-		EXAMPLE_BUTTON,
-		EXAMPLE_BUTTON2;
+		DRIVE_RESEED;
 	}
 
 }
