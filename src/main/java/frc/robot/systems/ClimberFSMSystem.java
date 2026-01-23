@@ -221,15 +221,15 @@ public class ClimberFSMSystem {
 					isAutoDownUsed = true;
 					return ClimberFSMState.AUTO_DOWN_1;
 				}
-				if (input.isManualOverideButtonPressed()) {
+				if (input.isClimberManualOverideButtonPressed()) {
 					return ClimberFSMState.MANUAL_DIRECT_CONTROL;
 				}
-				if (input.isNextButtonPressed()) {
+				if (input.isClimberNextButtonPressed()) {
 					return ClimberFSMState.L1_EXTEND;
 				}
 				return ClimberFSMState.IDLE;
 			case MANUAL_DIRECT_CONTROL:
-				if (input.isManualOverideButtonPressed()) {
+				if (input.isClimberManualOverideButtonPressed()) {
 					return ClimberFSMState.IDLE;
 				}
 				return ClimberFSMState.IDLE;
@@ -254,10 +254,11 @@ public class ClimberFSMSystem {
 				}
 				return ClimberFSMState.AUTO_DOWN_2;
 			case L1_EXTEND:
-				if (input.isEmergencyAbortPressed()) {
+				if (input.isClimberEmergencyAbortPressed()) {
 					return ClimberFSMState.IDLE;
 				}
-				boolean shouldAdvanceExtendedL1 = (input.isNextButtonPressed() && isExtendedL1());
+				boolean shouldAdvanceExtendedL1 =
+					(input.isClimberNextButtonPressed() && isExtendedL1());
 				if (shouldAdvanceExtendedL1) {
 					if (currentState == ClimberFSMState.L1_EXTEND) {
 						return ClimberFSMState.L1_RETRACT;

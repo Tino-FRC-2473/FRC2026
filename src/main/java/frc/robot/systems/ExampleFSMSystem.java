@@ -39,7 +39,7 @@ public class ExampleFSMSystem extends FSMSystem<FSMState> {
 		// this is so we can see motor outputs during simulatiuons
 
 		// Initialize the example motor if the hardware is present.
-		if (HardwareMap.isExampleFSMEnabled()) {
+		if (HardwareMap.isDrivetrainEnabled()) {
 			// Use the example CAN ID from HardwareMap. Use SparkMax motor type
 			// kBrushless to match the wrapper expectations.
 			exampleMotor = new SparkMaxWrapper(0,
@@ -67,7 +67,7 @@ public class ExampleFSMSystem extends FSMSystem<FSMState> {
 
 	@Override
 	public void update(TeleopInput input) {
-		if (!HardwareMap.isExampleFSMEnabled()) {
+		if (!HardwareMap.isDrivetrainEnabled()) {
 			// Hardware not present, do nothing
 			return;
 		}

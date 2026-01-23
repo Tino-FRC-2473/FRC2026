@@ -44,7 +44,8 @@ public class TeleopInput {
 	 */
 	public double getDriverLeftX() {
 		return driveController.getLeftX();
-	public double getLeftJoystickX() {
+	}
+	public double getClimberLeftJoystickX() {
 		return mechController.getLeftX();
 	}
 	/**
@@ -53,7 +54,8 @@ public class TeleopInput {
 	 */
 	public double getDriverLeftY() {
 		return driveController.getLeftY();
-	public double getLeftJoystickY() {
+	}
+	public double getClimberLeftJoystickY() {
 		return mechController.getLeftY();
 	}
 	/**
@@ -70,6 +72,7 @@ public class TeleopInput {
 	 */
 	public double getDriverRightX() {
 		return driveController.getRightX();
+	}
 	public boolean isIntakeButtonPressed() {
 		return mechController.getRawButton(2);
 	}
@@ -87,7 +90,8 @@ public class TeleopInput {
 	 */
 	public double getDriverRightY() {
 		return driveController.getRightY();
-	public double getRightJoystickX() {
+	}
+	public double getClimberRightJoystickX() {
 		return mechController.getRightX();
 	}
 
@@ -97,28 +101,29 @@ public class TeleopInput {
 	 */
 	public boolean isDriverReseedButtonPressed() {
 		return driveController.getOptionsButton();
-	public double getRightJoystickY() {
+	}
+	public double getClimberRightJoystickY() {
 		return mechController.getRightY();
 	}
 	/**
 	 * Get the value of the climber button.
 	 * @return True if button is pressed
 	 */
-	public boolean isManualOverideButtonPressed() {
+	public boolean isClimberManualOverideButtonPressed() {
 		return mechController.getTriangleButtonPressed();
 	}
 	/**
 	 * Get the value of the emergency abort button.
 	 * @return True if button is pressed
 	 */
-	public boolean isNextButtonPressed() {
+	public boolean isClimberNextButtonPressed() {
 		return mechController.getSquareButtonPressed();
 	}
 	/**
 	 * Get the value of the emergency abort button.
 	 * @return True if button is pressed
 	 */
-	public boolean isEmergencyAbortPressed() {
+	public boolean isClimberEmergencyAbortPressed() {
 		return mechController.getR1ButtonPressed();
 	}
 
@@ -127,7 +132,7 @@ public class TeleopInput {
 	 * @return Control input value
 	 */
 	public double getClimberManualControl() {
-		return getRightJoystickY();
+		return getClimberLeftJoystickY();
 	}
 
 	/* ======================== Private methods ======================== */
