@@ -2,7 +2,6 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.PS4Controller;
 // WPILib Imports
-import edu.wpi.first.wpilibj.PS4Controller;
 
 /**
  * Common class for providing driver inputs during Teleop.
@@ -45,6 +44,11 @@ public class TeleopInput {
 	public double getDriverLeftX() {
 		return driveController.getLeftX();
 	}
+
+	/**
+	 * Get the x axis of the left joystick for mech controller
+	 * @return Axis value
+	 */
 	public double getClimberLeftJoystickX() {
 		return mechController.getLeftX();
 	}
@@ -55,6 +59,11 @@ public class TeleopInput {
 	public double getDriverLeftY() {
 		return driveController.getLeftY();
 	}
+
+	/**
+	 * Get the y axis of the left joystick for mech controller
+	 * @return Axis value
+	 */
 	public double getClimberLeftJoystickY() {
 		return mechController.getLeftY();
 	}
@@ -73,6 +82,11 @@ public class TeleopInput {
 	public double getDriverRightX() {
 		return driveController.getRightX();
 	}
+
+	/**
+	 * Get whether the intake button is pressed
+	 * @return Boolean value determining whether its pressed
+	 */
 	public boolean isIntakeButtonPressed() {
 		return mechController.getRawButton(2);
 	}
@@ -91,6 +105,11 @@ public class TeleopInput {
 	public double getDriverRightY() {
 		return driveController.getRightY();
 	}
+
+	/**
+	 * Get the x axis of the right joystick for mech controller
+	 * @return Axis value
+	 */
 	public double getClimberRightJoystickX() {
 		return mechController.getRightX();
 	}
@@ -102,6 +121,11 @@ public class TeleopInput {
 	public boolean isDriverReseedButtonPressed() {
 		return driveController.getOptionsButton();
 	}
+
+	/**
+	 * Get the y axis of the right joystick for mech controller
+	 * @return Axis value
+	 */
 	public double getClimberRightJoystickY() {
 		return mechController.getRightY();
 	}
