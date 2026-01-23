@@ -84,7 +84,7 @@ public class TeleopInput {
 	}
 
 	/**
-	 * Get whether the intake button is pressed
+	 * Get whether the intake button is pressed.
 	 * @return Boolean value determining whether its pressed.
 	 */
 	public boolean isIntakeButtonPressed() {
