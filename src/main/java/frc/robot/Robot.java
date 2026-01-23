@@ -5,29 +5,28 @@ package frc.robot;
 
 // WPILib Imports
 import edu.wpi.first.wpilibj.TimedRobot;
-
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 // Systems
 import frc.robot.systems.ExampleFSMSystem;
 import frc.robot.systems.FSMSystem;
 import frc.robot.systems.PlaceholderFSMSystem;
+import frc.robot.commands.Autos;
+import frc.robot.input.AutoInput;
+import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
-import frc.robot.systems.AutoHandlerSystem;
-import frc.robot.systems.AutoHandlerSystem.AutoPath;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation.
  */
 public class Robot extends TimedRobot {
-	private TeleopInput input;
+	private Input input;
 
 	// Systems
 	private FSMSystem<?> subSystem1;
 	private ExampleFSMSystem subSystem2;
 	private ExampleFSMSystem subSystem3;
-
-	private AutoHandlerSystem autoHandler;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -36,7 +35,6 @@ public class Robot extends TimedRobot {
 	@Override
 	public void robotInit() {
 		System.out.println("robotInit");
-		input = new TeleopInput();
 
 		// Instantiate all systems here
 		subSystem2 = new ExampleFSMSystem();
@@ -51,18 +49,24 @@ public class Robot extends TimedRobot {
 			subSystem1 = new PlaceholderFSMSystem();
 		}
 
-		autoHandler = new AutoHandlerSystem((ExampleFSMSystem) subSystem1, subSystem2, subSystem3);
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
-		autoHandler.reset(AutoPath.PATH1);
+		AutoInput autoInput = new AutoInput();
+		input = autoInput;
+		CommandScheduler.getInstance().schedule(Autos.constructAuto1(autoInput, subSystem2));
+
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-		autoHandler.update();
+		subSystem1.update(input);
+		subSystem2.update(input);
+		subSystem3.update(input);
+		input.update();
+		CommandScheduler.getInstance().run();
 
 		// logs motor values
 		MotorManager.update();
@@ -71,6 +75,8 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
+		input = new TeleopInput();
+		CommandScheduler.getInstance().cancelAll();
 		subSystem1.reset();
 		subSystem2.reset();
 		subSystem3.reset();
@@ -81,6 +87,7 @@ public class Robot extends TimedRobot {
 		subSystem1.update(input);
 		subSystem2.update(input);
 		subSystem3.update(input);
+		input.update();
 
 		// logs motor values
 		MotorManager.update();

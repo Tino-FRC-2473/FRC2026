@@ -1,7 +1,10 @@
 package frc.robot.systems;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.input.Input;
-import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
 /**
  * This is a superclass for FSMs with NECCESARY methods to implement
@@ -22,6 +25,45 @@ import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
  * @param <S> the type of state
  */
 public abstract class FSMSystem<S> {
+
+	private final class ObservedStateCommand extends Command {
+
+		private S[] endStateSequence;
+		private Queue<S> previousStates;
+
+		/**
+		 * creates an ObservedStateCommand, which is a command that does nothing
+		 * and ends when a particular sequence of states is observed.
+		 * @param states the sequence of states that triggers the command to end
+		 */
+		private ObservedStateCommand(@SuppressWarnings("unchecked") S... states) {
+			endStateSequence = states;
+			previousStates = new LinkedList<>();
+		}
+
+		@Override
+		public void execute() {
+			previousStates.add(getCurrentState());
+			if (previousStates.size() > endStateSequence.length) {
+				previousStates.poll();
+			}
+		}
+
+		@Override
+		public boolean isFinished() {
+			return previousStates.toArray(endStateSequence).equals(endStateSequence);
+		}
+	}
+
+	/**
+	 * returns an ObservedStateCommand for the given states.
+	 * @param states the set of states to scan for
+	 * @return the command
+	 */
+	public ObservedStateCommand constructObservedStateCommand(
+		@SuppressWarnings("unchecked") S... states) {
+		return new ObservedStateCommand(states);
+	}
 
 	/**
 	 * the current state, defined as part of the provided statespace.
@@ -60,13 +102,6 @@ public abstract class FSMSystem<S> {
 	 * @param input Global Input reflecting the input to the robot
 	 */
 	public abstract void update(Input input);
-
-	/**
-	 * Performs specific action based on the autoState passed in.
-	 * @param autoState autoState that the subsystem executes.
-	 * @return if the action carried out in this state has finished executing
-	 */
-	public abstract boolean updateAutonomous(AutoFSMState autoState);
 
 	/**
 	 * Decide the next state to transition to. This is a function of the inputs
