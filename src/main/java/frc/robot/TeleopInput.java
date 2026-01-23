@@ -75,17 +75,11 @@ public class TeleopInput {
 		return mechController.getRawButton(1);
 	}
 
-	/**
-	 * Get X axis of the right joystick.
-	 * @return Axis value
-	 */
-	public double getDriverRightX() {
-		return driveController.getRightX();
-	}
+
 
 	/**
 	 * Get whether the intake button is pressed.
-	 * @return Boolean value determining whether its pressed.
+	 * @return Boolean value determining whether its pressed
 	 */
 	public boolean isIntakeButtonPressed() {
 		return mechController.getRawButton(2);
@@ -129,6 +123,15 @@ public class TeleopInput {
 	public double getClimberRightJoystickY() {
 		return mechController.getRightY();
 	}
+
+	/**
+	 * Get X axis of the right joystick.
+	 * @return Axis value
+	 */
+	public double getDriverRightX() {
+		return driveController.getRightX();
+	}
+
 	/**
 	 * Get the value of the climber button.
 	 * @return True if button is pressed
@@ -136,6 +139,7 @@ public class TeleopInput {
 	public boolean isClimberManualOverideButtonPressed() {
 		return mechController.getTriangleButtonPressed();
 	}
+
 	/**
 	 * Get the value of the emergency abort button.
 	 * @return True if button is pressed
