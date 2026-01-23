@@ -1,6 +1,6 @@
 package frc.robot.input;
 
-import frc.robot.input.InputTypes.DoubleSignal;
+import frc.robot.input.InputTypes.AxialInput;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,12 +8,12 @@ import java.util.function.Function;
 
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj.event.EventLoop;
-import frc.robot.input.InputTypes.BooleanSignal;
+import frc.robot.input.InputTypes.ButtonInput;
 
 public abstract class Input {
 
 	private EventLoop inputEventLoop;
-	private Map<BooleanSignal, BooleanEvent> buttonEvents;
+	private Map<ButtonInput, BooleanEvent> buttonEvents;
 
 	/**
 	 * Constructs an Input object.
@@ -21,7 +21,7 @@ public abstract class Input {
 	public Input() {
 		inputEventLoop = new EventLoop();
 		buttonEvents = new HashMap<>();
-		for (BooleanSignal booleanSignal : BooleanSignal.values()) {
+		for (ButtonInput booleanSignal : ButtonInput.values()) {
 			buttonEvents.put(booleanSignal, getButton(booleanSignal).apply(inputEventLoop));
 		}
 	}
@@ -39,7 +39,7 @@ public abstract class Input {
 	 * @param key the button identifier
 	 * @return the (raw) button value
 	 */
-	public boolean getButtonValue(BooleanSignal key) {
+	public boolean getButtonValue(ButtonInput key) {
 		return buttonEvents.get(key).getAsBoolean();
 	}
 
@@ -48,7 +48,7 @@ public abstract class Input {
 	 * @param key the button identifier
 	 * @return the button pressed value
 	 */
-	public boolean getButtonPressed(BooleanSignal key) {
+	public boolean getButtonPressed(ButtonInput key) {
 		return buttonEvents.get(key).rising().getAsBoolean();
 	}
 
@@ -57,13 +57,13 @@ public abstract class Input {
 	 * @param key the button identifier
 	 * @return the button released value
 	 */
-	public boolean getButtonReleased(BooleanSignal key) {
+	public boolean getButtonReleased(ButtonInput key) {
 		return buttonEvents.get(key).falling().getAsBoolean();
 	}
 
-	protected abstract Function<EventLoop, BooleanEvent> getButton(BooleanSignal key);
+	protected abstract Function<EventLoop, BooleanEvent> getButton(ButtonInput key);
 
-	protected BooleanEvent getBooleanEvent(BooleanSignal key) {
+	protected BooleanEvent getBooleanEvent(ButtonInput key) {
 		return buttonEvents.get(key);
 	}
 
@@ -72,6 +72,6 @@ public abstract class Input {
 	 * @param key the axis identifier
 	 * @return the axis value
 	 */
-	public abstract double getAxis(DoubleSignal key);
+	public abstract double getAxis(AxialInput key);
 
 }

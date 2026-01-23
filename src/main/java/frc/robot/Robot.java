@@ -22,6 +22,7 @@ import frc.robot.systems.Drivetrain;
  * each mode, as described in the TimedRobot documentation.
  */
 public class Robot extends LoggedRobot {
+
 	private Input input;
 
 	// Systems

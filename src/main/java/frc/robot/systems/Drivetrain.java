@@ -19,8 +19,8 @@ import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.input.Input;
-import frc.robot.input.InputTypes.BooleanSignal;
-import frc.robot.input.InputTypes.DoubleSignal;
+import frc.robot.input.InputTypes.ButtonInput;
+import frc.robot.input.InputTypes.AxialInput;
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/* ======================== Constants ======================== */
@@ -161,15 +161,15 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		double xSpeed = MathUtil.applyDeadband(
-				-input.getAxis(DoubleSignal.DRIVE_LEFT_Y),
+				-input.getAxis(AxialInput.DRIVE_X),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double ySpeed = MathUtil.applyDeadband(
-				-input.getAxis(DoubleSignal.DRIVE_LEFT_X),
+				-input.getAxis(AxialInput.DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
-				-input.getAxis(DoubleSignal.DRIVE_RIGHT_X),
+				-input.getAxis(AxialInput.ROTATE),
 				DrivetrainConstants.ROTATION_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
 
 		drivetrain.setControl(
@@ -179,7 +179,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
 		);
 
-		if (input.getButtonPressed(BooleanSignal.DRIVE_RESEED)) {
+		if (input.getButtonPressed(ButtonInput.RESEED_DRIVETRAIN)) {
 			drivetrain.seedFieldCentric();
 		}
 	}

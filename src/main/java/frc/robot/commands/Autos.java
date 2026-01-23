@@ -3,7 +3,7 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.input.AutoInput;
-import frc.robot.input.InputTypes.BooleanSignal;
+import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.systems.Drivetrain;
 
 public class Autos {
@@ -17,7 +17,7 @@ public class Autos {
 	 */
 	public static Command constructAuto1(AutoInput input, Drivetrain exampleMechanism) {
 		return new SequentialCommandGroup(
-			input.pulseButtonCommand(BooleanSignal.DRIVE_RESEED),
+			input.pulseButtonCommand(ButtonInput.RESEED_DRIVETRAIN),
 			exampleMechanism.constructObservedStateCommand(
 				Drivetrain.DrivetrainState.TELEOP
 			)

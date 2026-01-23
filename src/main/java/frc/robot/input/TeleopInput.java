@@ -4,8 +4,8 @@ import java.util.function.Function;
 import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj.event.EventLoop;
-import frc.robot.input.InputTypes.DoubleSignal;
-import frc.robot.input.InputTypes.BooleanSignal;
+import frc.robot.input.InputTypes.AxialInput;
+import frc.robot.input.InputTypes.ButtonInput;
 
 /**
  * Common class for providing driver inputs during Teleop.
@@ -33,24 +33,24 @@ public final class TeleopInput extends Input {
 	}
 
 	@Override
-	public Function<EventLoop, BooleanEvent> getButton(BooleanSignal key) {
+	public Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
 		return switch (key) {
 
 			// add / remove cases to reflect the InputTypes
-			case DRIVE_RESEED -> mechController::options;
+			case RESEED_DRIVETRAIN -> mechController::options;
 
 			default -> throw new IllegalArgumentException("Unknown button action");
 		};
 	}
 
 	@Override
-	public double getAxis(DoubleSignal key) {
+	public double getAxis(AxialInput key) {
 		return switch (key) {
 
 			// add / remove cases to reflect the InputTypes
-			case DRIVE_LEFT_X -> driveController.getLeftX();
-			case DRIVE_LEFT_Y -> driveController.getLeftY();
-			case DRIVE_RIGHT_X -> driveController.getRightX();
+			case DRIVE_Y -> driveController.getLeftX();
+			case DRIVE_X -> driveController.getLeftY();
+			case ROTATE -> driveController.getRightX();
 
 			default -> throw new IllegalArgumentException("Unknown axis action");
 		};

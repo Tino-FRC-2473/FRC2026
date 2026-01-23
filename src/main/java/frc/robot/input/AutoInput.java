@@ -10,16 +10,16 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.input.InputTypes.DoubleSignal;
+import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.Robot;
-import frc.robot.input.InputTypes.BooleanSignal;
+import frc.robot.input.InputTypes.ButtonInput;
 
 public final class AutoInput extends Input {
 
 	public static final int PULSE_DURATION_TICKS = 5;
 
-	private Map<BooleanSignal, Boolean> buttonValues;
-	private Map<DoubleSignal, Double> axesValues;
+	private Map<ButtonInput, Boolean> buttonValues;
+	private Map<AxialInput, Double> axesValues;
 
 	/**
 	 * Constructs an AutonInput to store input from commands
@@ -35,7 +35,7 @@ public final class AutoInput extends Input {
 	 * @param button the button
 	 * @param value the value
 	 */
-	public void setButton(BooleanSignal button, boolean value) {
+	public void setButton(ButtonInput button, boolean value) {
 		buttonValues.put(button, value);
 	}
 
@@ -44,7 +44,7 @@ public final class AutoInput extends Input {
 	 * @param button the button to set
 	 * @return the command
 	 */
-	public Command toggleButtonCommand(BooleanSignal button) {
+	public Command toggleButtonCommand(ButtonInput button) {
 		return new InstantCommand(() -> buttonValues.put(button, buttonValues.get(button)));
 	}
 
@@ -54,7 +54,7 @@ public final class AutoInput extends Input {
 	 * @param button the button to set
 	 * @return the command
 	 */
-	public Command pulseButtonCommand(BooleanSignal button) {
+	public Command pulseButtonCommand(ButtonInput button) {
 		return new SequentialCommandGroup(
 			toggleButtonCommand(button),
 			new WaitCommand(PULSE_DURATION_TICKS * Robot.defaultPeriodSecs),
@@ -67,17 +67,17 @@ public final class AutoInput extends Input {
 	 * @param axis the axis
 	 * @param value the value
 	 */
-	public void setAxis(DoubleSignal axis, double value) {
+	public void setAxis(AxialInput axis, double value) {
 		axesValues.put(axis, value);
 	}
 
 	@Override
-	public double getAxis(DoubleSignal key) {
+	public double getAxis(AxialInput key) {
 		return axesValues.get(key);
 	}
 
 	@Override
-	protected Function<EventLoop, BooleanEvent> getButton(BooleanSignal key) {
+	protected Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
 		return (e) -> new BooleanEvent(e, () -> buttonValues.get(key));
 	}
 
