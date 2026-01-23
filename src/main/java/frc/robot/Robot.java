@@ -9,8 +9,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 // WPILib Imports
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-// Systems
-import frc.robot.commands.Autos;
+import frc.robot.auto.Autos;
 import frc.robot.input.AutoInput;
 import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
@@ -23,6 +22,7 @@ import frc.robot.systems.Drivetrain;
  */
 public class Robot extends LoggedRobot {
 
+	// Robot input
 	private Input input;
 
 	// Systems
@@ -44,16 +44,15 @@ public class Robot extends LoggedRobot {
 		if (HardwareMap.isDrivetrainEnabled()) {
 			drivetrain = new Drivetrain();
 		}
-
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
+
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
-		CommandScheduler.getInstance().schedule(Autos.constructAuto1(autoInput, drivetrain));
-
+		CommandScheduler.getInstance().schedule(Autos.getTestAuto(autoInput, drivetrain));
 	}
 
 	@Override
