@@ -34,7 +34,6 @@ public class ClimberFSMSystem {
 		MANUAL_DIRECT_CONTROL,
 		L1_EXTEND,
 		L1_RETRACT,
-		AUTO_DOWN,
 		AUTO_UP_1,
 		AUTO_UP_2,
 		AUTO_DOWN_1,
@@ -68,6 +67,7 @@ public class ClimberFSMSystem {
 			MotorAlignmentValue.Opposed));
 		motionRequest = new MotionMagicVoltage(0);
 		configureMotor();
+		currentState = ClimberFSMState.IDLE;
 		groundLimitSwitch = new DigitalInput(HardwareMap.CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT);
 		reset();
 	}
@@ -172,6 +172,7 @@ public class ClimberFSMSystem {
 	public void updateLogging() {
 		Logger.recordOutput("Climber/Position",
 			climberMotorLeft.getPosition().getValueAsDouble());
+		Logger.recordOutput("Left motor speed", climberMotorLeft.getDescription());
 		Logger.recordOutput("Climber/Velocity",
 			climberMotorLeft.getVelocity().getValueAsDouble());
 		Logger.recordOutput("Climber/Applied Voltage",
@@ -216,7 +217,7 @@ public class ClimberFSMSystem {
 
 		switch (currentState) {
 			case IDLE:
-				if (input.isDownButtonPressed() && (!isAutoDownUsed)) {
+				if (input.isDownButtonPressed() && (isAutoDownUsed)) {
 					isAutoDownUsed = true;
 					return ClimberFSMState.AUTO_DOWN_1;
 				}
@@ -271,6 +272,7 @@ public class ClimberFSMSystem {
 
 	private void handleIdleState(TeleopInput input) {
 		climberMotorLeft.set(0);
+		//currentState = ClimberFSMState.AUTO_UP_1;
 	}
 
 	private void handleManualDirectControlState(TeleopInput input) {

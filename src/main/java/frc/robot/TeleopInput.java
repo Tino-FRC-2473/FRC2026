@@ -1,7 +1,6 @@
 package frc.robot;
 
 // WPILib Imports
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PS4Controller;
 
 /**
@@ -13,14 +12,13 @@ import edu.wpi.first.wpilibj.PS4Controller;
  */
 public class TeleopInput {
 	/* ======================== Constants ======================== */
-	private static final int LEFT_JOYSTICK_PORT = 0;
-	private static final int RIGHT_JOYSTICK_PORT = 1;
+	private static final int DRIVE_CONTROLLER_PORT = 0;
+	private static final int MECH_CONTROLLER_PORT = 1;
 
 	/* ======================== Private variables ======================== */
 	// Input objects
-	private Joystick leftJoystick;
-	private Joystick rightJoystick;
-	private PS4Controller ps4Controller;
+	private PS4Controller driveController;
+	private PS4Controller mechController;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -29,9 +27,8 @@ public class TeleopInput {
 	 * by WPILib until teleop mode.
 	 */
 	public TeleopInput() {
-		leftJoystick = new Joystick(LEFT_JOYSTICK_PORT);
-
-		rightJoystick = new Joystick(RIGHT_JOYSTICK_PORT);
+		driveController = new PS4Controller(DRIVE_CONTROLLER_PORT);
+		mechController = new PS4Controller(MECH_CONTROLLER_PORT);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -45,28 +42,28 @@ public class TeleopInput {
 	 * @return Axis value
 	 */
 	public double getLeftJoystickX() {
-		return leftJoystick.getX();
+		return mechController.getLeftX();
 	}
 	/**
 	 * Get Y axis of Left Joystick.
 	 * @return Axis value
 	 */
 	public double getLeftJoystickY() {
-		return leftJoystick.getY();
+		return mechController.getLeftY();
 	}
 	/**
 	 * Get the value of the shooter button.
 	 * @return True if button is pressed
 	 */
 	public boolean isShooterButtonPressed() {
-		return leftJoystick.getRawButton(1);
+		return mechController.getRawButton(1);
 	}
 	/**
 	 * Get the value of the intake button.
 	 * @return True if button is pressed
 	 */
 	public boolean isIntakeButtonPressed() {
-		return leftJoystick.getRawButton(2);
+		return mechController.getRawButton(2);
 	}
 
 	/**
@@ -83,35 +80,35 @@ public class TeleopInput {
 	 * @return Axis value
 	 */
 	public double getRightJoystickX() {
-		return rightJoystick.getX();
+		return mechController.getRightX();
 	}
 	/**
 	 * Get Y axis of Right Joystick.
 	 * @return Axis value
 	 */
 	public double getRightJoystickY() {
-		return rightJoystick.getY();
+		return mechController.getRightY();
 	}
 	/**
 	 * Get the value of the climber button.
 	 * @return True if button is pressed
 	 */
 	public boolean isManualOverideButtonPressed() {
-		return ps4Controller.getTriangleButtonPressed();
+		return mechController.getTriangleButtonPressed();
 	}
 	/**
 	 * Get the value of the emergency abort button.
 	 * @return True if button is pressed
 	 */
 	public boolean isNextButtonPressed() {
-		return ps4Controller.getSquareButtonPressed();
+		return mechController.getSquareButtonPressed();
 	}
 	/**
 	 * Get the value of the emergency abort button.
 	 * @return True if button is pressed
 	 */
 	public boolean isEmergencyAbortPressed() {
-		return ps4Controller.getR1ButtonPressed();
+		return mechController.getR1ButtonPressed();
 	}
 
 	/**
