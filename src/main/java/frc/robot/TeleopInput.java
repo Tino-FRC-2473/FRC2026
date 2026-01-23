@@ -46,7 +46,7 @@ public class TeleopInput {
 	}
 
 	/**
-	 * Get the x axis of the left joystick for mech controller
+	 * Get the x axis of the left joystick for mech controller.
 	 * @return Axis value
 	 */
 	public double getClimberLeftJoystickX() {
@@ -61,7 +61,7 @@ public class TeleopInput {
 	}
 
 	/**
-	 * Get the y axis of the left joystick for mech controller
+	 * Get the y axis of the left joystick for mech controller.
 	 * @return Axis value
 	 */
 	public double getClimberLeftJoystickY() {
@@ -85,7 +85,7 @@ public class TeleopInput {
 
 	/**
 	 * Get whether the intake button is pressed
-	 * @return Boolean value determining whether its pressed
+	 * @return Boolean value determining whether its pressed.
 	 */
 	public boolean isIntakeButtonPressed() {
 		return mechController.getRawButton(2);
@@ -107,7 +107,7 @@ public class TeleopInput {
 	}
 
 	/**
-	 * Get the x axis of the right joystick for mech controller
+	 * Get the x axis of the right joystick for mech controller.
 	 * @return Axis value
 	 */
 	public double getClimberRightJoystickX() {
@@ -123,7 +123,7 @@ public class TeleopInput {
 	}
 
 	/**
-	 * Get the y axis of the right joystick for mech controller
+	 * Get the y axis of the right joystick for mech controller.
 	 * @return Axis value
 	 */
 	public double getClimberRightJoystickY() {
