@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.Units.Degrees;
 
 // Third party Hardware Imports
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -18,6 +19,13 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.Slot1Configs;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.pheonix6.controls.MotionMagicVelocityVoltage;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +49,7 @@ enum FSMState {
 }
 
 public class ShooterFSMSystem extends FSMSystem<FSMState> {
-	//IMPORTANT NOTE: THIS WILL NOTE BUILD AS THIS IS JUST A FRAMEWORK AND DOES NOT HAVE ANY DEFINED INPUT FUNCTIONS OR CLASSES YET THAT WOULD BE PRESENT IN THE FULL CODE.
+	//IMPORTANT NOTE: THIS WILL NOT BUILD AS THIS IS JUST A FRAMEWORK AND DOES NOT HAVE ANY DEFINED INPUT FUNCTIONS OR CONSTANT FIELDS YET
 	/* ======================== Constants ======================== */
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -54,18 +62,26 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	private FSMState curState;
 	//for curPose, we need to find the height of the shooter from the floor for calculations.
 	private Pose2d curPose;
-	private Pose3d outpostPose;
-	private Pose3d hubPose;
-	private Pose3d target3Pose; //probably going to be the mirrored side of the outpost
-	private List<Pose3d> targetPoses;
+	private Pose2d outpostPose;
+	private Pose2d hubPose;
+	private Pose2d target3Pose; //probably going to be the mirrored side of the outpost
+	private List<Pose2d> targetPoses;
 	private TalonFX flywheelMotor;
 	private TalonFX indexMotor;
+	private TalonFX hoodMotor;
 	private ShooterHoodSystem hood;
 	private double flywheelSpeed;
 	private double flywheelTargetSpeed;
 	private double hoodAngle;
 	private double hoodTargetAngle;
 	private FSMState pastState;
+	private TalonFXConfiguration hoodConfigs;
+	private TalonFXConfiguration flywheelConfigs;
+	private TalonFXConfiguration indexConfigs;
+	
+	
+
+	
 	
 
 	/* ======================== Constructor ======================== */
@@ -76,13 +92,111 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	 */
 	public ShooterFSMSystem(){
 		curPose = new Pose2d();
+		outpostPose = Constants.OUTPOST_POSE;
+		target3Pose = Constants.TARGET3_POSE;
+		hubPose = Constants.HUB_POSE;
+
+
+		target3Pose = Constants.TARGET3_POSE; //assuming its the mirrored side of the outpost
 		flywheelMotor = new TalonFXWrapper(
-			HardwareMap.CAN_ID_FLYWHEEL //not made yet
+			HardwareMap.CAN_ID_FLYWHEEL
 		);
 		indexMotor = new TalonFXWrapper(
-			HardwareMap.CAN_ID_INDEX //not made yet
+			HardwareMap.CAN_ID_INDEXER
 		);
-		hood = new ShooterHoodSystem();
+		hoodMotor = new TalonFXWrapper(
+			HardwareMap.CAN_ID_HOOD
+		);
+
+		hoodConfigs = new TalonFXConfiguration();
+		
+		var hoodSoftwareLimitSwitchConfigs = hoodConfigs.SoftwareLimitSwitch;
+		hoodSoftwareLimitSwitchConfigs.ForwardSoftLimitEnable = true;
+		hoodSoftwareLimitSwitchConfigs.ForwardSoftLimitThreshold = 70;
+		hoodSoftwareLimitSwitchConfigs.ReverseSoftLimitEnable = true;
+		hoodSoftwareLimitSwitchConfigs.ReverseSoftLimitThreshold = 45;
+
+		var hood0Config = hoodConfigs.Slot0;
+		hood0Config.GravityType = GravityTypeValue.Arm_Cosine;
+		hood0Config.kG = Constants.HOOD_MM_CONSTANT_G; //voltage output to overcome gravity
+		hood0Config.kS = Constants.HOOD_MM_CONSTANT_S; //voltage output to overcome static friction
+		hood0Config.kV = Constants.MM_CONSTANT_V; //voltage for 1 rps in the motor, 0.12
+		hood0Config.kA = Constants.MM_CONSTANT_A; //voltage for acceleration for 1 rps in the motor
+		hood0Config.kP = Constants.HOOD_MM_CONSTANT_P; //account for position error of 1 rotation
+		hood0Config.kI = Constants.HOOD_MM_CONSTANT_I; //output for integrated error
+		hood0Config.kD = Constants.HOOD_MM_CONSTANT_D; //account for velocity error of 1rps
+
+		var hoodMotionMagicConfigs = hoodConfigs.MotionMagic;
+		hoodMotionMagicConfigs.MotionMagicVelocity = Constants.HOOD_VELOCITY;
+		hoodMotionMagicConfigs.MotionMagicAcceleration = Constants.HOOD_ACCELERATION;
+		hoodMotionMagicConfigs.MotionMagicJerk = Constants.HOOD_JERK;
+
+		var hoodFeedbackConfigs = hoodConfigs.Feedback;
+		hoodFeedbackConfigs.SensorToMechanismRatio = Constants.HOOD_GEAR_RATIO / 360; //set to 2 (divided by 360 to get in terms of degrees)
+
+		hoodMotor.getConfigurator().apply(hoodConfigs);
+
+		flywheelConfigs = new TalonFXConfiguration();
+		var flywheel0Config = flywheel0Configs.Slot0; 
+		flywheel0Config.GravityType = GravityTypeValue.Arm_Cosine;
+		flywheel0Config.kG = Constants.FLYWHEEL_MM_CONSTANT_G; //voltage output to overcome gravity
+		flywheel0Config.kS = Constants.FLYWHEEL_MM_CONSTANT_S; //voltage output to overcome static friction
+		flywheel0Config.kV = Constants.MM_CONSTANT_V; //voltage for 1 rps in the motor, 0.12
+		flywheel0Config.kA = Constants.MM_CONSTANT_A; //voltage for acceleration for 1 rps in the motor
+		flywheel0Config.kP = Constants.FLYWHEEL_MM_CONSTANT_P; //account for position error of 1 rotation
+		flywheel0Config.kI = Constants.FLYWHEEL_MM_CONSTANT_I; //output for integrated error
+		flywheel0Config.kD = Constants.FLYWHEEL_MM_CONSTANT_D; //account for velocity error of 1rps
+
+		var flywheelMotionMagicConfigs = flywheelConfigs.MotionMagic;
+		flywheelMotionMagicConfigs.MotionMagicAcceleration = Constants.FLYWHEEL_ACCELERATION; //160 rps/s
+		flywheelMotionMagicConfigs.MotionMagicJerk = Constants.FLYWHEEL_JERK; //1600 rps/s/s, 10* acceleration
+
+		var flywheelFeedbackConfigs = flywheelConfigs.Feedback;
+		flywheelFeedbackConfigs.SensorToMechanismRatio = Constants.FLYWHEEL_GEAR_RATIO; //set to 3
+
+		flywheelMotor.getConfigurator().apply(flywheelConfigs);
+
+		indexConfigs = new TalonFXConfiguration();
+		var indexFeedbackConfigs = indexConfigs.Feedback;
+		indexFeedbackConfigs.SensorToMechanismRatio = Constants.INDEXER_GEAR_RATIO; //set to 3
+
+		indexMotor.getConfigurator().apply(indexConfigs);
+
+		hoodMotor.setPosition(70);
+
+		BaseStatusSignal.setUpdateFrequencyForAll(
+                Constants.UPDATE_FREQUENCY_HZ,
+                hoodMotor.getPosition(),
+                hoodMotor.getVelocity(),
+                hoodMotor.getAcceleration(),
+                hoodMotor.getMotorVoltage(),
+                hoodMotor.getRotorPosition(),
+                hoodMotor.getRotorVelocity()
+        );
+
+		BaseStatusSignal.setUpdateFrequencyForAll(
+                Constants.UPDATE_FREQUENCY_HZ,
+                indexMotor.getPosition(),
+                indexMotor.getVelocity(),
+                indexMotor.getAcceleration(),
+                indexMotor.getMotorVoltage(),
+                indexMotor.getRotorPosition(),
+                indexMotor.getRotorVelocity()
+        );
+		
+		BaseStatusSignal.setUpdateFrequencyForAll(
+                Constants.UPDATE_FREQUENCY_HZ,
+                flywheelMotor.getPosition(),
+                flywheelMotor.getVelocity(),
+                flywheelMotor.getAcceleration(),
+                flywheelMotor.getMotorVoltage(),
+                flywheelMotor.getRotorPosition(),
+                flywheelMotor.getRotorVelocity()
+        );
+
+		hoodMotor.optimizeBusUtilization();
+		indexMotor.optimizeBusUtilization();
+		flywheelMotor.optimizeBusUtilization();
 		reset();
 	}
 	
@@ -90,13 +204,113 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
 		curPose = driveSystem.getPose();
+		outpostPose = Constants.OUTPOST_POSE;
+		target3Pose = Constants.TARGET3_POSE;
+		hubPose = Constants.HUB_POSE;
+
+
+		target3Pose = Constants.TARGET3_POSE; //assuming its the mirrored side of the outpost
 		flywheelMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_FLYWHEEL
 		);
 		indexMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_INDEXER
 		);
-		hood = new ShooterHoodSystem();
+		hoodMotor = new TalonFXWrapper(
+			HardwareMap.CAN_ID_HOOD
+		);
+
+		hoodConfigs = new TalonFXConfiguration();
+		
+		var hoodSoftwareLimitSwitchConfigs = hoodConfigs.SoftwareLimitSwitch;
+		hoodSoftwareLimitSwitchConfigs.ForwardSoftLimitEnable = true;
+		hoodSoftwareLimitSwitchConfigs.ForwardSoftLimitThreshold = 70;
+		hoodSoftwareLimitSwitchConfigs.ReverseSoftLimitEnable = true;
+		hoodSoftwareLimitSwitchConfigs.ReverseSoftLimitThreshold = 45;
+
+		var hood0Config = hoodConfigs.Slot0;
+		hood0Config.GravityType = GravityTypeValue.Arm_Cosine;
+		hood0Config.kG = Constants.HOOD_MM_CONSTANT_G; //voltage output to overcome gravity
+		hood0Config.kS = Constants.HOOD_MM_CONSTANT_S; //voltage output to overcome static friction
+		hood0Config.kV = Constants.MM_CONSTANT_V; //voltage for 1 rps in the motor, 0.12
+		hood0Config.kA = Constants.MM_CONSTANT_A; //voltage for acceleration for 1 rps in the motor
+		hood0Config.kP = Constants.HOOD_MM_CONSTANT_P; //account for position error of 1 rotation
+		hood0Config.kI = Constants.HOOD_MM_CONSTANT_I; //output for integrated error
+		hood0Config.kD = Constants.HOOD_MM_CONSTANT_D; //account for velocity error of 1rps
+
+		var hoodMotionMagicConfigs = hoodConfigs.MotionMagic;
+		hoodMotionMagicConfigs.MotionMagicVelocity = Constants.HOOD_VELOCITY;
+		hoodMotionMagicConfigs.MotionMagicAcceleration = Constants.HOOD_ACCELERATION;
+		hoodMotionMagicConfigs.MotionMagicJerk = Constants.HOOD_JERK;
+
+		var hoodFeedbackConfigs = hoodConfigs.Feedback;
+		hoodFeedbackConfigs.SensorToMechanismRatio = Constants.HOOD_GEAR_RATIO / 360; //set to 2 (divided by 360 to get in terms of degrees)
+
+		hoodMotor.getConfigurator().apply(hoodConfigs);
+
+		flywheelConfigs = new TalonFXConfiguration();
+		var flywheel0Config = flywheel0Configs.Slot0; 
+		flywheel0Config.GravityType = GravityTypeValue.Arm_Cosine;
+		flywheel0Config.kG = Constants.FLYWHEEL_MM_CONSTANT_G; //voltage output to overcome gravity
+		flywheel0Config.kS = Constants.FLYWHEEL_MM_CONSTANT_S; //voltage output to overcome static friction
+		flywheel0Config.kV = Constants.MM_CONSTANT_V; //voltage for 1 rps in the motor, 0.12
+		flywheel0Config.kA = Constants.MM_CONSTANT_A; //voltage for acceleration for 1 rps in the motor
+		flywheel0Config.kP = Constants.FLYWHEEL_MM_CONSTANT_P; //account for position error of 1 rotation
+		flywheel0Config.kI = Constants.FLYWHEEL_MM_CONSTANT_I; //output for integrated error
+		flywheel0Config.kD = Constants.FLYWHEEL_MM_CONSTANT_D; //account for velocity error of 1rps
+
+		var flywheelMotionMagicConfigs = flywheelConfigs.MotionMagic;
+		flywheelMotionMagicConfigs.MotionMagicAcceleration = Constants.FLYWHEEL_ACCELERATION; //160 rps/s
+		flywheelMotionMagicConfigs.MotionMagicJerk = Constants.FLYWHEEL_JERK; //1600 rps/s/s, 10* acceleration
+
+		var flywheelFeedbackConfigs = flywheelConfigs.Feedback;
+		flywheelFeedbackConfigs.SensorToMechanismRatio = Constants.FLYWHEEL_GEAR_RATIO; //set to 3
+
+		flywheelMotor.getConfigurator().apply(flywheelConfigs);
+
+		indexConfigs = new TalonFXConfiguration();
+		var indexFeedbackConfigs = indexConfigs.Feedback;
+		indexFeedbackConfigs.SensorToMechanismRatio = Constants.INDEXER_GEAR_RATIO; //set to 3
+
+		indexMotor.getConfigurator().apply(indexConfigs);
+
+		hoodMotor.setPosition(70);
+
+		BaseStatusSignal.setUpdateFrequencyForAll(
+                Constants.UPDATE_FREQUENCY_HZ,
+                hoodMotor.getPosition(),
+                hoodMotor.getVelocity(),
+                hoodMotor.getAcceleration(),
+                hoodMotor.getMotorVoltage(),
+                hoodMotor.getRotorPosition(),
+                hoodMotor.getRotorVelocity()
+        );
+
+		BaseStatusSignal.setUpdateFrequencyForAll(
+                Constants.UPDATE_FREQUENCY_HZ,
+                indexMotor.getPosition(),
+                indexMotor.getVelocity(),
+                indexMotor.getAcceleration(),
+                indexMotor.getMotorVoltage(),
+                indexMotor.getRotorPosition(),
+                indexMotor.getRotorVelocity()
+        );
+		
+		BaseStatusSignal.setUpdateFrequencyForAll(
+                Constants.UPDATE_FREQUENCY_HZ,
+                flywheelMotor.getPosition(),
+                flywheelMotor.getVelocity(),
+                flywheelMotor.getAcceleration(),
+                flywheelMotor.getMotorVoltage(),
+                flywheelMotor.getRotorPosition(),
+                flywheelMotor.getRotorVelocity()
+        );
+
+		hoodMotor.optimizeBusUtilization();
+		indexMotor.optimizeBusUtilization();
+		flywheelMotor.optimizeBusUtilization();
+
+
 		// Reset state machine
 		reset();
 	}
@@ -124,7 +338,6 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 
 	@Override
 	public void update(TeleopInput input) {
-		Logger.recordOutput("curState", curState);
 		switch (getCurrentState()) {
 			case IDLE_STATE:
 				handleIdleState(input);
@@ -287,9 +500,12 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIdleState(TeleopInput input) {
+		flywheelTargetSpeed = 0;
+		hoodTargetAngle = 70;
+		updateFlywheel();
+		updateHood();
 		flywheelMotor.set(0);
-		indexMotor.set(0);
-		hood.setHoodAngle(20); //20 degrees from the vertical is the base angle
+		//set hoodMotor to 20 degrees/base angle?
 		//hood remains at current angle.
 
 	}
@@ -299,8 +515,29 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handlePasserPrepState(TeleopInput input) {
+		Pose2d correctTarget = new Pose2d();
+
+		double outpostDistance = (double)curPose.getTranslation().getDistance(outpostPose.getTranslation());
+		double target3Distance = (double)curPose.getTranslation().getDistance(target3Pose.getTranslation());
+		if (outpostDistance < target3Distance){
+			correctTarget = target3Pose;
+		} else {
+			correctTarget = outpostPose;
+		}
+
+		List<Object> targetValues = calculateTargetValues(correctTarget); //index 0 is flywheel velocity, index 1 is hood angle
+		flywheelTargetSpeed = targetValues.get(0);
+		hoodTargetAngle = targetValues.get(1);
+
+		updateFlywheel();
+		updateHood();
 		//TBD: code to find the distance vector from where we are to passing targets (preferably outpost and the location of outpost on the other side) (3d vector)
 		
+	}
+
+	public List<Object> calculateTargetValues(Pose2d target){
+		return null;
+		//code to be determined based off of regression model
 	}
 
 	/**
@@ -309,6 +546,11 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleShooterPrepState(TeleopInput input) {
+		List<Object> targetValues = calculateTargetValues(hubPose);
+		flywheelTargetSpeed = targetValues.get(0);
+		hoodTargetAngle = targetValues.get(1);
+
+		updateFlywheel();
 		//TBD: code to find the distance vector from where we are to hub center (3d vector)
 		
 	}
@@ -319,7 +561,7 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIntakeState(TeleopInput input) {
-		indexMotor.set(flywheelTargetSpeed);
+		indexMotor.set(flywheelMotor.get());
 		
 	}
 
@@ -332,22 +574,58 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 
 		//FOR MANUAL ONLY: Right Bumper will be used as a deincrementer. Do not confuse this with triggering Passer Prep.
 		//FOR MANUAL ONLY: Left Bumper will be used to adjust hood angle. Do not confuse this with triggering Shooter Prep.
+		double hoodIncrementer = 5; //how much the hood angle increases/decreases each click
 		if (input.isLeftBumperPressed() && input.isRightBumperPressed()){
-			hood.setHoodAngle(hoodTargetAngle - 5);
+			if (hoodTargetAngle - 5 >= 45){
+				hoodTargetAngle -= 5;
+			} else {
+				hoodTargetAngle = 45;
+			}
 			//decrease hood angle by 5 degrees
 		} else if (input.isLeftBumperPressed()){
-			hood.setHoodAngle(hoodTargetAngle + 5);
+			if (hoodTargetAngle + 5 <= 70){
+				hoodTargetAngle += 5;
+			} else {
+				hoodTargetAngle = 70;
+			}
 			//increase hood angle by 5 degrees
 		}
+		updateHood();
 
+		double flywheelIncrementer = 10; //how much the flywheel speed increases/decreases each click
 		if (input.isLeftTriggerPressed() && input.isRightBumperPressed()){
-			//decrease flywheel speed by some constant
+			if (flywheelTargetSpeed - flywheelIncrementer > 0){
+				flywheelTargetSpeed -= flywheelIncrementer;
+			} else {
+				flywheelTargetSpeed = 0;
+			}
+			//decrease flywheel speed by some constant, right now set to 10 m/s
 		} else if (input.isLeftTriggerPressed()){
-			//increase flywheel speed by some constant
+			if (flywheelTargetSpeed + flywheelIncrementer < Constants.FLYWHEEL_MAX_SPEED){
+				flywheelTargetSpeed += flywheelIncrementer;
+			} else {
+				flywheelTargetSpeed = Constants.FLYWHEEL_MAX_SPEED;
+			}
+			
+			//increase flywheel speed by some constant, right now set to 10 m/s
 		}
+
+		updateFlywheel();
 
 		//check if current speed of motors and current angle matches what we just set it to there with the boolean conditions
 		
+	}
+
+	private void updateFlywheel(){
+		MotionMagicVelocityVoltage flywheel_request = new MotionMagicVelocityVoltage(0);
+		flywheelMotor.setControl(flywheel_request.withVelocity(flywheelTargetSpeed));
+		flywheelSpeed = flywheelMotor.getVelocity().getValue();
+	}
+
+	private void updateHood(){
+		MotionMagicVoltage hood_request = new MotionMagicVoltage(0);
+		hoodMotor.setControl(hood_request.withPosition(hoodTargetAngle));
+		hoodAngle = hoodMotor.getPosition().getValue();
 	}
 
 
@@ -374,23 +652,4 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	private boolean handleAutoState3() {
 		return true;
 	}
-}
-
-public class ShooterHoodSystem{
-	private TalonFX hoodMotor; 
-
-	public ShooterHoodSystem(){
-		hoodMotor = new TalonFXWrapper(
-			HardwareMap.CAN_ID_HOOD
-		);
-	}
-
-	public TalonFX getHoodMotor(){
-		return hoodMotor;
-	}
-
-	public void setHoodAngle(double hoodAngle){
-		//functionality to be added
-	}
-
 }
