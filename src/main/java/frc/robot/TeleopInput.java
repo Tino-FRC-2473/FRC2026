@@ -83,6 +83,25 @@ public class TeleopInput {
 		return rightJoystick.getY();
 	}
 
+	/* ========================== Triggers =============================*/
+	public boolean isLeftBumperPressed(){
+		return false;
+	}
+	public boolean isLeftTriggerPressed(){
+		return false;
+	}
+	public boolean isRightBumperPressed(){
+		return false;
+	}
+	public boolean isRightTriggerPressed(){
+		return false;
+	}
+	/*============================= Touchpad ========================== */
+	public boolean isTouchpadPressed(){
+		return false;
+	}
+
+
 	/* ======================== Private methods ======================== */
 
 }
