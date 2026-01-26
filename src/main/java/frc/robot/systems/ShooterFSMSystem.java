@@ -437,7 +437,7 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIntakeState(TeleopInput input) {
-		indexMotor.set(flywheelMotor.get());
+		indexMotor.setVoltage(flywheelMotor.getInputVoltage());
 		
 	}
 

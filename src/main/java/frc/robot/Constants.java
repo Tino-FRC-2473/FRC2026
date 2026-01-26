@@ -41,7 +41,7 @@ public class Constants {
 		public static final Pose2d TARGET3_POSE = new Pose2d();
 		public static final Pose2d HUB_POSE = new Pose2d();
 		
-		public static final double HOOD_GEAR_RATIO = 2;
+		public static final double HOOD_GEAR_RATIO = 4;
 		public static final double FLYWHEEL_GEAR_RATIO = 3;
 		public static final double INDEXER_GEAR_RATIO = 3;
 
