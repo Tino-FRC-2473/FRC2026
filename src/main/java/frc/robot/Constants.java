@@ -58,7 +58,7 @@ public class Constants {
 					);
 				}
 			} catch (IOException e) {
-				System.out.println("Couldn't find test field, defaulting to reefscape welded field.");
+				System.out.println("Couldn't find test field, defaulting to rebuilt welded.");
 				layout = AprilTagFieldLayout.loadField(
 					AprilTagFields.k2026RebuiltWelded
 				);
