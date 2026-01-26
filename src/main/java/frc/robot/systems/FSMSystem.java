@@ -1,8 +1,5 @@
 package frc.robot.systems;
 
-import java.util.LinkedList;
-import java.util.Queue;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.input.Input;
 
@@ -29,7 +26,7 @@ public abstract class FSMSystem<S> {
 	private final class ObservedStateCommand extends Command {
 
 		private S[] endStateSequence;
-		private Queue<S> previousStates;
+		private int numMatchingStates;
 
 		/**
 		 * creates an ObservedStateCommand, which is a command that does nothing
@@ -38,20 +35,21 @@ public abstract class FSMSystem<S> {
 		 */
 		private ObservedStateCommand(@SuppressWarnings("unchecked") S... states) {
 			endStateSequence = states;
-			previousStates = new LinkedList<>();
+			numMatchingStates = 0;
 		}
 
 		@Override
 		public void execute() {
-			previousStates.add(getCurrentState());
-			if (previousStates.size() > endStateSequence.length) {
-				previousStates.poll();
+			if (getCurrentState() == endStateSequence[numMatchingStates]) {
+				numMatchingStates++;
+			} else {
+				numMatchingStates = 0;
 			}
 		}
 
 		@Override
 		public boolean isFinished() {
-			return previousStates.toArray(endStateSequence).equals(endStateSequence);
+			return numMatchingStates >= endStateSequence.length;
 		}
 	}
 

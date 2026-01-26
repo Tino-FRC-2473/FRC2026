@@ -9,7 +9,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 // WPILib Imports
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.auto.Autos;
+import frc.robot.auto.AutoPaths;
 import frc.robot.input.AutoInput;
 import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
@@ -52,7 +52,7 @@ public class Robot extends LoggedRobot {
 
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
-		CommandScheduler.getInstance().schedule(Autos.getTestAuto(autoInput, drivetrain));
+		CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
 	}
 
 	@Override

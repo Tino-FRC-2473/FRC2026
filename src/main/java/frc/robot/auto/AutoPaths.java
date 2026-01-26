@@ -11,7 +11,7 @@ import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.systems.Drivetrain;
 import frc.robot.systems.Drivetrain.DrivetrainState;
 
-public class Autos {
+public class AutoPaths {
 
 	/**
 	 * An auto that is only here temporarily for testing purposes.
@@ -48,22 +48,14 @@ public class Autos {
 
 		private void completeCommand() {
 			if (currentCommandGroup.size() > 1) {
-				completeCommandGroup();
+				commandSequence.add(new ParallelCommandGroup(
+					currentCommandGroup.toArray(new Command[0])
+				));
 			} else if (currentCommandGroup.size() == 1) {
-				completeSingleCommand();
+				commandSequence.add(currentCommandGroup.get(0));
 			}
 
 			currentCommandGroup.clear();
-		}
-
-		private void completeCommandGroup() {
-			commandSequence.add(new ParallelCommandGroup(
-				currentCommandGroup.toArray(new Command[0])
-			));
-		}
-
-		private void completeSingleCommand() {
-			commandSequence.add(currentCommandGroup.get(0));
 		}
 	}
 
