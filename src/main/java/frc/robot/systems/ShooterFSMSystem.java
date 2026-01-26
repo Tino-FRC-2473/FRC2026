@@ -137,8 +137,6 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 
 		flywheelConfigs = new TalonFXConfiguration();
 		var flywheel0Config = flywheelConfigs.Slot0; 
-		flywheel0Config.GravityType = GravityTypeValue.Arm_Cosine;
-		flywheel0Config.kG = ShooterConstants.FLYWHEEL_MM_CONSTANT_G; //voltage output to overcome gravity
 		flywheel0Config.kS = ShooterConstants.FLYWHEEL_MM_CONSTANT_S; //voltage output to overcome static friction
 		flywheel0Config.kV = ShooterConstants.MM_CONSTANT_V; //voltage for 1 rps in the motor, 0.12
 		flywheel0Config.kA = ShooterConstants.MM_CONSTANT_A; //voltage for acceleration for 1 rps in the motor
