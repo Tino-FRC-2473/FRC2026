@@ -202,10 +202,9 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	public ShooterFSMSystem(DriveFSMSystem driveSystem) {
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
+		ShooterFSMSystem();
 		drivetrain = driveSystem;
 		curPose = drivetrain.getPose();
-		ShooterFSMSystem();
-		
 	}
 
 	/* ======================== Public methods ======================== */
