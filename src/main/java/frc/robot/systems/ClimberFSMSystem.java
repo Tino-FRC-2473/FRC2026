@@ -180,7 +180,8 @@ public class ClimberFSMSystem {
 		Logger.recordOutput("Climber/Height Inches", getClimberHeightInches());
 		Logger.recordOutput("Climber/Is At Bottom?", isGroundLimitSwitchPressed());
 		Logger.recordOutput("Climber/Is Extended L1?", getClimberHeightInches()
-			>= ClimberConstants.L1_EXTEND_POS.in(Inches) - ClimberConstants.POSITION_TOLERANCE_L1.in(Inches));
+			>= ClimberConstants.L1_EXTEND_POS.in(Inches)
+			- ClimberConstants.POSITION_TOLERANCE_L1.in(Inches));
 	}
 
 	private double getClimberHeightInches() {
@@ -198,12 +199,14 @@ public class ClimberFSMSystem {
 
 	private boolean isExtendedL1() {
 		double height = getClimberHeightInches();
-		return height >= ClimberConstants.L1_EXTEND_POS.in(Inches) - ClimberConstants.POSITION_TOLERANCE_L1.in(Inches);
+		return height >= ClimberConstants.L1_EXTEND_POS.in(Inches)
+			- ClimberConstants.POSITION_TOLERANCE_L1.in(Inches);
 	}
 
 	private boolean isRetractedL1() {
 		double height = getClimberHeightInches();
-		return height <= ClimberConstants.L1_RETRACT_POS.in(Inches) + ClimberConstants.POSITION_TOLERANCE_L1.in(Inches);
+		return height <= ClimberConstants.L1_RETRACT_POS.in(Inches)
+			+ ClimberConstants.POSITION_TOLERANCE_L1.in(Inches);
 	}
 
 	private ClimberFSMState nextState(TeleopInput input) {
@@ -287,13 +290,17 @@ public class ClimberFSMSystem {
 
 	private void handleL1ExtendState(TeleopInput input) {
 		if (climberMotorLeft.getMotionMagicAtTarget().getValue()) {
-			climberMotorLeft.setControl(motionRequest.withPosition(ClimberConstants.L1_EXTEND_POS.in(Inches)));
+			climberMotorLeft.setControl(motionRequest.withPosition(
+				ClimberConstants.L1_EXTEND_POS.in(Inches)
+			));
 		}
 	}
 
 	private void handleL1RetractState(TeleopInput input) {
 		if (climberMotorLeft.getMotionMagicAtTarget().getValue()) {
-			climberMotorLeft.setControl(motionRequest.withPosition(ClimberConstants.L1_RETRACT_POS.in(Inches)));
+			climberMotorLeft.setControl(motionRequest.withPosition(
+				ClimberConstants.L1_RETRACT_POS.in(Inches)
+			));
 		}
 	}
 
@@ -301,7 +308,9 @@ public class ClimberFSMSystem {
 		if (isGroundLimitSwitchPressed()) {
 			climberMotorLeft.set(0);
 		} else {
-			climberMotorLeft.setControl(motionRequest.withPosition(ClimberConstants.GROUND.in(Inches)));
+			climberMotorLeft.setControl(motionRequest.withPosition(
+				ClimberConstants.GROUND.in(Inches)
+			));
 		}
 	}
 }
