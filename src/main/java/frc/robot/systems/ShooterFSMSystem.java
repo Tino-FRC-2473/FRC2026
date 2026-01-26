@@ -380,7 +380,7 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 		hoodTargetAngle = 70;
 		updateFlywheel();
 		updateHood();
-		flywheelMotor.set(0);
+		indexMotor.set(0);
 		//set hoodMotor to 20 degrees/base angle?
 		//hood remains at current angle.
 
