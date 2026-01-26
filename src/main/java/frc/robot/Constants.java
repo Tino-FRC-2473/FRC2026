@@ -59,6 +59,8 @@ public class Constants {
 
 		public static final double FLYWHEEL_MM_CONSTANT_S = 0.1; //need to test by recording small amount of input that allows any movement at all
 		public static final double HOOD_MM_CONSTANT_S = 0.1; //need to test by recording in some manner
+		public static final double MM_CONSTANT_V = 0.12; //taken straight from Phoenix6
+		public static final double MM_CONSTANT_A = 0.01; //taken straight from Phoenix6
 
 		//All of these are placeholder values, all need to be changed
 		public static final double FLYWHEEL_MM_CONSTANT_P = 0;
@@ -67,6 +69,7 @@ public class Constants {
 		public static final double HOOD_MM_CONSTANT_P = 0;
 		public static final double HOOD_MM_CONSTANT_I = 0;
 		public static final double HOOD_MM_CONSTANT_D = 0;
+		public static final double HOOD_MM_CONSTANT_G = 0; //will use Recalc with measurements to calculate later
         
     }
 }
