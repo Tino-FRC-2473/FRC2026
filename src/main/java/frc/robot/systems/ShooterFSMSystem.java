@@ -38,7 +38,7 @@ import frc.robot.motors.SparkMaxWrapper;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.HardwareMap;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
-import frc.robot.systems.DriveFSMSystem;
+import frc.robot.systems.Drivetrain;
 import frc.robot.Constants.ShooterConstants;
 
 
@@ -197,7 +197,7 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 		reset();
 	}
 	
-	public ShooterFSMSystem(DriveFSMSystem driveSystem) {
+	public ShooterFSMSystem(Drivetrain driveSystem) {
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
 		ShooterFSMSystem();
