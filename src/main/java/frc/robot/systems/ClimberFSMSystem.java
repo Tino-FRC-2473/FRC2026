@@ -9,7 +9,7 @@ import frc.robot.TeleopInput;
 
 import org.littletonrobotics.junction.Logger;
 
-import frc.robot.constants.Constants;
+import frc.robot.constants.Constants.ClimberConstants;
 
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -49,9 +49,6 @@ public class ClimberFSMSystem {
 	private MotionMagicVoltage motionRequest;
 
 
-	private static final double L1_EXTEND_POS = Constants.L1_EXTEND_POS;
-	private static final double L1_RETRACT_POS = Constants.L1_RETRACT_POS;
-	private static final double GROUND = Constants.GROUND;
 	private static boolean isAutoDownUsed = false;
 
 
@@ -82,28 +79,28 @@ public class ClimberFSMSystem {
 		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
 		swLimitSwitch.ForwardSoftLimitEnable = true;
 		swLimitSwitch.ReverseSoftLimitEnable = true;
-		swLimitSwitch.ForwardSoftLimitThreshold = Constants.CLIMBER_UPPER_THRESHOLD.in(Inches);
+		swLimitSwitch.ForwardSoftLimitThreshold = ClimberConstants.UPPER_THRESHOLD.in(Inches);
 		swLimitSwitch.ReverseSoftLimitThreshold = Inches.of(0).in(Inches);
 
 		var sensorConfig = talonFXConfigs.Feedback;
-		sensorConfig.SensorToMechanismRatio = Constants.CLIMBER_ROTS_TO_INCHES;
+		sensorConfig.SensorToMechanismRatio = ClimberConstants.ROTS_TO_INCHES;
 
 		var slot0 = talonFXConfigs.Slot0;
 		slot0.GravityType = GravityTypeValue.Elevator_Static;
 		// TODO: Verify this is the correct gravity compensation type
-		slot0.kG = Constants.CLIMBER_KG;
-		slot0.kS = Constants.CLIMBER_KS;
-		slot0.kV = Constants.CLIMBER_KV;
-		slot0.kA = Constants.CLIMBER_KA;
-		slot0.kP = Constants.CLIMBER_KP;
-		slot0.kI = Constants.CLIMBER_KI;
-		slot0.kD = Constants.CLIMBER_KD;
+		slot0.kG = ClimberConstants.KG;
+		slot0.kS = ClimberConstants.KS;
+		slot0.kV = ClimberConstants.KV;
+		slot0.kA = ClimberConstants.KA;
+		slot0.kP = ClimberConstants.KP;
+		slot0.kI = ClimberConstants.KI;
+		slot0.kD = ClimberConstants.KD;
 		slot0.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
 		var motionMagicConfigs = talonFXConfigs.MotionMagic;
-		motionMagicConfigs.MotionMagicCruiseVelocity = Constants.CLIMBER_CRUISE_VELO;
-		motionMagicConfigs.MotionMagicAcceleration = Constants.CLIMBER_TARGET_ACCEL;
-		motionMagicConfigs.MotionMagicExpo_kV = Constants.CLIMBER_EXPO_KV;
+		motionMagicConfigs.MotionMagicCruiseVelocity = ClimberConstants.CRUISE_VELO;
+		motionMagicConfigs.MotionMagicAcceleration = ClimberConstants.TARGET_ACCEL;
+		motionMagicConfigs.MotionMagicExpo_kV = ClimberConstants.EXPO_KV;
 
 		climberMotorLeft.getConfigurator().apply(talonFXConfigs);
 		climberMotorRight.getConfigurator().apply(talonFXConfigs);
@@ -179,11 +176,11 @@ public class ClimberFSMSystem {
 			climberMotorLeft.getMotorVoltage().getValueAsDouble());
 		Logger.recordOutput("Climber/Control Request",
 			climberMotorLeft.getAppliedControl().toString().
-				substring(Constants.CONTROL_REQUEST_SUBSTRING_START_INDEX));
+				substring(ClimberConstants.CONTROL_REQUEST_SUBSTRING_START_INDEX));
 		Logger.recordOutput("Climber/Height Inches", getClimberHeightInches());
 		Logger.recordOutput("Climber/Is At Bottom?", isGroundLimitSwitchPressed());
 		Logger.recordOutput("Climber/Is Extended L1?", getClimberHeightInches()
-			>= L1_EXTEND_POS - Constants.CLIMBER_POSITION_TOLERANCE_L1);
+			>= ClimberConstants.L1_EXTEND_POS.in(Inches) - ClimberConstants.POSITION_TOLERANCE_L1.in(Inches));
 	}
 
 	private double getClimberHeightInches() {
@@ -201,12 +198,12 @@ public class ClimberFSMSystem {
 
 	private boolean isExtendedL1() {
 		double height = getClimberHeightInches();
-		return height >= L1_EXTEND_POS - Constants.CLIMBER_POSITION_TOLERANCE_L1;
+		return height >= ClimberConstants.L1_EXTEND_POS.in(Inches) - ClimberConstants.POSITION_TOLERANCE_L1.in(Inches);
 	}
 
 	private boolean isRetractedL1() {
 		double height = getClimberHeightInches();
-		return height <= L1_RETRACT_POS + Constants.CLIMBER_POSITION_TOLERANCE_L1;
+		return height <= ClimberConstants.L1_RETRACT_POS.in(Inches) + ClimberConstants.POSITION_TOLERANCE_L1.in(Inches);
 	}
 
 	private ClimberFSMState nextState(TeleopInput input) {
@@ -277,12 +274,12 @@ public class ClimberFSMSystem {
 
 	private void handleManualDirectControlState(TeleopInput input) {
 		double manualControlValue = MathUtil.applyDeadband(input.getClimberManualControl(),
-				Constants.CLIMBER_JOYSTICK_DEADBAND);
+				ClimberConstants.JOYSTICK_DEADBAND);
 		if (isGroundLimitSwitchPressed()) {
 			climberMotorLeft.setPosition(0);
 		}
 		if (!(isGroundLimitSwitchPressed() && manualControlValue < 0)) {
-			climberMotorLeft.set(manualControlValue * Constants.CLIMBER_MANUAL_SCALE);
+			climberMotorLeft.set(manualControlValue * ClimberConstants.MANUAL_SCALE);
 		} else {
 			climberMotorLeft.set(0);
 		}
@@ -290,13 +287,13 @@ public class ClimberFSMSystem {
 
 	private void handleL1ExtendState(TeleopInput input) {
 		if (climberMotorLeft.getMotionMagicAtTarget().getValue()) {
-			climberMotorLeft.setControl(motionRequest.withPosition(L1_EXTEND_POS));
+			climberMotorLeft.setControl(motionRequest.withPosition(ClimberConstants.L1_EXTEND_POS.in(Inches)));
 		}
 	}
 
 	private void handleL1RetractState(TeleopInput input) {
 		if (climberMotorLeft.getMotionMagicAtTarget().getValue()) {
-			climberMotorLeft.setControl(motionRequest.withPosition(L1_RETRACT_POS));
+			climberMotorLeft.setControl(motionRequest.withPosition(ClimberConstants.L1_RETRACT_POS.in(Inches)));
 		}
 	}
 
@@ -304,7 +301,7 @@ public class ClimberFSMSystem {
 		if (isGroundLimitSwitchPressed()) {
 			climberMotorLeft.set(0);
 		} else {
-			climberMotorLeft.setControl(motionRequest.withPosition(GROUND));
+			climberMotorLeft.setControl(motionRequest.withPosition(ClimberConstants.GROUND.in(Inches)));
 		}
 	}
 }

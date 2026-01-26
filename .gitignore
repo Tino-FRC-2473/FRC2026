@@ -185,3 +185,7 @@ compile_commands.json
 
 # Eclipse generated file for annotation processors
 .factorypath
+
+# Controller Profile
+simgui-ds.json
+PathplannerLib-2026.1.2.json
