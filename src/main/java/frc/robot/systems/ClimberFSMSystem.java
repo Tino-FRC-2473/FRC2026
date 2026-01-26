@@ -180,7 +180,6 @@ public class ClimberFSMSystem {
 		Logger.recordOutput("Climber/Control Request",
 			climberMotorLeft.getAppliedControl().toString().
 				substring(Constants.CONTROL_REQUEST_SUBSTRING_START_INDEX));
-		Logger.recordOutput("Climber/Switch Pressed?", isGroundLimitSwitchPressed());
 		Logger.recordOutput("Climber/Height Inches", getClimberHeightInches());
 		Logger.recordOutput("Climber/Is At Bottom?", isGroundLimitSwitchPressed());
 		Logger.recordOutput("Climber/Is Extended L1?", getClimberHeightInches()
