@@ -108,7 +108,7 @@ public class ClimberFSMSystem  {
 		reset();
 	}
 
-	
+
 	/**
 	 * Get the current FSM state.
 	 *
