@@ -25,7 +25,12 @@ public class IntakeConstants {
 	public static final Angle PARTIAL_OUT_POSITION = Units.Radians.of(0.79);
 
 	//Intake Unit Conversion
-	public static final double INTAKE_ROTS_TO_INCHES = 15 / (2 * Math.PI);
+	public static final double INTAKE_PIVOT_GEARING = 62.5 / (2 * Math.PI);
+	public static final double INTAKE_GEARING = 3 / (2 * Math.PI);
+
+	public static final double PIVOT_CRUISE_VELO = 600;
+	public static final double PIVOT_TARGET_ACCEL = 1800;
+	public static final double PIVOT_EXPO_KV = 0.12;
 
 	public static final double INTAKE_CRUISE_VELO = 600;
 	public static final double INTAKE_TARGET_ACCEL = 1800;

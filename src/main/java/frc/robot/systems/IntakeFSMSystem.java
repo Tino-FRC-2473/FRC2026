@@ -9,13 +9,12 @@ import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
 
 import edu.wpi.first.wpilibj.DigitalInput;
 
-import static edu.wpi.first.units.Units.Inches;
+
 import static edu.wpi.first.units.Units.Radians;
 
 // Robot Imports
@@ -84,18 +83,15 @@ public class IntakeFSMSystem {
 		pivotMotorLeft.setControl(new Follower(pivotMotorRight.getDeviceID(),
 			MotorAlignmentValue.Opposed));
 
-		var outputConfigs = talonFXConfigs.MotorOutput;
-		outputConfigs.NeutralMode = NeutralModeValue.Brake;
-
 		// apply sw limit
 		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
 		swLimitSwitch.ForwardSoftLimitEnable = true; // enable top limit
 		swLimitSwitch.ReverseSoftLimitEnable = true; // enable bottom limit
 		swLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.INTAKE_UPPER_TARGET.in(Radians);
-		swLimitSwitch.ReverseSoftLimitThreshold = Inches.of(0).in(Inches);
+		swLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.INTAKE_GROUND_TARGET.in(Radians);
 
-		var sensorConfig = talonFXConfigs.Feedback;
-		sensorConfig.SensorToMechanismRatio = IntakeConstants.INTAKE_ROTS_TO_INCHES;
+		var pivotConfig = talonFXConfigs.Feedback;
+		pivotConfig.SensorToMechanismRatio = IntakeConstants.INTAKE_PIVOT_GEARING;
 
 		var slot0Configs = talonFXConfigs.Slot0;
 		slot0Configs.GravityType = GravityTypeValue.Arm_Cosine;
@@ -108,6 +104,9 @@ public class IntakeFSMSystem {
 		slot0Configs.kD = IntakeConstants.PIVOT_KD;
 		slot0Configs.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
+		var intakeConfig = intakeConfigs.Feedback;
+		intakeConfig.SensorToMechanismRatio = IntakeConstants.INTAKE_GEARING;
+
 		var slot1Configs = intakeConfigs.Slot0;
 		slot1Configs.kV = IntakeConstants.INTAKE_KV;
 		slot1Configs.kA = IntakeConstants.INTAKE_KA;
@@ -117,9 +116,9 @@ public class IntakeFSMSystem {
 		slot1Configs.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
 		var pivotMotionMagicConfigs = talonFXConfigs.MotionMagic;
-		pivotMotionMagicConfigs.MotionMagicCruiseVelocity = IntakeConstants.INTAKE_CRUISE_VELO;
-		pivotMotionMagicConfigs.MotionMagicAcceleration = IntakeConstants.INTAKE_TARGET_ACCEL;
-		pivotMotionMagicConfigs.MotionMagicExpo_kV = IntakeConstants.INTAKE_EXPO_KV;
+		pivotMotionMagicConfigs.MotionMagicCruiseVelocity = IntakeConstants.PIVOT_CRUISE_VELO;
+		pivotMotionMagicConfigs.MotionMagicAcceleration = IntakeConstants.PIVOT_TARGET_ACCEL;
+		pivotMotionMagicConfigs.MotionMagicExpo_kV = IntakeConstants.PIVOT_EXPO_KV;
 
 		var intakeMotionMagicConfigs = intakeConfigs.MotionMagic;
 		intakeMotionMagicConfigs.MotionMagicCruiseVelocity = IntakeConstants.INTAKE_CRUISE_VELO;
@@ -174,11 +173,12 @@ public class IntakeFSMSystem {
 		groundLimitSwitch = new DigitalInput(HardwareMap.INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT);
 		topLimitSwitch = new DigitalInput(HardwareMap.INTAKE_TOP_LIMIT_SWITCH_DIO_PORT);
 
-		// Reset state machine
+		// Set motor positions
 		pivotMotorLeft.setPosition(0);
 		pivotMotorRight.setPosition(0);
 		intakeMotor.setPosition(0);
 
+		// Reset state machine
 		reset();
 	}
 
@@ -254,41 +254,38 @@ public class IntakeFSMSystem {
 	 * Updates the logging information for the elevator system.
 	 */
 	public void updateLogging() {
-		Logger.recordOutput("Left pivot encoder", pivotMotorLeft.getPosition().getValueAsDouble());
-		Logger.recordOutput("Right pivot encoder",
+		Logger.recordOutput("Intake/Left pivot encoder",
+			pivotMotorLeft.getPosition().getValueAsDouble());
+		Logger.recordOutput("Intake/Right pivot encoder",
 			pivotMotorRight.getPosition().getValueAsDouble());
 		Logger.recordOutput("Intake encoder",
 			intakeMotor.getPosition().getValueAsDouble());
 
-		Logger.recordOutput("Left pivot velocity", pivotMotorLeft.getVelocity().getValueAsDouble());
-		Logger.recordOutput("Right pivot velocity",
+		Logger.recordOutput("Intake/Left pivot velocity",
+			pivotMotorLeft.getVelocity().getValueAsDouble());
+		Logger.recordOutput("Intake/Right pivot velocity",
 			pivotMotorRight.getVelocity().getValueAsDouble());
 		Logger.recordOutput("Intake velocity", intakeMotor.getVelocity().getValueAsDouble());
 
-		Logger.recordOutput("Pivot bottom limit switch pressed", isBottomLimitReached());
-		Logger.recordOutput("Pivot top limit switch pressed", isTopLimitReached());
+		Logger.recordOutput("Intake/Pivot bottom limit switch pressed", isBottomLimitReached());
+		Logger.recordOutput("Intake/Pivot top limit switch pressed", isTopLimitReached());
 
 		Logger.recordOutput("Intake State", getCurrentState().toString());
-		Logger.recordOutput("Left Pivot Motor Voltage",
+		Logger.recordOutput("Intake/Left Pivot Motor Voltage",
 			pivotMotorLeft.getMotorVoltage().getValueAsDouble());
-		Logger.recordOutput("Right Pivot Motor Voltage",
+		Logger.recordOutput("Intake/Right Pivot Motor Voltage",
 			pivotMotorRight.getMotorVoltage().getValueAsDouble());
 		Logger.recordOutput("Intake/Outtake Motor Voltage",
 			intakeMotor.getMotorVoltage().getValueAsDouble());
 
-		Logger.recordOutput("Left Pivot Motor Accel",
-			pivotMotorLeft.getAcceleration().getValueAsDouble());
-		Logger.recordOutput("Right Pivot Motor Accel",
-			pivotMotorRight.getAcceleration().getValueAsDouble());
-
-		Logger.recordOutput("LEFT PIVOT ROTR POS",
+		Logger.recordOutput("Intake/LEFT PIVOT ROTR POS",
 			pivotMotorLeft.getRotorPosition().getValueAsDouble());
-		Logger.recordOutput("LEFT PIVOT ROTR VELO",
+		Logger.recordOutput("Intake/LEFT PIVOT ROTR VELO",
 			pivotMotorLeft.getRotorVelocity().getValueAsDouble());
 
-		Logger.recordOutput("RIGHT PIVOT ROTR POS",
+		Logger.recordOutput("Intake/RIGHT PIVOT ROTR POS",
 			pivotMotorRight.getRotorPosition().getValueAsDouble());
-		Logger.recordOutput("RIGHT PIVOT ROTR VELO",
+		Logger.recordOutput("Intake/RIGHT PIVOT ROTR VELO",
 			pivotMotorRight.getRotorVelocity().getValueAsDouble());
 
 		Logger.recordOutput("INTAKE ROTR POS",
@@ -486,6 +483,10 @@ public class IntakeFSMSystem {
 		return groundLimitSwitch.get(); // switch is normally open
 	}
 
+	/**
+	 * Getter for the result of the elevator's top limit switch.
+	 * @return whether the limit is reached
+	 */
 	private boolean isTopLimitReached() {
 		return topLimitSwitch.get(); // switch is normally open
 	}
