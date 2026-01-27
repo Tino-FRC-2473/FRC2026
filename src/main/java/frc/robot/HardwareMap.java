@@ -16,17 +16,14 @@ public final class HardwareMap {
 	public static final int CAN_ID_CLIMBER_LEFT = 6;
 	public static final int CAN_ID_CLIMBER_RIGHT = 7;
 
-
-
-
 	// Pneumatics channel numbers
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_FORWARD = 1;
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_REVERSE = 2;
 
 	// Place jumper from DIO pin 9 to GND to indicate this is a test setup
 	private static final int DIO_TEST_SETUP_CHANNEL = 9;
-	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT = 0; // DIO port for
-			//climber ground limit switch
+	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT = 0;
+	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_RIGHT = 1;
 	private static DigitalInput testBoardPin = new DigitalInput(HardwareMap.DIO_TEST_SETUP_CHANNEL);
 	/**
 	 * Check if the current RoboRIO is part of a test setup or real robot.

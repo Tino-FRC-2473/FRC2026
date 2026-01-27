@@ -43,7 +43,8 @@ public class ClimberFSMSystem {
 
 	private final TalonFX climberMotorLeft;
 	private final TalonFX climberMotorRight;
-	private final DigitalInput groundLimitSwitch;
+	private final DigitalInput groundLimitSwitchLeft;
+	private final DigitalInput groundLimitSwitchRight;
 
 	private ClimberFSMState currentState;
 	private MotionMagicVoltage motionRequest;
@@ -65,7 +66,10 @@ public class ClimberFSMSystem {
 		motionRequest = new MotionMagicVoltage(0);
 		configureMotor();
 		currentState = ClimberFSMState.IDLE;
-		groundLimitSwitch = new DigitalInput(HardwareMap.CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT);
+		groundLimitSwitchLeft = new DigitalInput(HardwareMap.
+			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT);
+		groundLimitSwitchRight = new DigitalInput(HardwareMap.
+			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_RIGHT);
 		reset();
 	}
 
@@ -177,7 +181,8 @@ public class ClimberFSMSystem {
 			climberMotorLeft.getAppliedControl().toString().
 				substring(ClimberConstants.CONTROL_REQUEST_SUBSTRING_START_INDEX));
 		Logger.recordOutput("Climber/Height Inches", getClimberHeightInches());
-		Logger.recordOutput("Climber/Is At Bottom?", groundLimitSwitch.get());
+		Logger.recordOutput("Climber/Left Is At Bottom?", groundLimitSwitchLeft.get());
+		Logger.recordOutput("Climber/Right Is At Bottom?", groundLimitSwitchRight.get());
 		Logger.recordOutput("Climber/Is Extended L1?", getClimberHeightInches()
 			>= ClimberConstants.L1_EXTEND_POS.in(Inches)
 			- ClimberConstants.POSITION_TOLERANCE_L1.in(Inches));
@@ -189,7 +194,7 @@ public class ClimberFSMSystem {
 
 	private boolean isOnGround() {
 		double height = getClimberHeightInches();
-		return (height <= 0.0 || groundLimitSwitch.get());
+		return (height <= 0.0 || groundLimitSwitchLeft.get() || groundLimitSwitchRight.get());
 	}
 
 	private boolean isExtendedL1() {
@@ -273,10 +278,14 @@ public class ClimberFSMSystem {
 	private void handleManualDirectControlState(TeleopInput input) {
 		double manualControlValue = MathUtil.applyDeadband(input.getClimberManualControl(),
 				ClimberConstants.JOYSTICK_DEADBAND);
-		if (groundLimitSwitch.get()) {
+		if (groundLimitSwitchLeft.get()) {
 			climberMotorLeft.setPosition(0);
 		}
-		if (!(groundLimitSwitch.get() && manualControlValue < 0)) {
+		if (groundLimitSwitchRight.get()) {
+			climberMotorRight.setPosition(0);
+		}
+		if (!(groundLimitSwitchLeft.get() && manualControlValue < 0
+			&& groundLimitSwitchRight.get())) {
 			climberMotorLeft.set(manualControlValue * ClimberConstants.MANUAL_SCALE);
 		} else {
 			climberMotorLeft.set(0);
@@ -300,12 +309,15 @@ public class ClimberFSMSystem {
 	}
 
 	private void handleResetToZero(TeleopInput input) {
-		if (groundLimitSwitch.get()) {
+		if (groundLimitSwitchLeft.get()) {
 			climberMotorLeft.set(0);
 		} else {
 			climberMotorLeft.setControl(motionRequest.withPosition(
 				ClimberConstants.GROUND.in(Inches)
 			));
+		}
+		if (groundLimitSwitchRight.get()) {
+			climberMotorRight.set(0);
 		}
 	}
 }
