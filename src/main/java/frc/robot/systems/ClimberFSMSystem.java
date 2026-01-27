@@ -64,16 +64,6 @@ public class ClimberFSMSystem  {
 		climberMotorLeft.setControl(new Follower(HardwareMap.CAN_ID_CLIMBER_RIGHT,
 			MotorAlignmentValue.Opposed));
 		motionRequest = new MotionMagicVoltage(0);
-		configureMotor();
-		currentState = ClimberFSMState.IDLE;
-		groundLimitSwitchLeft = new DigitalInput(HardwareMap.
-			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT);
-		groundLimitSwitchRight = new DigitalInput(HardwareMap.
-			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_RIGHT);
-		reset();
-	}
-
-	private void configureMotor() {
 		climberMotorRight.setControl(new Follower(
 			climberMotorLeft.getDeviceID(), MotorAlignmentValue.Opposed));
 		var talonFXConfigs = new TalonFXConfiguration();
@@ -110,8 +100,15 @@ public class ClimberFSMSystem  {
 
 		climberMotorLeft.setPosition(0);
 		climberMotorRight.setPosition(0);
-
+		currentState = ClimberFSMState.IDLE;
+		groundLimitSwitchLeft = new DigitalInput(HardwareMap.
+			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT);
+		groundLimitSwitchRight = new DigitalInput(HardwareMap.
+			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_RIGHT);
+		reset();
 	}
+
+	
 	/**
 	 * Get the current FSM state.
 	 *
