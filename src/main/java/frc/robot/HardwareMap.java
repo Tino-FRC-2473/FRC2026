@@ -14,6 +14,11 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_DRIVE_BACK_LEFT = 4;
 	public static final int CAN_ID_SPARK_SHOOTER = 5;
 
+	//temp values for us to not have errors, need to be changed
+	public static final int CAN_ID_FLYWHEEL = 0;
+	public static final int CAN_ID_HOOD = 0;
+	public static final int CAN_ID_INDEXER = 0;
+
 	// Pneumatics channel numbers
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_FORWARD = 1;
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_REVERSE = 2;
