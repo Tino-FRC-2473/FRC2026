@@ -168,7 +168,6 @@ public class ClimberFSMSystem {
 	/**
 	 * Update logging values for this system.
 	 */
-
 	public void updateLogging() {
 		Logger.recordOutput("Climber/Position",
 			climberMotorLeft.getPosition().getValueAsDouble());
