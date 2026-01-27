@@ -1,7 +1,7 @@
 package frc.robot;
 
-// WPILib Imports
 import edu.wpi.first.wpilibj.PS4Controller;
+// WPILib Imports
 
 /**
  * Common class for providing driver inputs during Teleop.
@@ -17,6 +17,11 @@ public class TeleopInput {
 	/* ======================== Private variables ======================== */
 	// Input objects
 	private PS4Controller controller;
+	private static final int DRIVE_CONTROLLER_PORT = 0;
+
+	/* ======================== Private variables ======================== */
+	// Input objects
+	private PS4Controller driveController;
 
 	/* ======================== Constructor ======================== */
 	/**
