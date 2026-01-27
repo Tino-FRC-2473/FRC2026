@@ -51,7 +51,6 @@ public class ClimberFSMSystem  {
 	private MotionMagicVoltage motionRequest;
 
 
-	private static boolean isAutoDownUsed = false;
 
 
 	/**
@@ -225,10 +224,6 @@ public class ClimberFSMSystem  {
 				}
 				return ClimberFSMState.AUTO_IDLE;
 			case IDLE:
-				if (input.isDownButtonPressed() && (isAutoDownUsed)) {
-					isAutoDownUsed = true;
-					return ClimberFSMState.AUTO_DOWN_1;
-				}
 				if (input.isClimberManualOverideButtonPressed()) {
 					return ClimberFSMState.MANUAL_DIRECT_CONTROL;
 				}
