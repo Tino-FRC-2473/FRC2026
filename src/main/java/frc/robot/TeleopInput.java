@@ -2,6 +2,8 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.PS4Controller;
 // WPILib Imports
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PS4Controller.Button;
 
 /**
  * Common class for providing driver inputs during Teleop.
@@ -72,25 +74,37 @@ public class TeleopInput {
 		return driveController.getOptionsButton();
 	}
 
-	/* ========================== Triggers =============================*/
-	public boolean isLeftBumperPressed(){
-		return false;
+
+	/* ======================== Teleop methods ======================== */
+	/*public boolean isShooterButtonPressed() {
+		return leftJoystick.getRawButton(1);
 	}
-	public boolean isLeftTriggerPressed(){
-		return false;
-	}
+
+	public boolean isIntakeButtonPressed() {
+		return leftJoystick.getRawButton(2);
+	}*/
+
 	public boolean isRightBumperPressed(){
-		return false;
+			return rightJoystick.getRawButton(6);
 	}
+
+	public boolean isLeftBumperPressed(){
+			return rightJoystick.getRawButton(5);
+	}
+
+
+	public boolean isLeftTriggerPressed(){
+			return rightJoystick.getRawButton(7);
+	}
+
 	public boolean isRightTriggerPressed(){
-		return false;
+			return rightJoystick.getRawButton(8);
 	}
-	/*============================= Touchpad ========================== */
+
 	public boolean isTouchpadPressed(){
-		return false;
+			return rightJoystick.getRawButton(14);
 	}
-
-
+	 
 	/* ======================== Private methods ======================== */
 
 }
