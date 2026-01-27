@@ -11,12 +11,12 @@ import frc.robot.motors.SparkMaxWrapper;
 import frc.robot.HardwareMap;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
-enum FSMState {
+enum IntakeFSMState {
 	START_STATE,
 	OTHER_STATE
 }
 
-public class ExampleFSMSystem extends FSMSystem<FSMState> {
+public class ExampleFSMSystem extends FSMSystem<IntakeFSMState> {
 	/* ======================== Constants ======================== */
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -50,7 +50,7 @@ public class ExampleFSMSystem extends FSMSystem<FSMState> {
 
 	@Override
 	public void reset() {
-		setCurrentState(FSMState.START_STATE);
+		setCurrentState(IntakeFSMState.START_STATE);
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -90,17 +90,17 @@ public class ExampleFSMSystem extends FSMSystem<FSMState> {
 	/* ======================== Protected methods ======================== */
 
 	@Override
-	protected FSMState nextState(TeleopInput input) {
+	protected IntakeFSMState nextState(TeleopInput input) {
 		switch (getCurrentState()) {
 			case START_STATE:
 				if (input != null) {
-					return FSMState.OTHER_STATE;
+					return IntakeFSMState.OTHER_STATE;
 				} else {
-					return FSMState.START_STATE;
+					return IntakeFSMState.START_STATE;
 				}
 
 			case OTHER_STATE:
-				return FSMState.OTHER_STATE;
+				return IntakeFSMState.OTHER_STATE;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());

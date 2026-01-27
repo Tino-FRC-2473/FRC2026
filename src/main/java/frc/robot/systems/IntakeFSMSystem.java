@@ -19,26 +19,28 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Radians;
 
 // Robot Imports
-import frc.robot.constants.Constants;
+import frc.robot.constants.IntakeConstants;
 import frc.robot.TeleopInput;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.HardwareMap;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
-enum FSMState {
-	IDLE_IN_STATE,
-	FOLD_OUT_STATE,
-	IDLE_OUT_STATE,
-	INTAKE_STATE,
-	OUTTAKE_STATE,
-	FOLD_IN_STATE,
-	PARTIAL_OUT_STATE
-}
 
-public class IntakeFSMSystem extends FSMSystem<FSMState> {
+public class IntakeFSMSystem {
+	public enum IntakeFSMState {
+		IDLE_IN_STATE,
+		FOLD_OUT_STATE,
+		IDLE_OUT_STATE,
+		INTAKE_STATE,
+		OUTTAKE_STATE,
+		FOLD_IN_STATE,
+		PARTIAL_OUT_STATE
+	}
 	/* ======================== Constants ======================== */
 
 	/* ======================== Private variables ======================== */
+
+	private IntakeFSMState currentState;
 
 	private MotionMagicVoltage pivotMotionRequest;
 	private MotionMagicVelocityVoltage intakeMotionRequest;
@@ -89,49 +91,46 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
 		swLimitSwitch.ForwardSoftLimitEnable = true; // enable top limit
 		swLimitSwitch.ReverseSoftLimitEnable = true; // enable bottom limit
-		swLimitSwitch.ForwardSoftLimitThreshold = Constants.INTAKE_UPPER_TARGET.in(Radians);
+		swLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.INTAKE_UPPER_TARGET.in(Radians);
 		swLimitSwitch.ReverseSoftLimitThreshold = Inches.of(0).in(Inches);
 
 		var sensorConfig = talonFXConfigs.Feedback;
-		sensorConfig.SensorToMechanismRatio = Constants.INTAKE_ROTS_TO_INCHES;
+		sensorConfig.SensorToMechanismRatio = IntakeConstants.INTAKE_ROTS_TO_INCHES;
 
 		var slot0Configs = talonFXConfigs.Slot0;
-		slot0Configs.GravityType = GravityTypeValue.Elevator_Static;
-		slot0Configs.kG = Constants.PIVOT_KG;
-		slot0Configs.kS = Constants.PIVOT_KS;
-		slot0Configs.kV = Constants.PIVOT_KV;
-		slot0Configs.kA = Constants.PIVOT_KA;
-		slot0Configs.kP = Constants.PIVOT_KP;
-		slot0Configs.kI = Constants.PIVOT_KI;
-		slot0Configs.kD = Constants.PIVOT_KD;
+		slot0Configs.GravityType = GravityTypeValue.Arm_Cosine;
+		slot0Configs.kG = IntakeConstants.PIVOT_KG;
+		slot0Configs.kS = IntakeConstants.PIVOT_KS;
+		slot0Configs.kV = IntakeConstants.PIVOT_KV;
+		slot0Configs.kA = IntakeConstants.PIVOT_KA;
+		slot0Configs.kP = IntakeConstants.PIVOT_KP;
+		slot0Configs.kI = IntakeConstants.PIVOT_KI;
+		slot0Configs.kD = IntakeConstants.PIVOT_KD;
 		slot0Configs.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
 		var slot1Configs = intakeConfigs.Slot0;
-		slot1Configs.GravityType = GravityTypeValue.Elevator_Static;
-		slot1Configs.kG = Constants.INTAKE_KG;
-		slot1Configs.kS = Constants.INTAKE_KS;
-		slot1Configs.kV = Constants.INTAKE_KV;
-		slot1Configs.kA = Constants.INTAKE_KA;
-		slot1Configs.kP = Constants.INTAKE_KP;
-		slot1Configs.kI = Constants.INTAKE_KI;
-		slot1Configs.kD = Constants.INTAKE_KD;
+		slot1Configs.kV = IntakeConstants.INTAKE_KV;
+		slot1Configs.kA = IntakeConstants.INTAKE_KA;
+		slot1Configs.kP = IntakeConstants.INTAKE_KP;
+		slot1Configs.kI = IntakeConstants.INTAKE_KI;
+		slot1Configs.kD = IntakeConstants.INTAKE_KD;
 		slot1Configs.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
 		var pivotMotionMagicConfigs = talonFXConfigs.MotionMagic;
-		pivotMotionMagicConfigs.MotionMagicCruiseVelocity = Constants.INTAKE_CRUISE_VELO;
-		pivotMotionMagicConfigs.MotionMagicAcceleration = Constants.INTAKE_TARGET_ACCEL;
-		pivotMotionMagicConfigs.MotionMagicExpo_kV = Constants.INTAKE_EXPO_KV;
+		pivotMotionMagicConfigs.MotionMagicCruiseVelocity = IntakeConstants.INTAKE_CRUISE_VELO;
+		pivotMotionMagicConfigs.MotionMagicAcceleration = IntakeConstants.INTAKE_TARGET_ACCEL;
+		pivotMotionMagicConfigs.MotionMagicExpo_kV = IntakeConstants.INTAKE_EXPO_KV;
 
 		var intakeMotionMagicConfigs = intakeConfigs.MotionMagic;
-		intakeMotionMagicConfigs.MotionMagicCruiseVelocity = Constants.INTAKE_CRUISE_VELO;
-		intakeMotionMagicConfigs.MotionMagicAcceleration = Constants.INTAKE_TARGET_ACCEL;
-		intakeMotionMagicConfigs.MotionMagicExpo_kV = Constants.INTAKE_EXPO_KV;
+		intakeMotionMagicConfigs.MotionMagicCruiseVelocity = IntakeConstants.INTAKE_CRUISE_VELO;
+		intakeMotionMagicConfigs.MotionMagicAcceleration = IntakeConstants.INTAKE_TARGET_ACCEL;
+		intakeMotionMagicConfigs.MotionMagicExpo_kV = IntakeConstants.INTAKE_EXPO_KV;
 
 
 		pivotMotorLeft.getConfigurator().apply(talonFXConfigs);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
-				Constants.UPDATE_FREQUENCY_HZ,
+				IntakeConstants.UPDATE_FREQUENCY_HZ,
 				pivotMotorLeft.getPosition(),
 				pivotMotorLeft.getVelocity(),
 				pivotMotorLeft.getAcceleration(),
@@ -145,7 +144,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 		pivotMotorRight.getConfigurator().apply(talonFXConfigs);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
-				Constants.UPDATE_FREQUENCY_HZ,
+				IntakeConstants.UPDATE_FREQUENCY_HZ,
 				pivotMotorRight.getPosition(),
 				pivotMotorRight.getVelocity(),
 				pivotMotorRight.getAcceleration(),
@@ -159,7 +158,7 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 		intakeMotor.getConfigurator().apply(intakeConfigs);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
-				Constants.UPDATE_FREQUENCY_HZ,
+				IntakeConstants.UPDATE_FREQUENCY_HZ,
 				intakeMotor.getPosition(),
 				intakeMotor.getVelocity(),
 				intakeMotor.getAcceleration(),
@@ -188,16 +187,33 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	// overridden methods don't require javadocs
 	// however, you may want to add implementation specific javadocs
 
-	@Override
+	/**
+	* Get the current FSM state.
+	* @return current FSM state.
+	*/
+	public IntakeFSMState getCurrentState() {
+		return currentState;
+	}
+
+
+	/**
+	 * resets the FSM_STATE.
+	 */
 	public void reset() {
-		setCurrentState(FSMState.IDLE_IN_STATE);
+		currentState = IntakeFSMState.IDLE_IN_STATE;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
 
-	@Override
+	/**
+	 * updates the current state in IntakeFSMState.
+	 * @param input
+	 */
 	public void update(TeleopInput input) {
+		if (input == null) {
+			return;
+		}
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
 				handleIdleInState(input);
@@ -230,7 +246,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 			default:
 				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
 		}
-		setCurrentState(nextState(input));
+		currentState = nextState(input);
+		updateLogging();
 	}
 
 	/**
@@ -287,7 +304,11 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	}
 
 
-	@Override
+	/**
+	 * Updates autonomous states.
+	 * @param autoState
+	 * @return state
+	 */
 	public boolean updateAutonomous(AutoFSMState autoState) {
 		switch (autoState) {
 			case STATE1:
@@ -303,66 +324,66 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 
 	/* ======================== Protected methods ======================== */
 
-	@Override
-	protected FSMState nextState(TeleopInput input) {
+
+	protected IntakeFSMState nextState(TeleopInput input) {
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
 				if (input.isFoldOutButtonPressed()) {
-					return FSMState.FOLD_OUT_STATE;
+					return IntakeFSMState.FOLD_OUT_STATE;
 				} else if (input.isPartialOutButtonPressed()) {
-					return FSMState.PARTIAL_OUT_STATE;
+					return IntakeFSMState.PARTIAL_OUT_STATE;
 				} else {
-					return FSMState.IDLE_IN_STATE;
+					return IntakeFSMState.IDLE_IN_STATE;
 				}
 
 			case FOLD_OUT_STATE:
 				if (isBottomLimitReached()) {
-					return FSMState.IDLE_OUT_STATE;
+					return IntakeFSMState.IDLE_OUT_STATE;
 				} else {
-					return FSMState.FOLD_OUT_STATE;
+					return IntakeFSMState.FOLD_OUT_STATE;
 				}
 
 			case PARTIAL_OUT_STATE:
 				if (input.isFoldOutButtonPressed()) {
-					return FSMState.FOLD_OUT_STATE;
+					return IntakeFSMState.FOLD_OUT_STATE;
 				} else if (input.isFoldInButtonPressed()) {
-					return FSMState.FOLD_IN_STATE;
+					return IntakeFSMState.FOLD_IN_STATE;
 				} else {
-					return FSMState.PARTIAL_OUT_STATE;
+					return IntakeFSMState.PARTIAL_OUT_STATE;
 				}
 
 			case IDLE_OUT_STATE:
 				if (input.isIntakeButtonPressed()) {
-					return FSMState.INTAKE_STATE;
+					return IntakeFSMState.INTAKE_STATE;
 				} else if (input.isOuttakeButtonPressed()) {
-					return FSMState.OUTTAKE_STATE;
+					return IntakeFSMState.OUTTAKE_STATE;
 				} else if (input.isFoldInButtonPressed()) {
-					return FSMState.FOLD_IN_STATE;
+					return IntakeFSMState.FOLD_IN_STATE;
 				} else if (input.isPartialOutButtonPressed()) {
-					return FSMState.PARTIAL_OUT_STATE;
+					return IntakeFSMState.PARTIAL_OUT_STATE;
 				} else {
-					return FSMState.IDLE_OUT_STATE;
+					return IntakeFSMState.IDLE_OUT_STATE;
 				}
 
 			case INTAKE_STATE:
 				if (input.isIntakeButtonReleased()) {
-					return FSMState.IDLE_OUT_STATE;
+					return IntakeFSMState.IDLE_OUT_STATE;
 				} else {
-					return FSMState.INTAKE_STATE;
+					return IntakeFSMState.INTAKE_STATE;
 				}
 
 			case OUTTAKE_STATE:
 				if (input.isOuttakeButtonReleased()) {
-					return FSMState.IDLE_OUT_STATE;
+					return IntakeFSMState.IDLE_OUT_STATE;
 				} else {
-					return FSMState.OUTTAKE_STATE;
+					return IntakeFSMState.OUTTAKE_STATE;
 				}
 
 			case FOLD_IN_STATE:
 				if (isTopLimitReached()) {
-					return FSMState.IDLE_IN_STATE;
+					return IntakeFSMState.IDLE_IN_STATE;
 				} else {
-					return FSMState.FOLD_IN_STATE;
+					return IntakeFSMState.FOLD_IN_STATE;
 				}
 
 			default:
@@ -384,7 +405,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleFoldOutState(TeleopInput input) {
-		pivotMotorRight.setControl(pivotMotionRequest.withPosition(Constants.INTAKE_GROUND_TARGET));
+		pivotMotorRight.setControl(pivotMotionRequest.
+			withPosition(IntakeConstants.INTAKE_GROUND_TARGET));
 	}
 	/**
 	 * Handle behavior in PARTIAL_OUT_STATE.
@@ -392,7 +414,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handlePartialOutState(TeleopInput input) {
-		pivotMotorRight.setControl(pivotMotionRequest.withPosition(Constants.PARTIAL_OUT_POSITION));
+		pivotMotorRight.setControl(pivotMotionRequest.
+			withPosition(IntakeConstants.PARTIAL_OUT_POSITION));
 	}
 	/**
 	 * Handle behavior in START_STATE.
@@ -407,7 +430,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIntakeState(TeleopInput input) {
-		intakeMotor.setControl(intakeMotionRequest.withVelocity(Constants.INTAKE_TARGET_VELOCITY));
+		intakeMotor.setControl(intakeMotionRequest.
+			withVelocity(IntakeConstants.INTAKE_TARGET_VELOCITY));
 	}
 	/**
 	 * Handle behavior in START_STATE.
@@ -415,7 +439,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleOuttakeState(TeleopInput input) {
-		intakeMotor.setControl(intakeMotionRequest.withVelocity(Constants.OUTTAKE_TARGET_VELOCITY));
+		intakeMotor.setControl(intakeMotionRequest.
+			withVelocity(IntakeConstants.OUTTAKE_TARGET_VELOCITY));
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
@@ -423,7 +448,8 @@ public class IntakeFSMSystem extends FSMSystem<FSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleFoldInState(TeleopInput input) {
-		pivotMotorRight.setControl(pivotMotionRequest.withPosition(Constants.INTAKE_UPPER_TARGET));
+		pivotMotorRight.setControl(pivotMotionRequest.
+			withPosition(IntakeConstants.INTAKE_UPPER_TARGET));
 	}
 
 	/**

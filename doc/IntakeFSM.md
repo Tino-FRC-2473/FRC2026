@@ -1,4 +1,4 @@
-# Example FSM Spec
+# Intake FSM Spec
 
 ```mermaid
 stateDiagram-v2

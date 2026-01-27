@@ -3,7 +3,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 
 
-public class Constants {
+public class IntakeConstants {
 	public static final Angle INTAKE_GROUND_TARGET = Units.Radians.of(2.09);
 	public static final Angle INTAKE_UPPER_TARGET = Units.Radians.of(0);
 	public static final double PIVOT_KG = 0.35;
