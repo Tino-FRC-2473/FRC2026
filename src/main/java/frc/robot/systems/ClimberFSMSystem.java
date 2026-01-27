@@ -28,7 +28,7 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
-public class ClimberFSMSystem {
+public class ClimberFSMSystem  {
 	public enum ClimberFSMState {
 		IDLE,
 		MANUAL_DIRECT_CONTROL,
@@ -264,6 +264,15 @@ public class ClimberFSMSystem {
 				}
 				return ClimberFSMState.L1_EXTEND;
 			case L1_RETRACT:
+				if (input.isClimberEmergencyAbortPressed()) {
+					return ClimberFSMState.IDLE;
+				}
+				if (isRetractedL1()) {
+					if (currentState == ClimberFSMState.L1_RETRACT) {
+						return ClimberFSMState.LOCKED_FINAL;
+					}
+				}
+				return ClimberFSMState.L1_RETRACT;
 			default:
 				throw new UnsupportedOperationException("Unknown state");
 		}
@@ -271,7 +280,7 @@ public class ClimberFSMSystem {
 
 	private void handleIdleState(TeleopInput input) {
 		climberMotorLeft.set(0);
-		//currentState = ClimberFSMState.AUTO_UP_1;
+
 	}
 
 	private void handleManualDirectControlState(TeleopInput input) {
