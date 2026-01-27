@@ -5,7 +5,9 @@ import edu.wpi.first.math.MathUtil;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.HardwareMap;
-import frc.robot.TeleopInput;
+import frc.robot.input.TeleopInput;
+import frc.robot.input.InputTypes.AxialInput;
+import frc.robot.input.InputTypes.ButtonInput;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -213,23 +215,23 @@ public class ClimberFSMSystem  {
 
 		switch (currentState) {
 			case AUTO_IDLE:
-				if (input.isClimberNextButtonPressed()) {
+				if (input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP)) {
 					return ClimberFSMState.AUTO_DOWN_1;
 				}
-				if (input.isClimberEmergencyAbortPressed()) {
+				if (input.getButtonPressed(ButtonInput.CLIMBER_EMERGENCY_ABORT)) {
 					return ClimberFSMState.IDLE;
 				}
 				return ClimberFSMState.AUTO_IDLE;
 			case IDLE:
-				if (input.isClimberManualOverideButtonPressed()) {
+				if (input.getButtonPressed(ButtonInput.CLIMBER_MANUAL_OVERRIDE)) {
 					return ClimberFSMState.MANUAL_DIRECT_CONTROL;
 				}
-				if (input.isClimberNextButtonPressed()) {
+				if (input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP)) {
 					return ClimberFSMState.L1_EXTEND;
 				}
 				return ClimberFSMState.IDLE;
 			case MANUAL_DIRECT_CONTROL:
-				if (input.isClimberManualOverideButtonPressed()) {
+				if (input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP)) {
 					return ClimberFSMState.IDLE;
 				}
 				return ClimberFSMState.IDLE;
@@ -244,7 +246,7 @@ public class ClimberFSMSystem  {
 				}
 				return ClimberFSMState.AUTO_UP_2;
 			case AUTO_DOWN_1:
-				if (input.isDownButtonPressed() && isExtendedL1()) {
+				if (input.getButtonPressed(ButtonInput.CLIMBER_DOWN_BUTTON) && isExtendedL1()) {
 					return ClimberFSMState.AUTO_DOWN_2;
 				}
 				return ClimberFSMState.AUTO_DOWN_1;
@@ -254,11 +256,11 @@ public class ClimberFSMSystem  {
 				}
 				return ClimberFSMState.AUTO_DOWN_2;
 			case L1_EXTEND:
-				if (input.isClimberEmergencyAbortPressed()) {
+				if (input.getButtonPressed(ButtonInput.CLIMBER_EMERGENCY_ABORT)) {
 					return ClimberFSMState.IDLE;
 				}
 				boolean shouldAdvanceExtendedL1 =
-					(input.isClimberNextButtonPressed() && isExtendedL1());
+					(input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP) && isExtendedL1());
 				if (shouldAdvanceExtendedL1) {
 					if (currentState == ClimberFSMState.L1_EXTEND) {
 						return ClimberFSMState.L1_RETRACT;
@@ -266,7 +268,7 @@ public class ClimberFSMSystem  {
 				}
 				return ClimberFSMState.L1_EXTEND;
 			case L1_RETRACT:
-				if (input.isClimberEmergencyAbortPressed()) {
+				if (input.getButtonPressed(ButtonInput.CLIMBER_EMERGENCY_ABORT)) {
 					return ClimberFSMState.IDLE;
 				}
 				if (isRetractedL1()) {
@@ -286,7 +288,7 @@ public class ClimberFSMSystem  {
 	}
 
 	private void handleManualDirectControlState(TeleopInput input) {
-		double manualControlValue = MathUtil.applyDeadband(input.getClimberManualControl(),
+		double manualControlValue = MathUtil.applyDeadband(input.getAxis(AxialInput.CLIMBER_MANUAL_CONTROL),
 				ClimberConstants.JOYSTICK_DEADBAND);
 		if (groundLimitSwitchLeft.get()) {
 			climberMotorLeft.setPosition(0);

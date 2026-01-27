@@ -16,7 +16,6 @@ import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
-import frc.robot.systems.AutoHandlerSystem;
 import frc.robot.systems.ClimberFSMSystem;
 
 /**
@@ -32,7 +31,6 @@ public class Robot extends LoggedRobot {
 	private Drivetrain drivetrain;
 	private ClimberFSMSystem climberFSMSystem;
 
-	private AutoHandlerSystem autoHandler;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -85,7 +83,7 @@ public class Robot extends LoggedRobot {
 	public void teleopPeriodic() {
 		drivetrain.update(input);
 		input.update();
-		climberFSMSystem.update(input);
+		climberFSMSystem.update((TeleopInput) input);
 
 		// logs motor values
 		MotorManager.update();

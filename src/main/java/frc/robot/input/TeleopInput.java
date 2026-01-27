@@ -38,6 +38,10 @@ public final class TeleopInput extends Input {
 
 			// add / remove cases to reflect the InputTypes
 			case RESEED_DRIVETRAIN -> mechController::options;
+			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
+			case CLIMBER_NEXT_STEP -> mechController::square;
+			case CLIMBER_EMERGENCY_ABORT -> mechController::R1;
+			case CLIMBER_DOWN_BUTTON -> mechController::R2;
 
 			default -> throw new IllegalArgumentException("Unknown button action");
 		};
@@ -51,9 +55,11 @@ public final class TeleopInput extends Input {
 			case DRIVE_Y -> driveController.getLeftX();
 			case DRIVE_X -> driveController.getLeftY();
 			case ROTATE -> driveController.getRightX();
+			case CLIMBER_MANUAL_CONTROL -> mechController.getLeftX();
 
 			default -> throw new IllegalArgumentException("Unknown axis action");
 		};
 	}
+
 
 }
