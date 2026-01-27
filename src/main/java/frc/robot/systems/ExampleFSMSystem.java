@@ -4,7 +4,6 @@ package frc.robot.systems;
 
 // Third party Hardware Imports
 import com.revrobotics.spark.SparkMax;
-
 import frc.robot.motors.SparkMaxWrapper;
 import frc.robot.HardwareMap;
 import frc.robot.input.Input;

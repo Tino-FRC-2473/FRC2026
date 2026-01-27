@@ -44,6 +44,11 @@ public class Robot extends LoggedRobot {
 		if (HardwareMap.isDrivetrainEnabled()) {
 			drivetrain = new Drivetrain();
 		}
+
+		Logger.recordMetadata("kasfjaksjfh", "fkslflksafl");
+		Logger.addDataReceiver(new NT4Publisher());
+		Logger.start();
+
 	}
 
 	@Override
