@@ -2,6 +2,9 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.PS4Controller;
 // WPILib Imports
+import edu.wpi.first.wpilibj.Joystick;
+//import edu.wpi.first.wpilibj.PS4Controller.Button;
+//import edu.wpi.first.wpilibj.PS4Controller.Button;
 
 /**
  * Common class for providing driver inputs during Teleop.
@@ -48,30 +51,122 @@ public class TeleopInput {
 	public double getDriverLeftY() {
 		return driveController.getLeftY();
 	}
-
 	/**
-	 * Get X axis of the right joystick.
-	 * @return Axis value
+	 * Get the value of the shooter button.
+	 * @return True if button is pressed
 	 */
-	public double getDriverRightX() {
-		return driveController.getRightX();
-	}
-	/**
-	 * Get Y axis of the right joystick.
-	 * @return Axis value
-	 */
-	public double getDriverRightY() {
-		return driveController.getRightY();
+	public boolean isShooterButtonPressed() {
+		return leftJoystick.getRawButton(1);
 	}
 
 	/**
-	 * Get share button state for drive controller.
-	 * @return Axis value
+	 * Get the value of the intake button.
+	 * @return True if button is pressed
 	 */
-	public boolean isDriverReseedButtonPressed() {
-		return driveController.getOptionsButton();
+	public boolean isIntakeButtonPressed() {
+		return leftJoystick.getRawButton(2);
 	}
 
+	/* ------------------------ Right Joystick ------------------------ */
+	/**
+	 * Get X axis of Right Joystick.
+	 * @return Axis value
+	 */
+	public double getRightJoystickX() {
+		return rightJoystick.getX();
+	}
+	/**
+	 * Get Y axis of Right Joystick.
+	 * @return Axis value
+	 */
+	public double getRightJoystickY() {
+		return rightJoystick.getY();
+	}
+
+
+	/* ======================== Teleop methods ======================== */
+	/*public boolean isShooterButtonPressed() {
+		return leftJoystick.getRawButton(1);
+	}
+
+	public boolean isIntakeButtonPressed() {
+		return leftJoystick.getRawButton(2);
+	}*/
+
+	/**
+	 * Get Boolean statement if the right bumper is pressed.
+	 * @return Boolean if right bumper is pressed
+	 */
+	public boolean isRightBumperPressed() {
+		return false;
+		//rightJoystick.getRawButton(6);
+		//rightJoystick.getRawButton(6);
+	}
+
+	/**
+	 * Get Boolean statement if the left bumper is pressed.
+	 * @return Boolean if left bumper is pressed
+	 */
+	public boolean isLeftBumperPressed() {
+
+	/**
+	 * Get Boolean statement if the left bumper is pressed.
+	 * @return Boolean if left bumper is pressed
+	 */
+	public boolean isLeftBumperPressed() {
+		return false;
+		//rightJoystick.getRawButton(5);
+		//rightJoystick.getRawButton(5);
+	}
+
+	/**
+	 * Get Boolean statement if the left trigger is pressed.
+	 * @return Boolean if left trigger is pressed
+	 */
+	public boolean isLeftTriggerPressed() {
+
+	/**
+	 * Get Boolean statement if the left trigger is pressed.
+	 * @return Boolean if left trigger is pressed
+	 */
+	public boolean isLeftTriggerPressed() {
+		return false;
+		//rightJoystick.getRawButton(7);
+		//rightJoystick.getRawButton(7);
+	}
+
+	/**
+	 * Get Boolean statement if the right trigger is pressed.
+	 * @return Boolean if right trigger is pressed
+	 */
+	public boolean isRightTriggerPressed() {
+
+	/**
+	 * Get Boolean statement if the right trigger is pressed.
+	 * @return Boolean if right trigger is pressed
+	 */
+	public boolean isRightTriggerPressed() {
+		return false;
+		//rightJoystick.getRawButton(8);
+	}
+
+	/**
+	 * Get Boolean statement if the touchpad button is pressed.
+	 * @return Boolean if touchpad is pressed
+	 */
+	public boolean isTouchpadPressed() {
+		//rightJoystick.getRawButton(8);
+	}
+
+	/**
+	 * Get Boolean statement if the touchpad button is pressed.
+	 * @return Boolean if touchpad is pressed
+	 */
+	public boolean isTouchpadPressed() {
+		return false;
+		//rightJoystick.getRawButton(14);
+		//rightJoystick.getRawButton(14);
+	}
 	/* ======================== Private methods ======================== */
 
 }
