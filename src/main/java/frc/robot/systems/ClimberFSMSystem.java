@@ -9,7 +9,7 @@ import frc.robot.TeleopInput;
 
 import org.littletonrobotics.junction.Logger;
 
-import frc.robot.constants.Constants.ClimberConstants;
+import frc.robot.Constants.ClimberConstants;
 
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -87,7 +87,6 @@ public class ClimberFSMSystem {
 
 		var slot0 = talonFXConfigs.Slot0;
 		slot0.GravityType = GravityTypeValue.Elevator_Static;
-		// TODO: Verify this is the correct gravity compensation type
 		slot0.kG = ClimberConstants.KG;
 		slot0.kS = ClimberConstants.KS;
 		slot0.kV = ClimberConstants.KV;
@@ -178,7 +177,7 @@ public class ClimberFSMSystem {
 			climberMotorLeft.getAppliedControl().toString().
 				substring(ClimberConstants.CONTROL_REQUEST_SUBSTRING_START_INDEX));
 		Logger.recordOutput("Climber/Height Inches", getClimberHeightInches());
-		Logger.recordOutput("Climber/Is At Bottom?", isGroundLimitSwitchPressed());
+		Logger.recordOutput("Climber/Is At Bottom?", groundLimitSwitch.get());
 		Logger.recordOutput("Climber/Is Extended L1?", getClimberHeightInches()
 			>= ClimberConstants.L1_EXTEND_POS.in(Inches)
 			- ClimberConstants.POSITION_TOLERANCE_L1.in(Inches));
@@ -188,13 +187,9 @@ public class ClimberFSMSystem {
 		return climberMotorLeft.getPosition().getValueAsDouble();
 	}
 
-	private boolean isGroundLimitSwitchPressed() {
-		return groundLimitSwitch.get();
-	}
-
 	private boolean isOnGround() {
 		double height = getClimberHeightInches();
-		return (height <= 0.0 || isGroundLimitSwitchPressed());
+		return (height <= 0.0 || groundLimitSwitch.get());
 	}
 
 	private boolean isExtendedL1() {
@@ -278,10 +273,10 @@ public class ClimberFSMSystem {
 	private void handleManualDirectControlState(TeleopInput input) {
 		double manualControlValue = MathUtil.applyDeadband(input.getClimberManualControl(),
 				ClimberConstants.JOYSTICK_DEADBAND);
-		if (isGroundLimitSwitchPressed()) {
+		if (groundLimitSwitch.get()) {
 			climberMotorLeft.setPosition(0);
 		}
-		if (!(isGroundLimitSwitchPressed() && manualControlValue < 0)) {
+		if (!(groundLimitSwitch.get() && manualControlValue < 0)) {
 			climberMotorLeft.set(manualControlValue * ClimberConstants.MANUAL_SCALE);
 		} else {
 			climberMotorLeft.set(0);
@@ -305,7 +300,7 @@ public class ClimberFSMSystem {
 	}
 
 	private void handleResetToZero(TeleopInput input) {
-		if (isGroundLimitSwitchPressed()) {
+		if (groundLimitSwitch.get()) {
 			climberMotorLeft.set(0);
 		} else {
 			climberMotorLeft.setControl(motionRequest.withPosition(

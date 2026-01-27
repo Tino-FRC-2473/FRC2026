@@ -187,5 +187,4 @@ compile_commands.json
 .factorypath
 
 # Controller Profile
-simgui-ds.json
-PathplannerLib-2026.1.2.json
+vendordeps/*
