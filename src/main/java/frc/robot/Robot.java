@@ -41,8 +41,6 @@ public class Robot extends LoggedRobot {
 			drivetrain = new Drivetrain();
 		}
 
-		autoHandler = new AutoHandlerSystem((ExampleFSMSystem) subSystem1, subSystem2, subSystem3);
-
 		Logger.recordMetadata("kasfjaksjfh", "fkslflksafl");
 		Logger.addDataReceiver(new NT4Publisher());
 		Logger.start();

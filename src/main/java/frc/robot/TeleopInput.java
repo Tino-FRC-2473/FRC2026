@@ -11,16 +11,11 @@ import edu.wpi.first.wpilibj.PS4Controller;
  * for inputs by value, but may not access the internal input objects.
  */
 public class TeleopInput {
-	/* ======================== Constants ======================== */
-	private static final int CONTROLLER_PORT = 0;
-
 	/* ======================== Private variables ======================== */
 	// Input objects
+	private static final int MECH_CONTROLLER_PORT = 1;
 	private PS4Controller controller;
 	private static final int DRIVE_CONTROLLER_PORT = 0;
-
-	/* ======================== Private variables ======================== */
-	// Input objects
 	private PS4Controller driveController;
 
 	/* ======================== Constructor ======================== */
@@ -30,7 +25,8 @@ public class TeleopInput {
 	 * by WPILib until teleop mode.
 	 */
 	public TeleopInput() {
-		controller = new PS4Controller(CONTROLLER_PORT);
+		controller = new PS4Controller(MECH_CONTROLLER_PORT);
+		driveController = new PS4Controller(DRIVE_CONTROLLER_PORT);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -91,6 +87,43 @@ public class TeleopInput {
 		return controller.getSquareButtonReleased();
 	}
 
+	/**
+	 * Get X axis of the left joystick.
+	 * @return Axis value
+	 */
+	public double getDriverLeftX() {
+		return driveController.getLeftX();
+	}
+	/**
+	 * Get Y axis of the left joystick.
+	 * @return Axis value
+	 */
+	public double getDriverLeftY() {
+		return driveController.getLeftY();
+	}
+
+	/**
+	 * Get X axis of the right joystick.
+	 * @return Axis value
+	 */
+	public double getDriverRightX() {
+		return driveController.getRightX();
+	}
+	/**
+	 * Get Y axis of the right joystick.
+	 * @return Axis value
+	 */
+	public double getDriverRightY() {
+		return driveController.getRightY();
+	}
+
+	/**
+	 * Get share button state for drive controller.
+	 * @return Axis value
+	 */
+	public boolean isDriverReseedButtonPressed() {
+		return driveController.getOptionsButton();
+	}
 
 
 	/* ======================== Private methods ======================== */
