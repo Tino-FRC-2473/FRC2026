@@ -1,7 +1,9 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj.PS4Controller;
 // WPILib Imports
 import edu.wpi.first.wpilibj.Joystick;
+//import edu.wpi.first.wpilibj.PS4Controller.Button;
 //import edu.wpi.first.wpilibj.PS4Controller.Button;
 
 /**
@@ -13,13 +15,11 @@ import edu.wpi.first.wpilibj.Joystick;
  */
 public class TeleopInput {
 	/* ======================== Constants ======================== */
-	private static final int LEFT_JOYSTICK_PORT = 0;
-	private static final int RIGHT_JOYSTICK_PORT = 1;
+	private static final int DRIVE_CONTROLLER_PORT = 0;
 
 	/* ======================== Private variables ======================== */
 	// Input objects
-	private Joystick leftJoystick;
-	private Joystick rightJoystick;
+	private PS4Controller driveController;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -28,9 +28,7 @@ public class TeleopInput {
 	 * by WPILib until teleop mode.
 	 */
 	public TeleopInput() {
-		leftJoystick = new Joystick(LEFT_JOYSTICK_PORT);
-
-		rightJoystick = new Joystick(RIGHT_JOYSTICK_PORT);
+		driveController = new PS4Controller(DRIVE_CONTROLLER_PORT);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -38,20 +36,20 @@ public class TeleopInput {
 	// Method names should be descriptive of the behavior, so the
 	// control mapping is hidden from other classes.
 
-	/* ------------------------ Left Joystick ------------------------ */
+	/* ------------------------ Driver Controller ------------------------ */
 	/**
-	 * Get X axis of Left Joystick.
+	 * Get X axis of the left joystick.
 	 * @return Axis value
 	 */
-	public double getLeftJoystickX() {
-		return leftJoystick.getX();
+	public double getDriverLeftX() {
+		return driveController.getLeftX();
 	}
 	/**
-	 * Get Y axis of Left Joystick.
+	 * Get Y axis of the left joystick.
 	 * @return Axis value
 	 */
-	public double getLeftJoystickY() {
-		return leftJoystick.getY();
+	public double getDriverLeftY() {
+		return driveController.getLeftY();
 	}
 	/**
 	 * Get the value of the shooter button.
@@ -60,6 +58,7 @@ public class TeleopInput {
 	public boolean isShooterButtonPressed() {
 		return leftJoystick.getRawButton(1);
 	}
+
 	/**
 	 * Get the value of the intake button.
 	 * @return True if button is pressed
@@ -101,7 +100,14 @@ public class TeleopInput {
 	public boolean isRightBumperPressed() {
 		return false;
 		//rightJoystick.getRawButton(6);
+		//rightJoystick.getRawButton(6);
 	}
+
+	/**
+	 * Get Boolean statement if the left bumper is pressed.
+	 * @return Boolean if left bumper is pressed
+	 */
+	public boolean isLeftBumperPressed() {
 
 	/**
 	 * Get Boolean statement if the left bumper is pressed.
@@ -110,7 +116,14 @@ public class TeleopInput {
 	public boolean isLeftBumperPressed() {
 		return false;
 		//rightJoystick.getRawButton(5);
+		//rightJoystick.getRawButton(5);
 	}
+
+	/**
+	 * Get Boolean statement if the left trigger is pressed.
+	 * @return Boolean if left trigger is pressed
+	 */
+	public boolean isLeftTriggerPressed() {
 
 	/**
 	 * Get Boolean statement if the left trigger is pressed.
@@ -119,7 +132,14 @@ public class TeleopInput {
 	public boolean isLeftTriggerPressed() {
 		return false;
 		//rightJoystick.getRawButton(7);
+		//rightJoystick.getRawButton(7);
 	}
+
+	/**
+	 * Get Boolean statement if the right trigger is pressed.
+	 * @return Boolean if right trigger is pressed
+	 */
+	public boolean isRightTriggerPressed() {
 
 	/**
 	 * Get Boolean statement if the right trigger is pressed.
@@ -135,7 +155,16 @@ public class TeleopInput {
 	 * @return Boolean if touchpad is pressed
 	 */
 	public boolean isTouchpadPressed() {
+		//rightJoystick.getRawButton(8);
+	}
+
+	/**
+	 * Get Boolean statement if the touchpad button is pressed.
+	 * @return Boolean if touchpad is pressed
+	 */
+	public boolean isTouchpadPressed() {
 		return false;
+		//rightJoystick.getRawButton(14);
 		//rightJoystick.getRawButton(14);
 	}
 	/* ======================== Private methods ======================== */

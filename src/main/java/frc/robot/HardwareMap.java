@@ -35,10 +35,10 @@ public final class HardwareMap {
 	}
 
 	/**
-	 * Hardware map entry for the example FSM.
-	 * @return if the hardware for the example FSM is present
+	 * Hardware map entry for the drivetrain subsystem.
+	 * @return if the hardware for the drivetrain is present
 	 */
-	public static boolean isExampleFSMEnabled() {
+	public static boolean isDrivetrainEnabled() {
 		return true;
 	}
 }
