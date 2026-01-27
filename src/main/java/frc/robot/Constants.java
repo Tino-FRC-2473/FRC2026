@@ -55,7 +55,6 @@ public class Constants {
 		public static final Distance POSITION_TOLERANCE_L2_L3 = Units.Inches.of(0.5);
 		public static final double JOYSTICK_DEADBAND = 0;
 		public static final double MANUAL_SCALE = 0;
-		// TODO: Update these positions based on actual climber design
 		public static final Distance L1_EXTEND_POS = Units.Inches.of(20.0);
 		public static final Distance L1_RETRACT_POS = Units.Inches.of(5.0);
 		public static final Distance GROUND = Units.Inches.of(0.0);
