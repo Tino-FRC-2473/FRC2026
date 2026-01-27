@@ -42,7 +42,8 @@ public abstract class FSMSystem<S> {
 		public void execute() {
 			if (getCurrentState() == endStateSequence[numMatchingStates]) {
 				numMatchingStates++;
-			} else {
+			} else if (numMatchingStates > 0
+					&& getCurrentState() == endStateSequence[numMatchingStates - 1]) {
 				numMatchingStates = 0;
 			}
 		}
