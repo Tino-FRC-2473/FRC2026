@@ -56,7 +56,7 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	private TalonFXConfiguration hoodConfigs;
 	private TalonFXConfiguration flywheelConfigs;
 	private TalonFXConfiguration indexConfigs;
-	private DriveFSMSystem drivetrain;
+	private Drivetrain drivetrain;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -82,11 +82,11 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 
 		hoodConfigs = new TalonFXConfiguration();
 
-		var hoodSoftwareLimitSwitchConfigs = hoodConfigs.SoftwareLimitSwitch;
-		hoodSoftwareLimitSwitchConfigs.ForwardSoftLimitEnable = true;
-		hoodSoftwareLimitSwitchConfigs.ForwardSoftLimitThreshold = 70;
-		hoodSoftwareLimitSwitchConfigs.ReverseSoftLimitEnable = true;
-		hoodSoftwareLimitSwitchConfigs.ReverseSoftLimitThreshold = 45;
+		var hoodLimitSwitchConfigs = hoodConfigs.SoftwareLimitSwitch;
+		hoodLimitSwitchConfigs.ForwardSoftLimitEnable = true;
+		hoodLimitSwitchConfigs.ForwardSoftLimitThreshold = ShooterConstants.FLYWHEEL_MAX_ANGLE;
+		hoodLimitSwitchConfigs.ReverseSoftLimitEnable = true;
+		hoodLimitSwitchConfigs.ReverseSoftLimitThreshold = ShooterConstants.FLYWHEEL_MIN_ANGLE;
 
 		var hood0Config = hoodConfigs.Slot0;
 		hood0Config.GravityType = GravityTypeValue.Arm_Cosine;
@@ -150,7 +150,7 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 
 		indexMotor.getConfigurator().apply(indexConfigs);
 
-		hoodMotor.setPosition(70);
+		hoodMotor.setPosition(ShooterConstants.FLYWHEEL_MAX_ANGLE);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				ShooterConstants.UPDATE_FREQUENCY_HZ,
@@ -187,11 +187,18 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 		flywheelMotor.optimizeBusUtilization();
 		reset();
 	}
-
+	/**
+	 * Create FSMSystem and initialize to starting state. Also perform any
+	 * one-time initialization or configuration of hardware required. Note
+	 * the constructor is called only once when the robot boots. This also
+	 * passes in the drivetrain to continuously update poses for shooter_prep
+	 * and passer_prep.
+	 * @param driveSystem The drive system to be used by our bot
+	 */
 	public ShooterFSMSystem(Drivetrain driveSystem) {
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
-		ShooterFSMSystem();
+		this();
 		drivetrain = driveSystem;
 		curPose = drivetrain.getPose();
 	}
@@ -200,11 +207,18 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 
 	// overridden methods don't require javadocs
 	// however, you may want to add implementation specific javadocs
-
+	/**
+	 * Checks if the target flywheel speed matches the actual flywheel speed within margin of error.
+	 * @return Boolean statement whether or not it is at flywheel speed or not
+	 */
 	public boolean isAtSpeed() {
 		return (Math.abs(flywheelTargetSpeed - flywheelSpeed) <= ShooterConstants.FLYWHEEL_MOE);
 	}
 
+	/**
+	 * Checks if the target angle matches the actual angle within a margin of error.
+	 * @return Boolean statement whether or not it is at angle or not
+	 */
 	public boolean isAtAngle() {
 		return (Math.abs(hoodTargetAngle - hoodAngle) < ShooterConstants.HOOD_MOE);
 	}
@@ -397,15 +411,20 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 
 		//index 0 is flywheel velocity, index 1 is hood angle
 		List<Object> targetValues = calculateTargetValues(correctTarget);
-		flywheelTargetSpeed = (double)targetValues.get(0);
-		hoodTargetAngle = (double)targetValues.get(1);
+		flywheelTargetSpeed = (double) targetValues.get(0);
+		hoodTargetAngle = (double) targetValues.get(1);
 
 		updateFlywheel();
 		updateHood();
 		// TBD: code to find the distance vector from where we are to passing targets
 		// (preferably outpost and thelocation of outpost on the other side) (3d vector)
 	}
-
+	/**
+	 * Calculate needed values to shoot in specific targets.
+	 * @param target The pose we are targetting towards
+	 * @return A list holding the target's needed flywheel speed and hood angle in that
+	 * order to make a pass
+	 */
 	public List<Object> calculateTargetValues(Pose2d target) {
 		return null;
 		//code to be determined based off of regression model
@@ -431,7 +450,7 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleIntakeState(TeleopInput input) {
-		indexMotor.setVoltage(flywheelMotor.getInputVoltage());
+		indexMotor.setVoltage(flywheelMotor.getMotorVoltage().getValueAsDouble());
 	}
 
 	/**
@@ -447,36 +466,35 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 		// with triggering Shooter Prep.
 
 		//how much the hood angle increases/decreases each click
-		double hoodIncrementer = 5;
+		double hoodIncrement = ShooterConstants.HOOD_INCREMENTER;
 		if (input.isLeftBumperPressed() && input.isRightBumperPressed()) {
-			if (hoodTargetAngle - hoodIncrementer >= 45) {
-				hoodTargetAngle -= hoodIncrementer;
+			if (hoodTargetAngle - hoodIncrement >= ShooterConstants.FLYWHEEL_MIN_ANGLE) {
+				hoodTargetAngle -= hoodIncrement;
 			} else {
-				hoodTargetAngle = 45;
+				hoodTargetAngle = ShooterConstants.FLYWHEEL_MIN_ANGLE;
 			}
 			//decrease hood angle by 5 degrees
 		} else if (input.isLeftBumperPressed()) {
-			if (hoodTargetAngle + hoodIncrementer <= 70) {
-				hoodTargetAngle += hoodIncrementer;
+			if (hoodTargetAngle + hoodIncrement <= ShooterConstants.FLYWHEEL_MAX_ANGLE) {
+				hoodTargetAngle += hoodIncrement;
 			} else {
-				hoodTargetAngle = 70;
+				hoodTargetAngle = ShooterConstants.FLYWHEEL_MAX_ANGLE;
 			}
 			//increase hood angle by 5 degrees
 		}
 		updateHood();
-
+		double flyIncrement = ShooterConstants.FLYWHEEL_INCREMENTER;
 		//how much the flywheel speed increases/decreases each click
-		double flywheelIncrementer = 10;
 		if (input.isLeftTriggerPressed() && input.isRightBumperPressed()) {
-			if (flywheelTargetSpeed - flywheelIncrementer > 0) {
-				flywheelTargetSpeed -= flywheelIncrementer;
+			if (flywheelTargetSpeed - flyIncrement > 0) {
+				flywheelTargetSpeed -= flyIncrement;
 			} else {
 				flywheelTargetSpeed = 0;
 			}
 			//decrease flywheel speed by some constant, right now set to 10 m/s
 		} else if (input.isLeftTriggerPressed()) {
-			if (flywheelTargetSpeed + flywheelIncrementer < ShooterConstants.FLYWHEEL_MAX_SPEED) {
-				flywheelTargetSpeed += flywheelIncrementer;
+			if (flywheelTargetSpeed + flyIncrement < ShooterConstants.FLYWHEEL_MAX_SPEED) {
+				flywheelTargetSpeed += flyIncrement;
 			} else {
 				flywheelTargetSpeed = ShooterConstants.FLYWHEEL_MAX_SPEED;
 			}
