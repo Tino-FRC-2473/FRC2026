@@ -32,6 +32,63 @@ public final class TeleopInput extends Input {
 		mechController = new PS4Controller(MECH_CONTROLLER_PORT);
 	}
 
+	/**
+	 * Getter for the fold in button being pressed.
+	 * @return whether the fold in button was pressed
+	 */
+	public boolean isFoldInButtonPressed() {
+		return mechController.getCircleButtonPressed();
+	}
+
+	/**
+	 * Getter for the fold out button being pressed.
+	 * @return whether the fold out button was pressed
+	 */
+	public boolean isFoldOutButtonPressed() {
+		return mechController.getCircleButtonPressed();
+	}
+
+	/**
+	 * Getter for the partial out button being pressed.
+	 * @return whether the partial out button was pressed
+	 */
+	public boolean isPartialOutButtonPressed() {
+		return mechController.getOptionsButtonPressed();
+	}
+
+	/**
+	 * Getter for the intake button being pressed.
+	 * @return whether the intake button was pressed
+	 */
+	public boolean isIntakeButtonPressed() {
+		return mechController.getTriangleButtonPressed();
+	}
+
+	/**
+	 * Getter for the intake button being released.
+	 * @return whether the intake button was released
+	 */
+	public boolean isIntakeButtonReleased() {
+		return mechController.getTriangleButtonReleased();
+	}
+
+	/**
+	 * Getter for the outtake button being pressed.
+	 * @return whether the outtake button was pressed
+	 */
+	public boolean isOuttakeButtonPressed() {
+		return mechController.getSquareButtonPressed();
+	}
+
+	/**
+	 * Getter for the outtake button being released.
+	 * @return whether the outtake button was released
+	 */
+	public boolean isOuttakeButtonReleased() {
+		return mechController.getSquareButtonReleased();
+	}
+
+
 	@Override
 	public Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
 		return switch (key) {
