@@ -4,19 +4,23 @@ package frc.robot.systems;
 
 // Third party Hardware Imports
 import com.revrobotics.spark.SparkMax;
-
-// Robot Imports
-import frc.robot.TeleopInput;
 import frc.robot.motors.SparkMaxWrapper;
 import frc.robot.HardwareMap;
-import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
+import frc.robot.input.Input;
 
-enum IntakeFSMState {
-	START_STATE,
-	OTHER_STATE
-}
+// enum FSMState {
+// 	START_STATE,
+// 	OTHER_STATE
+// }
 
-public class ExampleFSMSystem extends FSMSystem<IntakeFSMState> {
+public class ExampleFSMSystem extends FSMSystem<ExampleFSMSystem.FSMState> {
+
+	public enum FSMState {
+		START_STATE,
+		OTHER_STATE
+	}
+
+
 	/* ======================== Constants ======================== */
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
@@ -50,14 +54,14 @@ public class ExampleFSMSystem extends FSMSystem<IntakeFSMState> {
 
 	@Override
 	public void reset() {
-		setCurrentState(IntakeFSMState.START_STATE);
+		setCurrentState(FSMState.START_STATE);
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
 
 	@Override
-	public void update(TeleopInput input) {
+	public void update(Input input) {
 		switch (getCurrentState()) {
 			case START_STATE:
 				handleStartState(input);
@@ -73,34 +77,20 @@ public class ExampleFSMSystem extends FSMSystem<IntakeFSMState> {
 		setCurrentState(nextState(input));
 	}
 
-	@Override
-	public boolean updateAutonomous(AutoFSMState autoState) {
-		switch (autoState) {
-			case STATE1:
-				return handleAutoState1();
-			case STATE2:
-				return handleAutoState2();
-			case STATE3:
-				return handleAutoState3();
-			default:
-				return true;
-		}
-	}
-
 	/* ======================== Protected methods ======================== */
 
 	@Override
-	protected IntakeFSMState nextState(TeleopInput input) {
+	protected FSMState nextState(Input input) {
 		switch (getCurrentState()) {
 			case START_STATE:
 				if (input != null) {
-					return IntakeFSMState.OTHER_STATE;
+					return FSMState.OTHER_STATE;
 				} else {
-					return IntakeFSMState.START_STATE;
+					return FSMState.START_STATE;
 				}
 
 			case OTHER_STATE:
-				return IntakeFSMState.OTHER_STATE;
+				return FSMState.OTHER_STATE;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
@@ -110,42 +100,19 @@ public class ExampleFSMSystem extends FSMSystem<IntakeFSMState> {
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in START_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleStartState(TeleopInput input) {
+	private void handleStartState(Input input) {
 		exampleMotor.set(0);
 	}
 	/**
 	 * Handle behavior in OTHER_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleOtherState(TeleopInput input) {
+	private void handleOtherState(Input input) {
 		exampleMotor.set(MOTOR_RUN_POWER);
 	}
 
-	/**
-	 * Performs action for auto STATE1.
-	 * @return if the action carried out has finished executing
-	 */
-	private boolean handleAutoState1() {
-		return true;
-	}
-
-	/**
-	 * Performs action for auto STATE2.
-	 * @return if the action carried out has finished executing
-	 */
-	private boolean handleAutoState2() {
-		return true;
-	}
-
-	/**
-	 * Performs action for auto STATE3.
-	 * @return if the action carried out has finished executing
-	 */
-	private boolean handleAutoState3() {
-		return true;
-	}
 }

@@ -19,10 +19,9 @@ import static edu.wpi.first.units.Units.Radians;
 
 // Robot Imports
 import frc.robot.constants.IntakeConstants;
-import frc.robot.TeleopInput;
+import frc.robot.input.TeleopInput;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.HardwareMap;
-import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
 
 public class IntakeFSMSystem {
@@ -301,24 +300,6 @@ public class IntakeFSMSystem {
 	}
 
 
-	/**
-	 * Updates autonomous states.
-	 * @param autoState
-	 * @return state
-	 */
-	public boolean updateAutonomous(AutoFSMState autoState) {
-		switch (autoState) {
-			case STATE1:
-				return handleAutoState1();
-			case STATE2:
-				return handleAutoState2();
-			case STATE3:
-				return handleAutoState3();
-			default:
-				return true;
-		}
-	}
-
 	/* ======================== Protected methods ======================== */
 
 
@@ -449,30 +430,7 @@ public class IntakeFSMSystem {
 			withPosition(IntakeConstants.INTAKE_UPPER_TARGET));
 	}
 
-	/**
-	 * Performs action for auto STATE1.
-	 * @return if the action carried out has finished executing
-	 */
-	private boolean handleAutoState1() {
-		return true;
-	}
 
-	/**
-	 * Performs action for auto STATE2.
-	 * @return if the action carried out has finished executing
-	 */
-	private boolean handleAutoState2() {
-		return true;
-	}
-
-	/**
-	 * |
-	 * Performs action for auto STATE3.
-	 * @return if the action carried out has finished executing
-	 */
-	private boolean handleAutoState3() {
-		return true;
-	}
 
 	/* ======================== Private methods ======================== */
 	/**
