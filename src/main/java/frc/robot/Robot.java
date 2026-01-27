@@ -7,7 +7,8 @@ import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
-// WPILib Imports
+
+
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.auto.AutoPaths;
 import frc.robot.input.AutoInput;
@@ -15,6 +16,7 @@ import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
+import frc.robot.systems.ClimberFSMSystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -27,6 +29,8 @@ public class Robot extends LoggedRobot {
 
 	// Systems
 	private Drivetrain drivetrain;
+	private ClimberFSMSystem climberFSMSystem;
+
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -44,11 +48,7 @@ public class Robot extends LoggedRobot {
 		if (HardwareMap.isDrivetrainEnabled()) {
 			drivetrain = new Drivetrain();
 		}
-
-		Logger.recordMetadata("kasfjaksjfh", "fkslflksafl");
-		Logger.addDataReceiver(new NT4Publisher());
-		Logger.start();
-
+		climberFSMSystem = new ClimberFSMSystem();
 	}
 
 	@Override
@@ -76,12 +76,14 @@ public class Robot extends LoggedRobot {
 		input = new TeleopInput();
 		CommandScheduler.getInstance().cancelAll();
 		drivetrain.reset();
+		climberFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
 		drivetrain.update(input);
 		input.update();
+		climberFSMSystem.update((TeleopInput) input);
 
 		// logs motor values
 		MotorManager.update();
