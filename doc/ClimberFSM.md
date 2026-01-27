@@ -6,7 +6,9 @@ config:
   title: Climber State Diagram
 ---
 stateDiagram
-  [*] --> I
+  [*] --> AI
+  AI --> I: emergencyAbortBtnPressed
+  AI --> AD1: nextBtn
   I --> I:!(nextBtn || manualOverrideBtnReleased || autoDownBtnPressed)
   MDC --> MDC:!manualOverrideBtnReleased
   I --> MDC:manualOverrideBtnPressed
@@ -22,11 +24,11 @@ stateDiagram
   AD2 --> AD2: !isOnGround()
   AU1 --> I:L1_EXTEND
   AU2 --> I:L1_RETRACT
-  I --> AD1: autoDownBtnPressed
   AD1 --> AD2: autoDownBtnPressed
   AD1 --> AD1: !autoDownBtnPressed
 
   I:IDLE
+  AI:AUTO_IDLE
   MDC:MANUAL_DIRECT_CONTROL (Driver has control)
   L1E:L1_EXTEND (Climber extends to L1 Height)
   L1R:L1_RETRACT (Climber retracts to L1 Height)

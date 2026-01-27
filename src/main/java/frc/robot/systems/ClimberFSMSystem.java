@@ -38,7 +38,8 @@ public class ClimberFSMSystem  {
 		AUTO_UP_2,
 		AUTO_DOWN_1,
 		AUTO_DOWN_2,
-		LOCKED_FINAL
+		LOCKED_FINAL,
+		AUTO_IDLE
 	}
 
 	private final TalonFX climberMotorLeft;
@@ -130,7 +131,7 @@ public class ClimberFSMSystem  {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = ClimberFSMState.IDLE;
+		currentState = ClimberFSMState.AUTO_IDLE;
 		update(null);
 	}
 
@@ -153,6 +154,7 @@ public class ClimberFSMSystem  {
 			case MANUAL_DIRECT_CONTROL -> handleManualDirectControlState(input);
 			case L1_EXTEND -> handleL1ExtendState(input);
 			case L1_RETRACT -> handleL1RetractState(input);
+			case AUTO_IDLE -> handleIdleState(input);
 			case AUTO_DOWN_1 -> handleL1ExtendState(input);
 			case AUTO_DOWN_2 -> handleResetToZero(input);
 			case AUTO_UP_1 -> handleL1ExtendState(input);
@@ -214,6 +216,14 @@ public class ClimberFSMSystem  {
 		}
 
 		switch (currentState) {
+			case AUTO_IDLE:
+				if (input.isClimberNextButtonPressed()) {
+					return ClimberFSMState.AUTO_DOWN_1;
+				}
+				if (input.isClimberEmergencyAbortPressed()) {
+					return ClimberFSMState.IDLE;
+				}
+				return ClimberFSMState.AUTO_IDLE;
 			case IDLE:
 				if (input.isDownButtonPressed() && (isAutoDownUsed)) {
 					isAutoDownUsed = true;
