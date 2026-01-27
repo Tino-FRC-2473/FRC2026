@@ -20,16 +20,18 @@ import frc.robot.motors.TalonFXWrapper;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
 
-enum FSMState {
-	IDLE_STATE,
-	SHOOTER_PREP_STATE,
-	PASSER_PREP_STATE,
-	INTAKE_STATE,
-	MANUAL_PREP_STATE,
-}
 
-public class ShooterFSMSystem extends FSMSystem<FSMState> {
+public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterState> {
 	/* ======================== Constants ======================== */
+
+	// FSM states enum
+	enum ShooterState {
+		IDLE_STATE,
+		SHOOTER_PREP_STATE,
+		PASSER_PREP_STATE,
+		INTAKE_STATE,
+		MANUAL_PREP_STATE,
+	}
 
 	private static final float MOTOR_RUN_POWER = 0.1f;
 	private static final int HOOD_TARGET_ANGLE = 70;
@@ -191,7 +193,7 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	public ShooterFSMSystem(Drivetrain driveSystem) {
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
-		ShooterFSMSystem();
+		super();
 		drivetrain = driveSystem;
 		curPose = drivetrain.getPose();
 	}
