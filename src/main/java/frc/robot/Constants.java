@@ -10,6 +10,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Distance;
 
 public class Constants {
@@ -71,8 +74,8 @@ public class Constants {
 			));
 			layout.setOrigin(origin);
 			TAG_LAYOUT = layout;
-		}
-	}
+
+    }
 
 	public static final class ClimberConstants {
 		public static final double KG = 0.20;
