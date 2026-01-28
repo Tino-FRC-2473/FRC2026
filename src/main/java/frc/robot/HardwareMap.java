@@ -12,7 +12,15 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_DRIVE_BACK_RIGHT = 2;
 	public static final int CAN_ID_SPARK_DRIVE_FRONT_LEFT = 3;
 	public static final int CAN_ID_SPARK_DRIVE_BACK_LEFT = 4;
-	public static final int CAN_ID_SPARK_SHOOTER = 5;
+	public static final int CAN_ID_CLIMBER_LEFT = 6;
+	public static final int CAN_ID_CLIMBER_RIGHT = 7;
+	public static final int CAN_ID_SPARK_PIVOT_LEFT = 6;
+	public static final int CAN_ID_SPARK_PIVOT_RIGHT = 7;
+	public static final int CAN_ID_SPARK_INTAKE = 8;
+
+	//rio - dio ports
+	public static final int INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT = 0;
+	public static final int INTAKE_TOP_LIMIT_SWITCH_DIO_PORT = 1;
 
 	// Pneumatics channel numbers
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_FORWARD = 1;
@@ -20,6 +28,8 @@ public final class HardwareMap {
 
 	// Place jumper from DIO pin 9 to GND to indicate this is a test setup
 	private static final int DIO_TEST_SETUP_CHANNEL = 9;
+	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT = 0;
+	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_RIGHT = 1;
 	private static DigitalInput testBoardPin = new DigitalInput(HardwareMap.DIO_TEST_SETUP_CHANNEL);
 	/**
 	 * Check if the current RoboRIO is part of a test setup or real robot.

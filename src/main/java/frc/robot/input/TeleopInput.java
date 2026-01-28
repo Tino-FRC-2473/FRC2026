@@ -21,8 +21,13 @@ public final class TeleopInput extends Input {
 	public static final int DRIVE_CONTROLLER_PORT = 0;
 	public static final int MECH_CONTROLLER_PORT = 1;
 
+<<<<<<< HEAD
 	private final PS4Controller driveController;
 	private final PS4Controller mechController;
+=======
+	private PS4Controller driveController;
+	private PS4Controller mechController;
+>>>>>>> main
 
 	/**
 	 * Constructs a TeleopInput using the constants defined in this file.
@@ -32,12 +37,79 @@ public final class TeleopInput extends Input {
 		mechController = new PS4Controller(MECH_CONTROLLER_PORT);
 	}
 
+<<<<<<< HEAD
+=======
+	/**
+	 * Getter for the fold in button being pressed.
+	 * @return whether the fold in button was pressed
+	 */
+	public boolean isFoldInButtonPressed() {
+		return mechController.getCircleButtonPressed();
+	}
+
+	/**
+	 * Getter for the fold out button being pressed.
+	 * @return whether the fold out button was pressed
+	 */
+	public boolean isFoldOutButtonPressed() {
+		return mechController.getCircleButtonPressed();
+	}
+
+	/**
+	 * Getter for the partial out button being pressed.
+	 * @return whether the partial out button was pressed
+	 */
+	public boolean isPartialOutButtonPressed() {
+		return mechController.getOptionsButtonPressed();
+	}
+
+	/**
+	 * Getter for the intake button being pressed.
+	 * @return whether the intake button was pressed
+	 */
+	public boolean isIntakeButtonPressed() {
+		return mechController.getTriangleButtonPressed();
+	}
+
+	/**
+	 * Getter for the intake button being released.
+	 * @return whether the intake button was released
+	 */
+	public boolean isIntakeButtonReleased() {
+		return mechController.getTriangleButtonReleased();
+	}
+
+	/**
+	 * Getter for the outtake button being pressed.
+	 * @return whether the outtake button was pressed
+	 */
+	public boolean isOuttakeButtonPressed() {
+		return mechController.getSquareButtonPressed();
+	}
+
+	/**
+	 * Getter for the outtake button being released.
+	 * @return whether the outtake button was released
+	 */
+	public boolean isOuttakeButtonReleased() {
+		return mechController.getSquareButtonReleased();
+	}
+
+
+>>>>>>> main
 	@Override
 	public Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
 		return switch (key) {
 
 			// add / remove cases to reflect the InputTypes
 			case RESEED_DRIVETRAIN -> mechController::options;
+<<<<<<< HEAD
+=======
+			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
+			case CLIMBER_NEXT_STEP -> mechController::square;
+			case CLIMBER_EMERGENCY_ABORT -> mechController::R1;
+			case CLIMBER_DOWN_BUTTON -> mechController::R2;
+>>>>>>> main
 
 			default -> throw new IllegalArgumentException("Unknown button action");
 		};
@@ -51,9 +123,17 @@ public final class TeleopInput extends Input {
 			case DRIVE_Y -> driveController.getLeftX();
 			case DRIVE_X -> driveController.getLeftY();
 			case ROTATE -> driveController.getRightX();
+<<<<<<< HEAD
+=======
+			case CLIMBER_MANUAL_CONTROL -> mechController.getLeftX();
+>>>>>>> main
 
 			default -> throw new IllegalArgumentException("Unknown axis action");
 		};
 	}
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
 }
