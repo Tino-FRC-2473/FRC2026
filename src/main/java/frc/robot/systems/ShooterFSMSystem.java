@@ -18,7 +18,7 @@ import frc.robot.input.Input;
 // Robot Imports
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.TalonFXWrapper;
-import frc.robot.input.InputTypes.AxialInput;
+// import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 
 
@@ -281,13 +281,13 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	protected ShooterFSMState nextState(Input input) {
 		switch (getCurrentState()) {
 			case IDLE_STATE:
-				if (input != null && input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
+				if (input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
 					pastState = getCurrentState();
 					return ShooterFSMState.PASSER_PREP_STATE;
-				} else if (input != null && input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
+				} else if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
 					pastState = getCurrentState();
 					return ShooterFSMState.SHOOTER_PREP_STATE;
-				} else if (input != null && input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
+				} else if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
 					pastState = getCurrentState();
 					return ShooterFSMState.MANUAL_PREP_STATE;
 				}
@@ -364,8 +364,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 					pastState = getCurrentState();
 					return ShooterFSMState.IDLE_STATE;
 				}
-
-				if (isAtSpeed() && isAtAngle() && input.getButtonPressed(ButtonInput.REV_INDEXER)) {
+				
+				boolean atTarget = isAtSpeed() && isAtAngle();
+				if (atTarget && input.getButtonPressed(ButtonInput.REV_INDEXER)) {
 					pastState = getCurrentState();
 					return ShooterFSMState.INTAKE_STATE;
 				}
@@ -466,16 +467,24 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// with triggering Shooter Prep.
 		//how much the hood angle increases/decreases each click
 
-		//shooter_prep_toggle will be for hood movement, passer_prep_toggle will be the deincrementer, and manual_shoot_toggle will be the flywheel control
+		//shooter_prep_toggle will be for hood movement
+		// passer_prep_toggle will be the deincrementer
+		// manual_shoot_toggle will be the flywheel control
 		double hoodIncrement = ShooterConstants.HOOD_INCREMENTER;
-		if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE) && input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
+		
+		// for checkstyles
+		boolean hoodSet = input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE);
+		boolean incrementSet = input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE);
+		boolean flywheelSet = input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE);
+
+		if (hoodSet && incrementSet) {
 			if (hoodTargetAngle - hoodIncrement >= ShooterConstants.HOOD_MIN_ANGLE) {
 				hoodTargetAngle -= hoodIncrement;
 			} else {
 				hoodTargetAngle = ShooterConstants.HOOD_MIN_ANGLE;
 			}
 			//decrease hood angle by 5 degrees
-		} else if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
+		} else if (hoodSet) {
 			if (hoodTargetAngle + hoodIncrement <= ShooterConstants.HOOD_MAX_ANGLE) {
 				hoodTargetAngle += hoodIncrement;
 			} else {
@@ -486,14 +495,14 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		updateHood();
 		double flyIncrement = ShooterConstants.FLYWHEEL_INCREMENTER;
 		//how much the flywheel speed increases/decreases each click
-		if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE) && input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
+		if (flywheelSet && incrementSet) {
 			if (flywheelTargetSpeed - flyIncrement > 0) {
 				flywheelTargetSpeed -= flyIncrement;
 			} else {
 				flywheelTargetSpeed = 0;
 			}
 			//decrease flywheel speed by some constant, right now set to 10 m/s
-		} else if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
+		} else if (flywheelSet) {
 			if (flywheelTargetSpeed + flyIncrement < ShooterConstants.FLYWHEEL_MAX_SPEED) {
 				flywheelTargetSpeed += flyIncrement;
 			} else {
