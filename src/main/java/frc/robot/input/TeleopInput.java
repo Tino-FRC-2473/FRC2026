@@ -21,8 +21,8 @@ public final class TeleopInput extends Input {
 	public static final int DRIVE_CONTROLLER_PORT = 0;
 	public static final int MECH_CONTROLLER_PORT = 1;
 
-	private PS4Controller driveController;
-	private PS4Controller mechController;
+	private final PS4Controller driveController;
+	private final PS4Controller mechController;
 
 	/**
 	 * Constructs a TeleopInput using the constants defined in this file.
