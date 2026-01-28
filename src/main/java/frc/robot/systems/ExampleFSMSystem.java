@@ -10,11 +10,6 @@ import frc.robot.HardwareMap;
 import frc.robot.motors.SparkMaxWrapper;
 import frc.robot.input.Input;
 
-// enum FSMState {
-// 	START_STATE,
-// 	OTHER_STATE
-// }
-
 public class ExampleFSMSystem extends FSMSystem<ExampleFSMSystem.FSMState> {
 
 	public enum FSMState {
