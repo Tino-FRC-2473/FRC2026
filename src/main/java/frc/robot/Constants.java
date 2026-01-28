@@ -75,9 +75,11 @@ public class Constants {
 			layout.setOrigin(origin);
 			TAG_LAYOUT = layout;
 
-    }
+    	}
+	}
 
 	public static final class ClimberConstants {
+
 		public static final double KG = 0.20;
 		public static final double KS = 0.1;
 		public static final double KV = 0.001;
