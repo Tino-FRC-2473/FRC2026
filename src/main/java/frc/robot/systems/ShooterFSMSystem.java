@@ -313,6 +313,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				}
 
 			case INTAKE_STATE:
+				boolean condition = !isAtSpeed() || !isAtAngle();		
 				if (!isAtSpeed() || !isAtAngle() || !input.getButtonPressed(ButtonInput.REV_INDEXER)) {
 					indexMotor.set(0);
 					return pastState;
@@ -364,7 +365,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 					pastState = getCurrentState();
 					return ShooterFSMState.IDLE_STATE;
 				}
-				
+
 				boolean atTarget = isAtSpeed() && isAtAngle();
 				if (atTarget && input.getButtonPressed(ButtonInput.REV_INDEXER)) {
 					pastState = getCurrentState();
@@ -390,7 +391,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		indexMotor.set(0);
 		//set hoodMotor to 20 degrees/base angle?
 		//hood remains at current angle.
-
 	}
 	/**
 	 * Handle behavior in PASSER_PREP_STATE.
@@ -471,7 +471,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// passer_prep_toggle will be the deincrementer
 		// manual_shoot_toggle will be the flywheel control
 		double hoodIncrement = ShooterConstants.HOOD_INCREMENTER;
-		
 		// for checkstyles
 		boolean hoodSet = input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE);
 		boolean incrementSet = input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE);
