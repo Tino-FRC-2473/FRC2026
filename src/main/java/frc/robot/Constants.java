@@ -3,6 +3,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.google.flatbuffers.FlexBuffers.Vector;
+import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
@@ -27,6 +28,8 @@ public class Constants {
 
 		public static final int PIGEON2_CAN_ID = 1;
 		public static final String CAN_BUS_NAME = "Drivetrain";
+
+		public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI); // The constraints for this path.
 
 	}
 
