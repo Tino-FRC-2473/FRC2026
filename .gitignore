@@ -185,3 +185,11 @@ compile_commands.json
 
 # Eclipse generated file for annotation processors
 .factorypath
+
+# Controller Profile
+vendordeps/AdvantageKit.json
+vendordeps/Phoenix5-5.36.0.json
+vendordeps/Phoenix6-26.1.0.json
+vendordeps/REVLib.json
+vendordeps/WPILibNewCommands.json
+simgui-ds.json

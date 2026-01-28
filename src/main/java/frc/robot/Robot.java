@@ -3,30 +3,34 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
-// WPILib Imports
-import edu.wpi.first.wpilibj.TimedRobot;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
 
-// Systems
-import frc.robot.systems.ExampleFSMSystem;
-import frc.robot.systems.FSMSystem;
-import frc.robot.systems.PlaceholderFSMSystem;
+
+
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.auto.AutoPaths;
+import frc.robot.input.AutoInput;
+import frc.robot.input.Input;
+import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
-import frc.robot.systems.AutoHandlerSystem;
-import frc.robot.systems.AutoHandlerSystem.AutoPath;
+import frc.robot.systems.Drivetrain;
+import frc.robot.systems.ClimberFSMSystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation.
  */
-public class Robot extends TimedRobot {
-	private TeleopInput input;
+public class Robot extends LoggedRobot {
+
+	// Robot input
+	private Input input;
 
 	// Systems
-	private FSMSystem<?> subSystem1;
-	private ExampleFSMSystem subSystem2;
-	private ExampleFSMSystem subSystem3;
+	private Drivetrain drivetrain;
+	private ClimberFSMSystem climberFSMSystem;
 
-	private AutoHandlerSystem autoHandler;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -35,33 +39,32 @@ public class Robot extends TimedRobot {
 	@Override
 	public void robotInit() {
 		System.out.println("robotInit");
-		input = new TeleopInput();
+
+		Logger.recordMetadata("FRC 2473", "REBUILT");
+		Logger.addDataReceiver(new NT4Publisher());
+		Logger.start();
 
 		// Instantiate all systems here
-		subSystem2 = new ExampleFSMSystem();
-		subSystem3 = new ExampleFSMSystem();
-
-		// you can swap out FSM systems if neccesary
-		// this may be needed if you want different behavior in sim
-		// do not instantiate something that would try to use hardware you don't have
-		if (HardwareMap.isExampleFSMEnabled()) {
-			subSystem1 = new ExampleFSMSystem();
-		} else {
-			subSystem1 = new PlaceholderFSMSystem();
+		if (HardwareMap.isDrivetrainEnabled()) {
+			drivetrain = new Drivetrain();
 		}
-
-		autoHandler = new AutoHandlerSystem((ExampleFSMSystem) subSystem1, subSystem2, subSystem3);
+		climberFSMSystem = new ClimberFSMSystem();
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
-		autoHandler.reset(AutoPath.PATH1);
+
+		AutoInput autoInput = new AutoInput();
+		input = autoInput;
+		CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-		autoHandler.update();
+		drivetrain.update(input);
+		input.update();
+		CommandScheduler.getInstance().run();
 
 		// logs motor values
 		MotorManager.update();
@@ -70,16 +73,17 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
-		subSystem1.reset();
-		subSystem2.reset();
-		subSystem3.reset();
+		input = new TeleopInput();
+		CommandScheduler.getInstance().cancelAll();
+		drivetrain.reset();
+		climberFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		subSystem1.update(input);
-		subSystem2.update(input);
-		subSystem3.update(input);
+		drivetrain.update(input);
+		input.update();
+		climberFSMSystem.update((TeleopInput) input);
 
 		// logs motor values
 		MotorManager.update();
