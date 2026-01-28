@@ -20,6 +20,7 @@ import static edu.wpi.first.units.Units.Radians;
 // Robot Imports
 import frc.robot.constants.IntakeConstants;
 import frc.robot.input.TeleopInput;
+import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.HardwareMap;
 
@@ -213,6 +214,9 @@ public class IntakeFSMSystem {
 		if (input == null) {
 			return;
 		}
+
+		Logger.recordOutput("Intake/Current State", currentState.toString());
+
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
 				handleIdleInState(input);
@@ -306,9 +310,9 @@ public class IntakeFSMSystem {
 	protected IntakeFSMState nextState(TeleopInput input) {
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
-				if (input.isFoldOutButtonPressed()) {
+				if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
 					return IntakeFSMState.FOLD_OUT_STATE;
-				} else if (input.isPartialOutButtonPressed()) {
+				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
 					return IntakeFSMState.PARTIAL_OUT_STATE;
 				} else {
 					return IntakeFSMState.IDLE_IN_STATE;
@@ -322,36 +326,42 @@ public class IntakeFSMSystem {
 				}
 
 			case PARTIAL_OUT_STATE:
-				if (input.isFoldOutButtonPressed()) {
+				if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
 					return IntakeFSMState.FOLD_OUT_STATE;
-				} else if (input.isFoldInButtonPressed()) {
+				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
 					return IntakeFSMState.FOLD_IN_STATE;
 				} else {
 					return IntakeFSMState.PARTIAL_OUT_STATE;
 				}
 
 			case IDLE_OUT_STATE:
-				if (input.isIntakeButtonPressed()) {
+				if (input.getButtonPressed(ButtonInput.INTAKE_BUTTON)
+					&& !input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON)
+					&& input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)
+					&& input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
 					return IntakeFSMState.INTAKE_STATE;
-				} else if (input.isOuttakeButtonPressed()) {
+				} else if (input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON)
+					&& !input.getButtonPressed(ButtonInput.INTAKE_BUTTON)
+					&& input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)
+					&& input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
 					return IntakeFSMState.OUTTAKE_STATE;
-				} else if (input.isFoldInButtonPressed()) {
+				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
 					return IntakeFSMState.FOLD_IN_STATE;
-				} else if (input.isPartialOutButtonPressed()) {
+				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
 					return IntakeFSMState.PARTIAL_OUT_STATE;
 				} else {
 					return IntakeFSMState.IDLE_OUT_STATE;
 				}
 
 			case INTAKE_STATE:
-				if (input.isIntakeButtonReleased()) {
+				if (input.getButtonReleased(ButtonInput.INTAKE_BUTTON)) {
 					return IntakeFSMState.IDLE_OUT_STATE;
 				} else {
 					return IntakeFSMState.INTAKE_STATE;
 				}
 
 			case OUTTAKE_STATE:
-				if (input.isOuttakeButtonReleased()) {
+				if (input.getButtonReleased(ButtonInput.OUTTAKE_BUTTON)) {
 					return IntakeFSMState.IDLE_OUT_STATE;
 				} else {
 					return IntakeFSMState.OUTTAKE_STATE;
@@ -401,6 +411,7 @@ public class IntakeFSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIdleOutState(TeleopInput input) {
+		intakeMotor.setControl(intakeMotionRequest.withVelocity(0));
 	}
 	/**
 	 * Handle behavior in START_STATE.
