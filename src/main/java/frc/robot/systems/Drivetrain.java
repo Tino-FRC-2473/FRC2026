@@ -56,7 +56,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			// Use open-loop for drive motors
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	private final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
+	private final SwerveRequest.ApplyRobotSpeeds
+			applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
 	/* ======================== Private variables ======================== */
@@ -77,7 +78,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		drivetrain = TunerConstants.createDrivetrain();
 
 		RobotConfig config;
-		try{
+		try {
 			config = RobotConfig.fromGUISettings();
 		} catch (Exception e) {
 			// Handle exception as needed
@@ -88,10 +89,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		// Configure AutoBuilder last
 		AutoBuilder.configure(
 				this::getPose, // Robot pose supplier
-				drivetrain::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
-				() -> {return drivetrain.getState().Speeds;}, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+				drivetrain::resetPose, /*Method to reset odometry
+				(will be called if your auto has a starting pose) */
+				() -> { return drivetrain.getState().Speeds; }, /*ChassisSpeeds 
+				supplier. MUST BE ROBOT RELATIVE */
 				(speeds, feedforwards) -> {
-					
 					drivetrain.setControl(
 						applyRobotSpeeds
 							.withSpeeds(speeds)
@@ -99,14 +101,21 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 							.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
 					);
 
-				}, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
-				new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-						new PIDConstants(ModuleConstants.DRIVE_P, ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D), // Translation PID constants
-						new PIDConstants(ModuleConstants.STEER_P, ModuleConstants.STEER_I, ModuleConstants.STEER_D) // Rotation PID constants
+				}, /* Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
+				optionally outputs individual module feedforwards*/
+				new PPHolonomicDriveController(/*PPHolonomicController is the built in path
+						following controller for holonomic drive trains */
+						// Translation PID constants
+						new PIDConstants(ModuleConstants.DRIVE_P,
+							ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D),
+						// Rotation PID constants
+						new PIDConstants(ModuleConstants.STEER_P,
+							ModuleConstants.STEER_I, ModuleConstants.STEER_D)
 				),
 				config, // The robot configuration
 				() -> {
-				// Boolean supplier that controls when the path will be mirrored for the red alliance
+				/* Boolean supplier that controls when the
+				path will be mirrored for the red alliance*/
 				// This will flip the path being followed to the red side of the field.
 				// THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
@@ -243,8 +252,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	private void startPathfinding() {
-			pathfindCommand = AutoBuilder.pathfindToPose(pathfindTarget, DrivetrainConstants.PATH_CONSTRAINTS);
-			CommandScheduler.getInstance().schedule(pathfindCommand);
+		pathfindCommand = AutoBuilder.pathfindToPose(pathfindTarget,
+					DrivetrainConstants.PATH_CONSTRAINTS);
+		CommandScheduler.getInstance().schedule(pathfindCommand);
 	}
 
 	private void handleTeleopState(TeleopInput input) {
