@@ -21,13 +21,8 @@ public final class TeleopInput extends Input {
 	public static final int DRIVE_CONTROLLER_PORT = 0;
 	public static final int MECH_CONTROLLER_PORT = 1;
 
-<<<<<<< HEAD
 	private final PS4Controller driveController;
 	private final PS4Controller mechController;
-=======
-	private PS4Controller driveController;
-	private PS4Controller mechController;
->>>>>>> main
 
 	/**
 	 * Constructs a TeleopInput using the constants defined in this file.
@@ -37,8 +32,6 @@ public final class TeleopInput extends Input {
 		mechController = new PS4Controller(MECH_CONTROLLER_PORT);
 	}
 
-<<<<<<< HEAD
-=======
 	/**
 	 * Getter for the fold in button being pressed.
 	 * @return whether the fold in button was pressed
@@ -96,20 +89,16 @@ public final class TeleopInput extends Input {
 	}
 
 
->>>>>>> main
 	@Override
 	public Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
 		return switch (key) {
 
 			// add / remove cases to reflect the InputTypes
 			case RESEED_DRIVETRAIN -> mechController::options;
-<<<<<<< HEAD
-=======
 			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
 			case CLIMBER_NEXT_STEP -> mechController::square;
 			case CLIMBER_EMERGENCY_ABORT -> mechController::R1;
 			case CLIMBER_DOWN_BUTTON -> mechController::R2;
->>>>>>> main
 
 			default -> throw new IllegalArgumentException("Unknown button action");
 		};
@@ -123,17 +112,11 @@ public final class TeleopInput extends Input {
 			case DRIVE_Y -> driveController.getLeftX();
 			case DRIVE_X -> driveController.getLeftY();
 			case ROTATE -> driveController.getRightX();
-<<<<<<< HEAD
-=======
 			case CLIMBER_MANUAL_CONTROL -> mechController.getLeftX();
->>>>>>> main
 
 			default -> throw new IllegalArgumentException("Unknown axis action");
 		};
 	}
 
-<<<<<<< HEAD
-=======
 
->>>>>>> main
 }

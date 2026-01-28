@@ -5,20 +5,10 @@ package frc.robot.systems;
 // Third party Hardware Imports
 import com.revrobotics.spark.SparkMax;
 
-<<<<<<< HEAD
-import frc.robot.motors.SparkMaxWrapper;
-import frc.robot.HardwareMap;
-=======
 
 import frc.robot.HardwareMap;
 import frc.robot.motors.SparkMaxWrapper;
->>>>>>> main
 import frc.robot.input.Input;
-
-// enum FSMState {
-// 	START_STATE,
-// 	OTHER_STATE
-// }
 
 public class ExampleFSMSystem extends FSMSystem<ExampleFSMSystem.FSMState> {
 
