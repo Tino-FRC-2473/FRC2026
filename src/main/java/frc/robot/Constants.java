@@ -43,7 +43,6 @@ public class Constants {
 		public static final double STEER_S = 0;
 	}
 
-	
 	public static final class VisionConstants {
 
 		public static final AprilTagFieldLayout TAG_LAYOUT;
