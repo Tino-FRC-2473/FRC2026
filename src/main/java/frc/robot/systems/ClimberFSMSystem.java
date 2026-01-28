@@ -66,8 +66,6 @@ public class ClimberFSMSystem  {
 		climberMotorLeft.setControl(new Follower(HardwareMap.CAN_ID_CLIMBER_RIGHT,
 			MotorAlignmentValue.Opposed));
 		motionRequest = new MotionMagicVoltage(0);
-		climberMotorRight.setControl(new Follower(
-			climberMotorLeft.getDeviceID(), MotorAlignmentValue.Opposed));
 		var talonFXConfigs = new TalonFXConfiguration();
 		var outputConfigs = talonFXConfigs.MotorOutput;
 		outputConfigs.NeutralMode = NeutralModeValue.Brake;
