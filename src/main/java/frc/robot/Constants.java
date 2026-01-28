@@ -1,9 +1,15 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-
-import edu.wpi.first.units.Units;
+import java.io.IOException;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Distance;
 
 public class Constants {
@@ -35,6 +41,38 @@ public class Constants {
 		public static final double STEER_D = 0.5;
 		public static final double STEER_V = 0.1;
 		public static final double STEER_S = 0;
+	}
+
+	
+	public static final class VisionConstants {
+
+		public static final AprilTagFieldLayout TAG_LAYOUT;
+
+		static {
+			AprilTagFieldLayout layout;
+			try {
+				if (Features.USE_TEST_FIELD && !Robot.isSimulation()) {
+					layout = new AprilTagFieldLayout(
+						Filesystem.getDeployDirectory() + "/gs-test-field.json"
+					);
+				} else {
+					layout = AprilTagFieldLayout.loadField(
+						AprilTagFields.k2026RebuiltWelded
+					);
+				}
+			} catch (IOException e) {
+				System.out.println("Couldn't find test field, defaulting to rebuilt welded.");
+				layout = AprilTagFieldLayout.loadField(
+					AprilTagFields.k2026RebuiltWelded
+				);
+			}
+
+			var origin = new Pose3d(new Pose2d(
+				-layout.getFieldLength() / 2, -layout.getFieldWidth() / 2, new Rotation2d()
+			));
+			layout.setOrigin(origin);
+			TAG_LAYOUT = layout;
+		}
 	}
 
 	public static final class ClimberConstants {
