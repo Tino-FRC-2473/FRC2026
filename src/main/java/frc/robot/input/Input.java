@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj.event.EventLoop;
 import frc.robot.input.InputTypes.ButtonInput;
 
-public abstract sealed class Input permits TeleopInput, AutoInput {
+public abstract class Input {
 
 	private final EventLoop inputEventLoop;
 	private final Map<ButtonInput, BooleanEvent> buttonEvents;
