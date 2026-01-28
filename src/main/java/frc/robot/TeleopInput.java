@@ -72,6 +72,10 @@ public class TeleopInput {
 		return driveController.getOptionsButton();
 	}
 
+	public boolean isPathfindButtonPressed() {
+		return driveController.getCircleButton();
+	}
+
 	/* ======================== Private methods ======================== */
 
 }

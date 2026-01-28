@@ -7,25 +7,27 @@ import org.littletonrobotics.junction.AutoLogOutput;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
-import com.ctre.phoenix6.hardware.Pigeon2;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj2.command.PIDCommand;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.DrivetrainConstants;
-import frc.robot.Constants.VisionConstants;
-import frc.robot.Constants;
+import frc.robot.Constants.ModuleConstants;
 import frc.robot.TeleopInput;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
@@ -36,7 +38,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	// FSM states enum
 	public enum DrivetrainState {
-		TELEOP
+		TELEOP,
+		PATHFIND
 	}
 
 	// Max linear & angular speeds
@@ -53,17 +56,68 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			// Use open-loop for drive motors
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
+	private final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
+		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+
 	/* ======================== Private variables ======================== */
 
 	// Current FSM state
 	private DrivetrainState currentState;
 	// Drivetrain subsystem instance
 	private CommandSwerveDrivetrain drivetrain;
+	//Pathfind command
+	private Command pathfindCommand = null;
+	//Pathfind target
+	Pose2d pathfindTarget = new Pose2d();
+
 	/**
 	 * Constructs the drivetrain subsystem.
 	 */
 	public Drivetrain() {
 		drivetrain = TunerConstants.createDrivetrain();
+
+		RobotConfig config;
+		try{
+			config = RobotConfig.fromGUISettings();
+		} catch (Exception e) {
+			// Handle exception as needed
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+
+		// Configure AutoBuilder last
+		AutoBuilder.configure(
+				this::getPose, // Robot pose supplier
+				drivetrain::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
+				() -> {return drivetrain.getState().Speeds;}, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+				(speeds, feedforwards) -> {
+					
+					drivetrain.setControl(
+						applyRobotSpeeds
+							.withSpeeds(speeds)
+							.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+							.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
+					);
+
+				}, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+				new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
+						new PIDConstants(ModuleConstants.DRIVE_P, ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D), // Translation PID constants
+						new PIDConstants(ModuleConstants.STEER_P, ModuleConstants.STEER_I, ModuleConstants.STEER_D) // Rotation PID constants
+				),
+				config, // The robot configuration
+				() -> {
+				// Boolean supplier that controls when the path will be mirrored for the red alliance
+				// This will flip the path being followed to the red side of the field.
+				// THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+				var alliance = DriverStation.getAlliance();
+				if (alliance.isPresent()) {
+					return alliance.get() == DriverStation.Alliance.Red;
+				}
+				return false;
+				},
+				drivetrain // Reference to the subsystem to set requirements
+		);
 
 		reset();
 	}
@@ -84,6 +138,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		switch (currentState) {
 			case TELEOP:
 				handleTeleopState(input);
+				break;
+			case PATHFIND:
+				//No need to do anything? You only start/stop pathfinding
 				break;
 			default:
 				throw new IllegalStateException(
@@ -164,13 +221,30 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		switch (currentState) {
 			case TELEOP:
-				return DrivetrainState.TELEOP;
+				if (input.isPathfindButtonPressed()) {
+					startPathfinding();
+					return DrivetrainState.PATHFIND;
+				} else {
+					return DrivetrainState.TELEOP;
+				}
+			case PATHFIND:
+				if (input.isPathfindButtonPressed()) {
+					return DrivetrainState.PATHFIND;
+				} else {
+					pathfindCommand.cancel();
+					return DrivetrainState.TELEOP;
+				}
 			default:
 				throw new IllegalStateException(
 					"[DRIVETRAIN] Cannot get next state of an invalid current state: "
 					+ currentState.toString()
 				);
 		}
+	}
+
+	private void startPathfinding() {
+			pathfindCommand = AutoBuilder.pathfindToPose(pathfindTarget, DrivetrainConstants.PATH_CONSTRAINTS);
+			CommandScheduler.getInstance().schedule(pathfindCommand);
 	}
 
 	private void handleTeleopState(TeleopInput input) {
