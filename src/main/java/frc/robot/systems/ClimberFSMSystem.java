@@ -6,7 +6,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
+
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -25,7 +25,7 @@ import frc.robot.Constants.ClimberConstants;
 
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
+
 
 import static edu.wpi.first.units.Units.Inches;
 
@@ -118,7 +118,6 @@ public class ClimberFSMSystem  {
 		motionMagicConfigs.MotionMagicExpo_kV = ClimberConstants.EXPO_KV;
 
 		climberMotorLeft.getConfigurator().apply(talonFXConfigs);
-		climberMotorRight.getConfigurator().apply(talonFXConfigs);
 
 		climberMotorLeft.setPosition(0);
 		currentState = ClimberFSMState.IDLE;
