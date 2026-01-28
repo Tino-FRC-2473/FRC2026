@@ -14,26 +14,26 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.units.Units;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.HardwareMap;
+import frc.robot.input.Input;
 // Robot Imports
-import frc.robot.TeleopInput;
+import frc.robot.input.TeleopInput;
 import frc.robot.motors.TalonFXWrapper;
-import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
+import frc.robot.input.InputTypes.AxialInput;
+import frc.robot.input.InputTypes.ButtonInput;
 
 
-enum FSMState {
-	IDLE_STATE,
-	SHOOTER_PREP_STATE,
-	PASSER_PREP_STATE,
-	INTAKE_STATE,
-	MANUAL_PREP_STATE,
-}
 
-public class ShooterFSMSystem extends FSMSystem<FSMState> {
+
+public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState> {
+	enum ShooterFSMState {
+		IDLE_STATE,
+		SHOOTER_PREP_STATE,
+		PASSER_PREP_STATE,
+		INTAKE_STATE,
+		MANUAL_PREP_STATE,
+	}
 	/* ======================== Constants ======================== */
 
-	private static final float MOTOR_RUN_POWER = 0.1f;
-	private static final int HOOD_TARGET_ANGLE = 70;
-	private static final int MAX_DEGREES = 360;
 
 	/* ======================== Private variables ======================== */
 
@@ -44,7 +44,6 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	private Pose2d outpostPose;
 	private Pose2d hubPose;
 	private Pose2d target3Pose; //probably going to be the mirrored side of the outpost
-	private List<Pose2d> targetPoses;
 	private TalonFX flywheelMotor;
 	private TalonFX indexMotor;
 	private TalonFX hoodMotor;
@@ -52,7 +51,7 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	private double flywheelTargetSpeed;
 	private double hoodAngle;
 	private double hoodTargetAngle;
-	private FSMState pastState;
+	private ShooterFSMState pastState;
 	private TalonFXConfiguration hoodConfigs;
 	private TalonFXConfiguration flywheelConfigs;
 	private TalonFXConfiguration indexConfigs;
@@ -84,9 +83,9 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 
 		var hoodLimitSwitchConfigs = hoodConfigs.SoftwareLimitSwitch;
 		hoodLimitSwitchConfigs.ForwardSoftLimitEnable = true;
-		hoodLimitSwitchConfigs.ForwardSoftLimitThreshold = ShooterConstants.FLYWHEEL_MAX_ANGLE;
+		hoodLimitSwitchConfigs.ForwardSoftLimitThreshold = ShooterConstants.HOOD_MAX_ANGLE;
 		hoodLimitSwitchConfigs.ReverseSoftLimitEnable = true;
-		hoodLimitSwitchConfigs.ReverseSoftLimitThreshold = ShooterConstants.FLYWHEEL_MIN_ANGLE;
+		hoodLimitSwitchConfigs.ReverseSoftLimitThreshold = ShooterConstants.HOOD_MIN_ANGLE;
 
 		var hood0Config = hoodConfigs.Slot0;
 		hood0Config.GravityType = GravityTypeValue.Arm_Cosine;
@@ -112,7 +111,8 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 
 		var hoodFeedbackConfigs = hoodConfigs.Feedback;
 		//set to 2 (divided by 360 to get in terms of degrees)
-		hoodFeedbackConfigs.SensorToMechanismRatio = ShooterConstants.HOOD_GEAR_RATIO / MAX_DEGREES;
+		var hoodRatio = ShooterConstants.HOOD_GEAR_RATIO / ShooterConstants.FLYWHEEL_MAX_DEGREES;
+		hoodFeedbackConfigs.SensorToMechanismRatio = hoodRatio;
 
 		hoodMotor.getConfigurator().apply(hoodConfigs);
 
@@ -150,7 +150,7 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 
 		indexMotor.getConfigurator().apply(indexConfigs);
 
-		hoodMotor.setPosition(ShooterConstants.FLYWHEEL_MAX_ANGLE);
+		hoodMotor.setPosition(ShooterConstants.HOOD_MAX_ANGLE);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				ShooterConstants.UPDATE_FREQUENCY_HZ,
@@ -225,34 +225,34 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 
 	@Override
 	public void reset() {
-		setCurrentState(FSMState.IDLE_STATE);
+		setCurrentState(ShooterFSMState.IDLE_STATE);
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
 
 	@Override
-	public void update(TeleopInput input) {
+	public void update(Input input) {
 		curPose = drivetrain.getPose();
 		switch (getCurrentState()) {
 			case IDLE_STATE:
-				handleIdleState(input);
+				handleIdleState((TeleopInput) input);
 				break;
 
 			case SHOOTER_PREP_STATE:
-				handleShooterPrepState(input);
+				handleShooterPrepState((TeleopInput) input);
 				break;
 
 			case PASSER_PREP_STATE:
-				handlePasserPrepState(input);
+				handlePasserPrepState((TeleopInput) input);
 				break;
 
 			case INTAKE_STATE:
-				handleIntakeState(input);
+				handleIntakeState((TeleopInput) input);
 				break;
 
 			case MANUAL_PREP_STATE:
-				handleManualPrepState(input);
+				handleManualPrepState((TeleopInput) input);
 				break;
 
 			default:
@@ -261,113 +261,113 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 		setCurrentState(nextState(input));
 	}
 
-	@Override
-	public boolean updateAutonomous(AutoFSMState autoState) {
-		switch (autoState) {
-			case STATE1:
-				return handleAutoState1();
-			case STATE2:
-				return handleAutoState2();
-			case STATE3:
-				return handleAutoState3();
-			default:
-				return true;
-		}
-	}
+	// @Override
+	// public boolean updateAutonomous(AutoFSMState autoState) {
+	// 	switch (autoState) {
+	// 		case STATE1:
+	// 			return handleAutoState1();
+	// 		case STATE2:
+	// 			return handleAutoState2();
+	// 		case STATE3:
+	// 			return handleAutoState3();
+	// 		default:
+	// 			return true;
+	// 	}
+	// }
 
 	/* ======================== Protected methods ======================== */
 
 	@Override
-	protected FSMState nextState(TeleopInput input) {
+	protected ShooterFSMState nextState(Input input) {
 		switch (getCurrentState()) {
 			case IDLE_STATE:
-				if (input != null && input.isRightBumperPressed()) {
+				if (input != null && input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.PASSER_PREP_STATE;
-				} else if (input != null && input.isLeftBumperPressed()) {
+					return ShooterFSMState.PASSER_PREP_STATE;
+				} else if (input != null && input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.SHOOTER_PREP_STATE;
-				} else if (input != null && input.isLeftTriggerPressed()) {
+					return ShooterFSMState.SHOOTER_PREP_STATE;
+				} else if (input != null && input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.MANUAL_PREP_STATE;
+					return ShooterFSMState.MANUAL_PREP_STATE;
 				}
 
 			case PASSER_PREP_STATE:
-				if (input.isTouchpadPressed()) {
+				if (input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.IDLE_STATE;
+					return ShooterFSMState.IDLE_STATE;
 				}
-				if (input.isLeftBumperPressed()) {
+				if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.SHOOTER_PREP_STATE;
+					return ShooterFSMState.SHOOTER_PREP_STATE;
 				}
-				if (input.isLeftTriggerPressed()) {
+				if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.MANUAL_PREP_STATE;
+					return ShooterFSMState.MANUAL_PREP_STATE;
 				}
-				if (isAtSpeed() && isAtAngle() && input.isRightTriggerPressed()) {
+				if (isAtSpeed() && isAtAngle() && input.getButtonPressed(ButtonInput.REV_INDEXER)) {
 					//need to make sure to change colors for if its at speed and at angle so that
 					// they know when to pull triggers
 					pastState = getCurrentState();
-					return FSMState.INTAKE_STATE;
+					return ShooterFSMState.INTAKE_STATE;
 				}
 
 			case INTAKE_STATE:
-				if (!isAtSpeed() || !isAtAngle() || !input.isRightTriggerPressed()) {
+				if (!isAtSpeed() || !isAtAngle() || !input.getButtonPressed(ButtonInput.REV_INDEXER)) {
 					indexMotor.set(0);
 					return pastState;
 					//pastState should only store shooter_prep, passer_prep, and manual_prep
 				}
 
-				if (input.isTouchpadPressed()) {
+				if (input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.IDLE_STATE;
+					return ShooterFSMState.IDLE_STATE;
 				}
 
-				if (input.isRightBumperPressed()) {
+				if (input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.PASSER_PREP_STATE;
+					return ShooterFSMState.PASSER_PREP_STATE;
 				}
 
-				if (input.isLeftBumperPressed()) {
+				if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.SHOOTER_PREP_STATE;
+					return ShooterFSMState.SHOOTER_PREP_STATE;
 				}
 
-				if (input.isLeftTriggerPressed()) {
+				if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.MANUAL_PREP_STATE;
+					return ShooterFSMState.MANUAL_PREP_STATE;
 				}
 
 			case SHOOTER_PREP_STATE:
-				if (input.isTouchpadPressed()) {
+				if (input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.IDLE_STATE;
+					return ShooterFSMState.IDLE_STATE;
 				}
-				if (input.isRightBumperPressed()) {
+				if (input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.PASSER_PREP_STATE;
+					return ShooterFSMState.PASSER_PREP_STATE;
 				}
-				if (input.isLeftTriggerPressed()) {
+				if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.MANUAL_PREP_STATE;
+					return ShooterFSMState.MANUAL_PREP_STATE;
 				}
-				if (isAtSpeed() && isAtAngle() && input.isRightTriggerPressed()) {
+				if (isAtSpeed() && isAtAngle() && input.getButtonPressed(ButtonInput.REV_INDEXER)) {
 					pastState = getCurrentState();
-					return FSMState.INTAKE_STATE;
+					return ShooterFSMState.INTAKE_STATE;
 				}
 
 			case MANUAL_PREP_STATE:
 				// Manual can only go to idle (we need the button inputs for right and left
 				// bumper to adjust manually)
-				if (input.isTouchpadPressed()) {
+				if (input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
 					pastState = getCurrentState();
-					return FSMState.IDLE_STATE;
+					return ShooterFSMState.IDLE_STATE;
 				}
 
-				if (isAtSpeed() && isAtAngle() && input.isRightTriggerPressed()) {
+				if (isAtSpeed() && isAtAngle() && input.getButtonPressed(ButtonInput.REV_INDEXER)) {
 					pastState = getCurrentState();
-					return FSMState.INTAKE_STATE;
+					return ShooterFSMState.INTAKE_STATE;
 				}
 
 			default:
@@ -383,7 +383,7 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 	 */
 	private void handleIdleState(TeleopInput input) {
 		flywheelTargetSpeed = 0;
-		hoodTargetAngle = HOOD_TARGET_ANGLE;
+		hoodTargetAngle = ShooterConstants.HOOD_MAX_ANGLE;
 		updateFlywheel();
 		updateHood();
 		indexMotor.set(0);
@@ -464,35 +464,36 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 		// with triggering Passer Prep.
 		// FOR MANUAL ONLY: Left Bumper will be used to adjust hood angle. Do not confuse this
 		// with triggering Shooter Prep.
-
 		//how much the hood angle increases/decreases each click
+
+		//shooter_prep_toggle will be for hood movement, passer_prep_toggle will be the deincrementer, and manual_shoot_toggle will be the flywheel control
 		double hoodIncrement = ShooterConstants.HOOD_INCREMENTER;
-		if (input.isLeftBumperPressed() && input.isRightBumperPressed()) {
-			if (hoodTargetAngle - hoodIncrement >= ShooterConstants.FLYWHEEL_MIN_ANGLE) {
+		if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE) && input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
+			if (hoodTargetAngle - hoodIncrement >= ShooterConstants.HOOD_MIN_ANGLE) {
 				hoodTargetAngle -= hoodIncrement;
 			} else {
-				hoodTargetAngle = ShooterConstants.FLYWHEEL_MIN_ANGLE;
+				hoodTargetAngle = ShooterConstants.HOOD_MIN_ANGLE;
 			}
 			//decrease hood angle by 5 degrees
-		} else if (input.isLeftBumperPressed()) {
-			if (hoodTargetAngle + hoodIncrement <= ShooterConstants.FLYWHEEL_MAX_ANGLE) {
+		} else if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
+			if (hoodTargetAngle + hoodIncrement <= ShooterConstants.HOOD_MAX_ANGLE) {
 				hoodTargetAngle += hoodIncrement;
 			} else {
-				hoodTargetAngle = ShooterConstants.FLYWHEEL_MAX_ANGLE;
+				hoodTargetAngle = ShooterConstants.HOOD_MAX_ANGLE;
 			}
 			//increase hood angle by 5 degrees
 		}
 		updateHood();
 		double flyIncrement = ShooterConstants.FLYWHEEL_INCREMENTER;
 		//how much the flywheel speed increases/decreases each click
-		if (input.isLeftTriggerPressed() && input.isRightBumperPressed()) {
+		if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE) && input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
 			if (flywheelTargetSpeed - flyIncrement > 0) {
 				flywheelTargetSpeed -= flyIncrement;
 			} else {
 				flywheelTargetSpeed = 0;
 			}
 			//decrease flywheel speed by some constant, right now set to 10 m/s
-		} else if (input.isLeftTriggerPressed()) {
+		} else if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
 			if (flywheelTargetSpeed + flyIncrement < ShooterConstants.FLYWHEEL_MAX_SPEED) {
 				flywheelTargetSpeed += flyIncrement;
 			} else {
@@ -518,30 +519,5 @@ public class ShooterFSMSystem extends FSMSystem<FSMState> {
 		MotionMagicVoltage hoodRequest = new MotionMagicVoltage(0);
 		hoodMotor.setControl(hoodRequest.withPosition(hoodTargetAngle));
 		hoodAngle = hoodMotor.getPosition().getValue().in(Units.Degrees);
-	}
-
-
-	/**
-	 * Performs action for auto STATE1.
-	 * @return if the action carried out has finished executing
-	 */
-	private boolean handleAutoState1() {
-		return true;
-	}
-
-	/**
-	 * Performs action for auto STATE2.
-	 * @return if the action carried out has finished executing
-	 */
-	private boolean handleAutoState2() {
-		return true;
-	}
-
-	/**
-	 * Performs action for auto STATE3.
-	 * @return if the action carried out has finished executing
-	 */
-	private boolean handleAutoState3() {
-		return true;
 	}
 }

@@ -16,10 +16,11 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.Constants.DrivetrainConstants;
-import frc.robot.TeleopInput;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
-import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
+import frc.robot.input.Input;
+import frc.robot.input.InputTypes.ButtonInput;
+import frc.robot.input.InputTypes.AxialInput;
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/* ======================== Constants ======================== */
@@ -69,7 +70,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	@Override
-	public void update(TeleopInput input) {
+	public void update(Input input) {
 		drivetrain.periodic();
 
 		switch (currentState) {
@@ -78,16 +79,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				break;
 			default:
 				throw new IllegalStateException(
-					"[DRIVETRAIN] Invalid Current State: " + currentState.toString()
+					"[DRIVETRAIN] Cannot update an invalid current state: "
+					+ currentState.toString()
 				);
 		}
 
 		currentState = nextState(input);
-	}
-
-	@Override
-	public boolean updateAutonomous(AutoFSMState autoState) {
-		return false;
 	}
 
 	/**
@@ -143,7 +140,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/* ======================== Private methods ======================== */
 
 	@Override
-	protected DrivetrainState nextState(TeleopInput input) {
+	protected DrivetrainState nextState(Input input) {
 		if (input == null) {
 			return DrivetrainState.TELEOP;
 		}
@@ -159,21 +156,21 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 	}
 
-	private void handleTeleopState(TeleopInput input) {
+	private void handleTeleopState(Input input) {
 		if (input == null) {
 			return;
 		}
 
 		double xSpeed = MathUtil.applyDeadband(
-				-input.getDriverLeftY(),
+				-input.getAxis(AxialInput.DRIVE_X),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double ySpeed = MathUtil.applyDeadband(
-				-input.getDriverLeftX(),
+				-input.getAxis(AxialInput.DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
-				-input.getDriverRightX(),
+				-input.getAxis(AxialInput.ROTATE),
 				DrivetrainConstants.ROTATION_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
 
 		drivetrain.setControl(
@@ -183,7 +180,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
 		);
 
-		if (input.isDriverReseedButtonPressed()) {
+		if (input.getButtonPressed(ButtonInput.RESEED_DRIVETRAIN)) {
 			drivetrain.seedFieldCentric();
 		}
 	}

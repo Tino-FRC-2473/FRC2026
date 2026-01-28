@@ -2,8 +2,10 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
 
 public class Constants {
 	public static final class DrivetrainConstants {
@@ -35,6 +37,30 @@ public class Constants {
 		public static final double STEER_V = 0.1;
 		public static final double STEER_S = 0;
 	}
+
+	public static final class ClimberConstants {
+		public static final double KG = 0.20;
+		public static final double KS = 0.1;
+		public static final double KV = 0.001;
+		public static final double KA = 0.0;
+		public static final double KP = 3.0;
+		public static final double KI = 0.0;
+		public static final double KD = 0.0;
+		public static final Distance UPPER_THRESHOLD = Units
+			.Inches.of(100.0);
+		public static final double CRUISE_VELO = 0;
+		public static final double TARGET_ACCEL = 0;
+		public static final double EXPO_KV = 0;
+		public static final double ROTS_TO_INCHES = 0;
+		public static final Distance POSITION_TOLERANCE_L1 = Units.Inches.of(0.5);
+		public static final Distance POSITION_TOLERANCE_L2_L3 = Units.Inches.of(0.5);
+		public static final double JOYSTICK_DEADBAND = 0;
+		public static final double MANUAL_SCALE = 0;
+		public static final Distance L1_EXTEND_POS = Units.Inches.of(20.0);
+		public static final Distance L1_RETRACT_POS = Units.Inches.of(5.0);
+		public static final Distance GROUND = Units.Inches.of(0.0);
+		public static final int CONTROL_REQUEST_SUBSTRING_START_INDEX = 9;
+	}
 	public static final class ShooterConstants {
 		public static final Pose2d OUTPOST_POSE = new Pose2d();
 		public static final Pose2d TARGET3_POSE = new Pose2d();
@@ -62,10 +88,11 @@ public class Constants {
 		//need to test by recording in some manner
 		public static final double MM_CONSTANT_V = 0.12; //taken straight from Phoenix6
 		public static final double MM_CONSTANT_A = 0.01; //taken straight from Phoenix6
-		public static final double FLYWHEEL_MAX_ANGLE = 70;
-		public static final double FLYWHEEL_MIN_ANGLE = 45;
+		public static final double HOOD_MAX_ANGLE = 70;
+		public static final double HOOD_MIN_ANGLE = 45;
 		public static final double HOOD_INCREMENTER = 5;
 		public static final double FLYWHEEL_INCREMENTER = 10;
+		public static final double FLYWHEEL_MAX_DEGREES = 360;
 
 		//All of these are placeholder values, all need to be changed
 		public static final double FLYWHEEL_MM_CONSTANT_P = 0;

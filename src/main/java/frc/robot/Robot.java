@@ -7,21 +7,30 @@ import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
-// WPILib Imports
 
-// Systems
+
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.auto.AutoPaths;
+import frc.robot.input.AutoInput;
+import frc.robot.input.Input;
+import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
+import frc.robot.systems.ClimberFSMSystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation.
  */
 public class Robot extends LoggedRobot {
-	private TeleopInput input;
+
+	// Robot input
+	private Input input;
 
 	// Systems
 	private Drivetrain drivetrain;
+	private ClimberFSMSystem climberFSMSystem;
+
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -30,7 +39,6 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void robotInit() {
 		System.out.println("robotInit");
-		input = new TeleopInput();
 
 		Logger.recordMetadata("FRC 2473", "REBUILT");
 		Logger.addDataReceiver(new NT4Publisher());
@@ -40,15 +48,23 @@ public class Robot extends LoggedRobot {
 		if (HardwareMap.isDrivetrainEnabled()) {
 			drivetrain = new Drivetrain();
 		}
+		climberFSMSystem = new ClimberFSMSystem();
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
+
+		AutoInput autoInput = new AutoInput();
+		input = autoInput;
+		CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
 	}
 
 	@Override
 	public void autonomousPeriodic() {
+		drivetrain.update(input);
+		input.update();
+		CommandScheduler.getInstance().run();
 
 		// logs motor values
 		MotorManager.update();
@@ -57,12 +73,17 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
+		input = new TeleopInput();
+		CommandScheduler.getInstance().cancelAll();
 		drivetrain.reset();
+		climberFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
 		drivetrain.update(input);
+		input.update();
+		climberFSMSystem.update((TeleopInput) input);
 
 		// logs motor values
 		MotorManager.update();
