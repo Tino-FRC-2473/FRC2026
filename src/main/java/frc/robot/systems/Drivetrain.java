@@ -69,7 +69,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	//Pathfind command
 	private Command pathfindCommand = null;
 	//Pathfind target
-	Pose2d pathfindTarget = new Pose2d();
+	private Pose2d pathfindTarget = new Pose2d();
 
 	/**
 	 * Constructs the drivetrain subsystem.
@@ -91,8 +91,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				this::getPose, // Robot pose supplier
 				drivetrain::resetPose, /*Method to reset odometry
 				(will be called if your auto has a starting pose) */
-				() -> { return drivetrain.getState().Speeds; }, /*ChassisSpeeds 
-				supplier. MUST BE ROBOT RELATIVE */
+				() -> {
+					return drivetrain.getState().Speeds;
+				}, /*ChassisSpeeds supplier. MUST BE ROBOT RELATIVE */
 				(speeds, feedforwards) -> {
 					drivetrain.setControl(
 						applyRobotSpeeds
@@ -215,6 +216,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return drivetrain.getState().ModulePositions;
 	}
 
+	/**
+	 * Get the drivetrain's rotation.
+	 *
+	 * @return The drivetrain's rotation as a Pose2D
+	 */
 	@AutoLogOutput(key = "Drivetrain/Rotation")
 	public Rotation3d getDrivetrainRotation() {
 		return drivetrain.getPigeon2().getRotation3d();

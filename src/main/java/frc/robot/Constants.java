@@ -2,7 +2,6 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
-import com.google.flatbuffers.FlexBuffers.Vector;
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.Matrix;
@@ -28,8 +27,9 @@ public class Constants {
 
 		public static final int PIGEON2_CAN_ID = 1;
 		public static final String CAN_BUS_NAME = "Drivetrain";
-
-		public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI); // The constraints for this path.
+		//TODO: Get some actual values for this
+		public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
+			3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
 
 	}
 
@@ -51,7 +51,10 @@ public class Constants {
 
 	public static final class VisionConstants {
 		public static final String LIMELIGHT_NAME = "limelight-four";
-		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(0.02, 0.02, Math.toRadians(1));
+		//TODO: Find some actual values for this.
+		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(
+			0.02, 0.02, Math.toRadians(1));
+		//TODO: Measure this on the bot
 		public static final Pose3d LL4_OFFSET = new Pose3d();
 	}
 }
