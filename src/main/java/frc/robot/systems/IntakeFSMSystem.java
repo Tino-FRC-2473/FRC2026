@@ -1,5 +1,6 @@
 package frc.robot.systems;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 // WPILib Imports
 import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -254,50 +255,79 @@ public class IntakeFSMSystem {
 	 * Updates the logging information for the elevator system.
 	 */
 	public void updateLogging() {
-		Logger.recordOutput("Intake/Left pivot encoder",
-			pivotMotorLeft.getPosition().getValueAsDouble());
-		Logger.recordOutput("Intake/Right pivot encoder",
-			pivotMotorRight.getPosition().getValueAsDouble());
-		Logger.recordOutput("Intake encoder",
-			intakeMotor.getPosition().getValueAsDouble());
+		Logger.recordOutput("Intake/Current State", currentState);
+	}
 
-		Logger.recordOutput("Intake/Left pivot velocity",
-			pivotMotorLeft.getVelocity().getValueAsDouble());
-		Logger.recordOutput("Intake/Right pivot velocity",
-			pivotMotorRight.getVelocity().getValueAsDouble());
-		Logger.recordOutput("Intake velocity", intakeMotor.getVelocity().getValueAsDouble());
+	/**
+	 * Getter for intake motor velocity.
+	 * @return intake motor velocity as a double
+	 */
+	@AutoLogOutput(key = "Intake/Intake Motor Vel", unit = "rps")
+	public double getIntakeMotorVelocity() {
+		return intakeMotor.getRotorVelocity().getValueAsDouble();
+	}
 
-		Logger.recordOutput("Intake/Pivot bottom limit switch pressed", isBottomLimitReached());
-		Logger.recordOutput("Intake/Pivot top limit switch pressed", isTopLimitReached());
+	/**
+	 * Getter for pivot motor velocity.
+	 * @return pivot motor velocity as a double
+	 */
+	@AutoLogOutput(key = "Intake/Pivot Motor Vel", unit = "rps")
+	public double getPivotMotorVelocity() {
+		return pivotMotorRight.getRotorVelocity().getValueAsDouble();
+	}
 
-		Logger.recordOutput("Intake State", getCurrentState().toString());
-		Logger.recordOutput("Intake/Left Pivot Motor Voltage",
-			pivotMotorLeft.getMotorVoltage().getValueAsDouble());
-		Logger.recordOutput("Intake/Right Pivot Motor Voltage",
-			pivotMotorRight.getMotorVoltage().getValueAsDouble());
-		Logger.recordOutput("Intake/Outtake Motor Voltage",
-			intakeMotor.getMotorVoltage().getValueAsDouble());
+	/**
+	 * Getter for pivot motor position.
+	 * @return intake motor position as a double
+	 */
+	@AutoLogOutput(key = "Intake/Pivot Motor Pos", unit = "radians")
+	public double getPivotMotorPos() {
+		return pivotMotorRight.getRotorPosition().getValueAsDouble();
+	}
 
-		Logger.recordOutput("Intake/LEFT PIVOT ROTR POS",
-			pivotMotorLeft.getRotorPosition().getValueAsDouble());
-		Logger.recordOutput("Intake/LEFT PIVOT ROTR VELO",
-			pivotMotorLeft.getRotorVelocity().getValueAsDouble());
+	/**
+	 * Getter for intake motor voltage.
+	 * @return intake motor voltage as a double
+	 */
+	@AutoLogOutput(key = "Intake/Intake Motor Voltage", unit = "volts")
+	public double getIntakeMotorVolatge() {
+		return intakeMotor.getMotorVoltage().getValueAsDouble();
+	}
 
-		Logger.recordOutput("Intake/RIGHT PIVOT ROTR POS",
-			pivotMotorRight.getRotorPosition().getValueAsDouble());
-		Logger.recordOutput("Intake/RIGHT PIVOT ROTR VELO",
-			pivotMotorRight.getRotorVelocity().getValueAsDouble());
+	/**
+	 * Getter for pivot motor left voltage.
+	 * @return pivot motor left voltage as a double
+	 */
+	@AutoLogOutput(key = "Intake/Pivot Motor Left Voltage", unit = "volts")
+	public double getPivotMotorLeftVolatge() {
+		return pivotMotorLeft.getMotorVoltage().getValueAsDouble();
+	}
 
-		Logger.recordOutput("INTAKE ROTR POS",
-			intakeMotor.getRotorPosition().getValueAsDouble());
-		Logger.recordOutput("INTAKE ROTR VELO",
-			intakeMotor.getRotorVelocity().getValueAsDouble());
+	/**
+	 * Getter for pivot motor right voltage.
+	 * @return pivot motor right voltage as a double
+	 */
+	@AutoLogOutput(key = "Intake/Pivot Motor Right Voltage", unit = "volts")
+	public double getPivotMotorRightVoltage() {
+		return pivotMotorRight.getMotorVoltage().getValueAsDouble();
+	}
 
-		/*telemetry and logging: currently not necessary
-		MechLogging.getInstance().updateElevatorPose3d(Angle.ofBaseUnits(
-			elevatorSim.getPositionMeters(), Radians
-		));
-		*/
+	/**
+	 * Getter for intake motor voltage.
+	 * @return intake motor voltage as a double
+	 */
+	@AutoLogOutput(key = "Intake/Is at Bottom Limit?")
+	public boolean isAtBottomLimit() {
+		return isBottomLimitReached();
+	}
+
+	/**
+	 * Getter for intake motor voltage.
+	 * @return intake motor voltage as a double
+	 */
+	@AutoLogOutput(key = "Intake/Is at Top Limit?")
+	public boolean isAtTopLimit() {
+		return isTopLimitReached();
 	}
 
 
@@ -332,12 +362,12 @@ public class IntakeFSMSystem {
 				}
 
 			case IDLE_OUT_STATE:
-				if (input.getButtonPressed(ButtonInput.INTAKE_BUTTON) 
+				if (input.getButtonPressed(ButtonInput.INTAKE_BUTTON)
 					&& !input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON)
 					&& !input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)
 					&& !input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
 					return IntakeFSMState.INTAKE_STATE;
-				} else if (input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON) 
+				} else if (input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON)
 					&& !input.getButtonPressed(ButtonInput.INTAKE_BUTTON)
 					&& !input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)
 					&& !input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
