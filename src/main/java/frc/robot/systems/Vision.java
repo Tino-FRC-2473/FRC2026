@@ -58,7 +58,7 @@ public class Vision {
 					DegreesPerSecond.of(0), DegreesPerSecond.of(0))))
 			.save();
 
-		Optional<PoseEstimate> visionEstimate = BotPose.BLUE_MEGATAG2.get(limelight);
+		Optional<PoseEstimate> visionEstimate = BotPose.BLUE.get(limelight);
 		visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
 			Logger.recordOutput("Vision/MT2Pose", poseEstimate.pose.toPose2d());
 			visionConsumer.accept(

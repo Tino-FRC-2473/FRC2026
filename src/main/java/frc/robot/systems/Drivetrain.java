@@ -1,9 +1,14 @@
 package frc.robot.systems;
 
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
+import java.util.spi.LocaleServiceProvider;
+
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -11,19 +16,26 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPlannerPath;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.DrivetrainConstants;
@@ -68,14 +80,27 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private CommandSwerveDrivetrain drivetrain;
 	//Pathfind command
 	private Command pathfindCommand = null;
-	//Pathfind target
-	private Pose2d pathfindTarget = new Pose2d();
+
+	//TODO: Need to clean this stuff up and put it in constants
+	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method instead of the drivetrain's periodic?
+	//Pathfind targeting stuff
+	private AprilTagFieldLayout field = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+	private Pose2d test = field.getTagPose(8).orElse(null).toPose2d();
+
+	private Transform2d offsetTransform = new Transform2d(
+				1.5, // Back to Front
+				0, // Side to Side
+				Rotation2d.k180deg);
+
+	private Pose2d pathfindTarget = test.transformBy(offsetTransform);
 
 	/**
 	 * Constructs the drivetrain subsystem.
 	 */
 	public Drivetrain() {
 		drivetrain = TunerConstants.createDrivetrain();
+
+		SmartDashboard.putData(CommandScheduler.getInstance());
 
 		RobotConfig config;
 		try {
@@ -144,6 +169,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@Override
 	public void update(TeleopInput input) {
 		drivetrain.periodic();
+		CommandScheduler.getInstance().run();
+
+		Logger.recordOutput("Vision/AlignmentPose", pathfindTarget);
 
 		switch (currentState) {
 			case TELEOP:
