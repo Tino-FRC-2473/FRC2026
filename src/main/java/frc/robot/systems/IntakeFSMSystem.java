@@ -14,7 +14,7 @@ import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
 
 import edu.wpi.first.wpilibj.DigitalInput;
-
+import edu.wpi.first.wpilibj.RobotBase;
 
 import static edu.wpi.first.units.Units.Radians;
 
@@ -201,7 +201,7 @@ public class IntakeFSMSystem {
 	 * resets the FSM_STATE.
 	 */
 	public void reset() {
-		currentState = IntakeFSMState.IDLE_IN_STATE;
+		currentState = IntakeFSMState.IDLE_OUT_STATE;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -212,8 +212,8 @@ public class IntakeFSMSystem {
 	 * @param input
 	 */
 	public void update(TeleopInput input) {
-		if (input == null) {
-			return;
+		if (input != null) {
+			currentState = nextState(input);
 		}
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
@@ -247,7 +247,6 @@ public class IntakeFSMSystem {
 			default:
 				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
 		}
-		currentState = nextState(input);
 		updateLogging();
 	}
 
@@ -257,6 +256,16 @@ public class IntakeFSMSystem {
 	public void updateLogging() {
 		Logger.recordOutput("Intake/Current State", currentState);
 	}
+
+	/*
+	 * Getter for intake current state.
+	 * @return intake current state.
+
+	@AutoLogOutput(key = "Intake/Intake Current State")
+	public IntakeFSMState getIntakeState() {
+		return currentState;
+	}
+	*/
 
 	/**
 	 * Getter for intake motor velocity.
@@ -415,7 +424,7 @@ public class IntakeFSMSystem {
 	private void handleIdleInState(TeleopInput input) {
 	}
 	/**
-	 * Handle behavior in START_STATE.
+	 * Handle behavior in FOLD_OUT_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
@@ -433,7 +442,7 @@ public class IntakeFSMSystem {
 			withPosition(IntakeConstants.PARTIAL_OUT_POSITION));
 	}
 	/**
-	 * Handle behavior in START_STATE.
+	 * Handle behavior in IDLE_OUT_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
@@ -442,7 +451,7 @@ public class IntakeFSMSystem {
 			withVelocity(0));
 	}
 	/**
-	 * Handle behavior in START_STATE.
+	 * Handle behavior in INTAKE_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
@@ -451,7 +460,7 @@ public class IntakeFSMSystem {
 			withVelocity(IntakeConstants.INTAKE_TARGET_VELOCITY));
 	}
 	/**
-	 * Handle behavior in START_STATE.
+	 * Handle behavior in OUTTAKE_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
@@ -460,7 +469,7 @@ public class IntakeFSMSystem {
 			withVelocity(IntakeConstants.OUTTAKE_TARGET_VELOCITY));
 	}
 	/**
-	 * Handle behavior in OTHER_STATE.
+	 * Handle behavior in FOLD_IN_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
@@ -477,6 +486,10 @@ public class IntakeFSMSystem {
 	 * @return whether the limit is reached
 	 */
 	private boolean isBottomLimitReached() {
+		if (RobotBase.isSimulation()) {
+			return pivotMotorRight.getRotorPosition().getValueAsDouble()
+				<= IntakeConstants.INTAKE_GROUND_TARGET.in(Radians);
+		}
 		return groundLimitSwitch.get(); // switch is normally open
 	}
 
@@ -485,6 +498,10 @@ public class IntakeFSMSystem {
 	 * @return whether the limit is reached
 	 */
 	private boolean isTopLimitReached() {
+		if (RobotBase.isSimulation()) {
+			return pivotMotorRight.getRotorPosition().getValueAsDouble()
+				<= IntakeConstants.INTAKE_UPPER_TARGET.in(Radians);
+		}
 		return topLimitSwitch.get(); // switch is normally open
 	}
 
