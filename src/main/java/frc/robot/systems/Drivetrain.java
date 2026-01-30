@@ -297,7 +297,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 *
 	 * @return current state of the drivetrain
 	 */
-	@AutoLogOutput(key = "Drivetrain/Current State")
+	//@AutoLogOutput(key = "Drivetrain/Current State")
 	public DrivetrainState getCurrentState() {
 		return currentState;
 	}

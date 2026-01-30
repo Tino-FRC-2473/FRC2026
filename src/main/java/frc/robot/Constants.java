@@ -7,6 +7,7 @@ import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -55,6 +56,6 @@ public class Constants {
 		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(
 			0.02, 0.02, Math.toRadians(1));
 		//TODO: Measure this on the bot
-		public static final Pose3d LL4_OFFSET = new Pose3d();
+		public static final Pose3d LL4_OFFSET = new Pose3d(0.096, -0.03, 0.55, new Rotation3d());
 	}
 }
