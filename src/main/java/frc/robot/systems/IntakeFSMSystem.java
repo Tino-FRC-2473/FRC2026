@@ -1,7 +1,10 @@
 package frc.robot.systems;
 
+import static edu.wpi.first.units.Units.Radians;
+
 // WPILib Imports
 import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
@@ -11,20 +14,19 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
-
 import edu.wpi.first.wpilibj.DigitalInput;
 
-
-import static edu.wpi.first.units.Units.Radians;
-
 // Robot Imports
-import frc.robot.constants.IntakeConstants;
+import frc.robot.Constants.IntakeConstants;
+import frc.robot.HardwareMap;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.TalonFXWrapper;
-import frc.robot.HardwareMap;
 
 
 public class IntakeFSMSystem {
+
+	/* ======================== Constants ======================== */
+
 	public enum IntakeFSMState {
 		IDLE_IN_STATE,
 		FOLD_OUT_STATE,
@@ -34,7 +36,6 @@ public class IntakeFSMSystem {
 		FOLD_IN_STATE,
 		PARTIAL_OUT_STATE
 	}
-	/* ======================== Constants ======================== */
 
 	/* ======================== Private variables ======================== */
 
@@ -86,49 +87,49 @@ public class IntakeFSMSystem {
 		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
 		swLimitSwitch.ForwardSoftLimitEnable = true; // enable top limit
 		swLimitSwitch.ReverseSoftLimitEnable = true; // enable bottom limit
-		swLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.INTAKE_UPPER_TARGET.in(Radians);
-		swLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.INTAKE_GROUND_TARGET.in(Radians);
+		swLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.UPPER_TARGET_ANGLE.in(Radians);
+		swLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.GROUND_TARGET_ANGLE.in(Radians);
 
 		var pivotConfig = talonFXConfigs.Feedback;
-		pivotConfig.SensorToMechanismRatio = IntakeConstants.INTAKE_PIVOT_GEARING;
+		pivotConfig.SensorToMechanismRatio = IntakeConstants.PIVOT_GEARING;
 
 		var slot0Configs = talonFXConfigs.Slot0;
 		slot0Configs.GravityType = GravityTypeValue.Arm_Cosine;
-		slot0Configs.kG = IntakeConstants.PIVOT_KG;
-		slot0Configs.kS = IntakeConstants.PIVOT_KS;
-		slot0Configs.kV = IntakeConstants.PIVOT_KV;
-		slot0Configs.kA = IntakeConstants.PIVOT_KA;
-		slot0Configs.kP = IntakeConstants.PIVOT_KP;
-		slot0Configs.kI = IntakeConstants.PIVOT_KI;
-		slot0Configs.kD = IntakeConstants.PIVOT_KD;
+		slot0Configs.kG = IntakeConstants.PIVOT_G;
+		slot0Configs.kS = IntakeConstants.PIVOT_S;
+		slot0Configs.kV = IntakeConstants.PIVOT_V;
+		slot0Configs.kA = IntakeConstants.PIVOT_A;
+		slot0Configs.kP = IntakeConstants.PIVOT_P;
+		slot0Configs.kI = IntakeConstants.PIVOT_I;
+		slot0Configs.kD = IntakeConstants.PIVOT_D;
 		slot0Configs.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
 		var intakeConfig = intakeConfigs.Feedback;
 		intakeConfig.SensorToMechanismRatio = IntakeConstants.INTAKE_GEARING;
 
 		var slot1Configs = intakeConfigs.Slot0;
-		slot1Configs.kV = IntakeConstants.INTAKE_KV;
-		slot1Configs.kA = IntakeConstants.INTAKE_KA;
-		slot1Configs.kP = IntakeConstants.INTAKE_KP;
-		slot1Configs.kI = IntakeConstants.INTAKE_KI;
-		slot1Configs.kD = IntakeConstants.INTAKE_KD;
+		slot1Configs.kV = IntakeConstants.INTAKE_V;
+		slot1Configs.kA = IntakeConstants.INTAKE_A;
+		slot1Configs.kP = IntakeConstants.INTAKE_P;
+		slot1Configs.kI = IntakeConstants.INTAKE_I;
+		slot1Configs.kD = IntakeConstants.INTAKE_D;
 		slot1Configs.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
 		var pivotMotionMagicConfigs = talonFXConfigs.MotionMagic;
-		pivotMotionMagicConfigs.MotionMagicCruiseVelocity = IntakeConstants.PIVOT_CRUISE_VELO;
-		pivotMotionMagicConfigs.MotionMagicAcceleration = IntakeConstants.PIVOT_TARGET_ACCEL;
+		pivotMotionMagicConfigs.MotionMagicCruiseVelocity = IntakeConstants.PIVOT_CRUISE_VELOCITY;
+		pivotMotionMagicConfigs.MotionMagicAcceleration = IntakeConstants.PIVOT_ACCELERATION;
 		pivotMotionMagicConfigs.MotionMagicExpo_kV = IntakeConstants.PIVOT_EXPO_KV;
 
 		var intakeMotionMagicConfigs = intakeConfigs.MotionMagic;
-		intakeMotionMagicConfigs.MotionMagicCruiseVelocity = IntakeConstants.INTAKE_CRUISE_VELO;
-		intakeMotionMagicConfigs.MotionMagicAcceleration = IntakeConstants.INTAKE_TARGET_ACCEL;
+		intakeMotionMagicConfigs.MotionMagicCruiseVelocity = IntakeConstants.INTAKE_CRUISE_VELOCITY;
+		intakeMotionMagicConfigs.MotionMagicAcceleration = IntakeConstants.INTAKE_ACCELERATION;
 		intakeMotionMagicConfigs.MotionMagicExpo_kV = IntakeConstants.INTAKE_EXPO_KV;
 
 
 		pivotMotorLeft.getConfigurator().apply(talonFXConfigs);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
-				IntakeConstants.UPDATE_FREQUENCY_HZ,
+				IntakeConstants.UPDATE_FREQUENCY,
 				pivotMotorLeft.getPosition(),
 				pivotMotorLeft.getVelocity(),
 				pivotMotorLeft.getAcceleration(),
@@ -142,7 +143,7 @@ public class IntakeFSMSystem {
 		pivotMotorRight.getConfigurator().apply(talonFXConfigs);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
-				IntakeConstants.UPDATE_FREQUENCY_HZ,
+				IntakeConstants.UPDATE_FREQUENCY,
 				pivotMotorRight.getPosition(),
 				pivotMotorRight.getVelocity(),
 				pivotMotorRight.getAcceleration(),
@@ -156,7 +157,7 @@ public class IntakeFSMSystem {
 		intakeMotor.getConfigurator().apply(intakeConfigs);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
-				IntakeConstants.UPDATE_FREQUENCY_HZ,
+				IntakeConstants.UPDATE_FREQUENCY,
 				intakeMotor.getPosition(),
 				intakeMotor.getVelocity(),
 				intakeMotor.getAcceleration(),
@@ -384,7 +385,7 @@ public class IntakeFSMSystem {
 	 */
 	private void handleFoldOutState(TeleopInput input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
-			withPosition(IntakeConstants.INTAKE_GROUND_TARGET));
+			withPosition(IntakeConstants.GROUND_TARGET_ANGLE));
 	}
 	/**
 	 * Handle behavior in PARTIAL_OUT_STATE.
@@ -393,7 +394,7 @@ public class IntakeFSMSystem {
 	 */
 	private void handlePartialOutState(TeleopInput input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
-			withPosition(IntakeConstants.PARTIAL_OUT_POSITION));
+			withPosition(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE));
 	}
 	/**
 	 * Handle behavior in START_STATE.
@@ -427,7 +428,7 @@ public class IntakeFSMSystem {
 	 */
 	private void handleFoldInState(TeleopInput input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
-			withPosition(IntakeConstants.INTAKE_UPPER_TARGET));
+			withPosition(IntakeConstants.UPPER_TARGET_ANGLE));
 	}
 
 
