@@ -33,14 +33,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	// Max linear & angular speeds
 	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
 	private static final AngularVelocity MAX_ANGULAR_SPEED =
-		DrivetrainConstants.MAX_ANGULAR_VELO_RPS;
+		DrivetrainConstants.MAX_ANGULAR_VELOCITY;
 
 	// Drive swerve requests
 	private final SwerveRequest.FieldCentric driveFieldCentric = new SwerveRequest.FieldCentric()
 			.withDeadband(MAX_SPEED.in(MetersPerSecond)
-					* DrivetrainConstants.TRANSLATION_DEADBAND)
+					* DrivetrainConstants.TRANSLATIONAL_DEADBAND)
 			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
-					* DrivetrainConstants.ROTATION_DEADBAND)
+					* DrivetrainConstants.ROTATIONAL_DEADBAND)
 			// Use open-loop for drive motors
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
@@ -162,16 +162,16 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		double xSpeed = MathUtil.applyDeadband(
-				-input.getAxis(AxialInput.DRIVE_X),
-				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
+				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double ySpeed = MathUtil.applyDeadband(
-				-input.getAxis(AxialInput.DRIVE_Y),
-				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
+				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
-				-input.getAxis(AxialInput.ROTATE),
-				DrivetrainConstants.ROTATION_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+				-input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
+				DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
 
 		drivetrain.setControl(
 			driveFieldCentric
@@ -180,7 +180,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
 		);
 
-		if (input.getButtonPressed(ButtonInput.RESEED_DRIVETRAIN)) {
+		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
 			drivetrain.seedFieldCentric();
 		}
 	}

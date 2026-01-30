@@ -14,7 +14,6 @@ import frc.robot.input.InputTypes.ButtonInput;
  * This class is the sole owner of WPILib input objects and is responsible for
  * polling input values. Systems may query TeleopInput via its getter methods
  * for inputs by value, but may not access the internal input objects.
- *
  */
 public final class TeleopInput extends Input {
 
@@ -32,91 +31,46 @@ public final class TeleopInput extends Input {
 		mechController = new PS4Controller(MECH_CONTROLLER_PORT);
 	}
 
-	/**
-	 * Getter for the fold in button being pressed.
-	 * @return whether the fold in button was pressed
-	 */
-	public boolean isFoldInButtonPressed() {
-		return mechController.getCircleButtonPressed();
-	}
+	@Override
+	public double getAxisValue(AxialInput key) {
+		return switch (key) {
 
-	/**
-	 * Getter for the fold out button being pressed.
-	 * @return whether the fold out button was pressed
-	 */
-	public boolean isFoldOutButtonPressed() {
-		return mechController.getCircleButtonPressed();
-	}
+			// Drivetrain
+			case DRIVETRAIN_DRIVE_Y -> driveController.getLeftX();
+			case DRIVETRAIN_DRIVE_X -> driveController.getLeftY();
+			case DRIVETRAIN_ROTATE -> driveController.getRightX();
 
-	/**
-	 * Getter for the partial out button being pressed.
-	 * @return whether the partial out button was pressed
-	 */
-	public boolean isPartialOutButtonPressed() {
-		return mechController.getOptionsButtonPressed();
-	}
+			// Intake
 
-	/**
-	 * Getter for the intake button being pressed.
-	 * @return whether the intake button was pressed
-	 */
-	public boolean isIntakeButtonPressed() {
-		return mechController.getTriangleButtonPressed();
-	}
+			// Climber
+			case CLIMBER_MANUAL_CONTROL -> mechController.getLeftX();
 
-	/**
-	 * Getter for the intake button being released.
-	 * @return whether the intake button was released
-	 */
-	public boolean isIntakeButtonReleased() {
-		return mechController.getTriangleButtonReleased();
+			default -> throw new IllegalArgumentException("Unknown axis input");
+		};
 	}
-
-	/**
-	 * Getter for the outtake button being pressed.
-	 * @return whether the outtake button was pressed
-	 */
-	public boolean isOuttakeButtonPressed() {
-		return mechController.getSquareButtonPressed();
-	}
-
-	/**
-	 * Getter for the outtake button being released.
-	 * @return whether the outtake button was released
-	 */
-	public boolean isOuttakeButtonReleased() {
-		return mechController.getSquareButtonReleased();
-	}
-
 
 	@Override
 	public Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
 		return switch (key) {
 
-			// add / remove cases to reflect the InputTypes
-			case RESEED_DRIVETRAIN -> mechController::options;
+			// Drivetrain
+			case DRIVETRAIN_RESEED -> mechController::options;
+
+			// Intake
+			case INTAKE_FOLD_IN -> mechController::circle;
+			case INTAKE_FOLD_OUT -> mechController::circle;
+			case INTAKE_PARTIAL_OUT -> mechController::options;
+			case INTAKE_INTAKE -> mechController::triangle;
+			case INTAKE_OUTTAKE -> mechController::square;
+
+			// Climber
 			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
 			case CLIMBER_NEXT_STEP -> mechController::square;
 			case CLIMBER_EMERGENCY_ABORT -> mechController::R1;
 			case CLIMBER_DOWN_BUTTON -> mechController::R2;
 
-			default -> throw new IllegalArgumentException("Unknown button action");
+			default -> throw new IllegalArgumentException("Unknown button input");
 		};
 	}
-
-	@Override
-	public double getAxis(AxialInput key) {
-		return switch (key) {
-
-			// add / remove cases to reflect the InputTypes
-			case DRIVE_Y -> driveController.getLeftX();
-			case DRIVE_X -> driveController.getLeftY();
-			case ROTATE -> driveController.getRightX();
-			case CLIMBER_MANUAL_CONTROL -> mechController.getLeftX();
-
-			default -> throw new IllegalArgumentException("Unknown axis action");
-		};
-	}
-
 
 }
