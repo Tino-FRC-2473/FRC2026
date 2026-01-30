@@ -313,8 +313,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				}
 
 			case INTAKE_STATE:
-				boolean condition = !isAtSpeed() || !isAtAngle();		
-				if (!isAtSpeed() || !isAtAngle() || !input.getButtonPressed(ButtonInput.REV_INDEXER)) {
+				boolean condition = !isAtSpeed() || !isAtAngle();	
+				if (condition || !input.getButtonPressed(ButtonInput.REV_INDEXER)) {
 					indexMotor.set(0);
 					return pastState;
 					//pastState should only store shooter_prep, passer_prep, and manual_prep
