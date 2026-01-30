@@ -16,6 +16,7 @@ import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
+import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.ClimberFSMSystem;
 
 /**
@@ -30,6 +31,7 @@ public class Robot extends LoggedRobot {
 	// Systems
 	private Drivetrain drivetrain;
 	private ClimberFSMSystem climberFSMSystem;
+	private IntakeFSMSystem intakeFSMSystem;
 
 
 	/**
@@ -49,6 +51,7 @@ public class Robot extends LoggedRobot {
 			drivetrain = new Drivetrain();
 		}
 		climberFSMSystem = new ClimberFSMSystem();
+		intakeFSMSystem = new IntakeFSMSystem();
 	}
 
 	@Override
@@ -77,6 +80,7 @@ public class Robot extends LoggedRobot {
 		CommandScheduler.getInstance().cancelAll();
 		drivetrain.reset();
 		climberFSMSystem.reset();
+		intakeFSMSystem.reset();
 	}
 
 	@Override
@@ -84,6 +88,7 @@ public class Robot extends LoggedRobot {
 		drivetrain.update(input);
 		input.update();
 		climberFSMSystem.update((TeleopInput) input);
+		intakeFSMSystem.update((TeleopInput) input);
 
 		// logs motor values
 		MotorManager.update();

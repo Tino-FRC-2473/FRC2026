@@ -28,8 +28,9 @@ public final class HardwareMap {
 
 	// Place jumper from DIO pin 9 to GND to indicate this is a test setup
 	private static final int DIO_TEST_SETUP_CHANNEL = 9;
-	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT = 0;
-	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_RIGHT = 1;
+	// Use unique DIO ports for climber limit switches to avoid collisions with intake
+	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT = 2;
+	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_RIGHT = 3;
 	private static DigitalInput testBoardPin = new DigitalInput(HardwareMap.DIO_TEST_SETUP_CHANNEL);
 	/**
 	 * Check if the current RoboRIO is part of a test setup or real robot.
