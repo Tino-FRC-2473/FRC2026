@@ -90,9 +90,7 @@ public class IntakeFSM extends FSMSystem<IntakeFSM.IntakeState> {
 		return topLimitSwitch.get();
 	}
 
-	/**
-	 * Reset current the FSM state.
-	 */
+	@Override
 	public void reset() {
 		setCurrentState(IntakeState.IDLE_IN);
 
@@ -143,8 +141,6 @@ public class IntakeFSM extends FSMSystem<IntakeFSM.IntakeState> {
 		setCurrentState(nextState(input));
 		updateLogging();
 	}
-
-	/* ======================== Protected methods ======================== */
 
 	@Override
 	protected IntakeState nextState(Input input) {

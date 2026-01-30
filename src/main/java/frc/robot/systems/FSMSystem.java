@@ -12,7 +12,7 @@ import frc.robot.input.Input;
  */
 public abstract class FSMSystem<S> {
 
-	/* ======================== Public methods ======================== */
+	/* ======================== Private variables ======================== */
 
 	// Current FSM state
 	private S currentState;
@@ -36,71 +36,63 @@ public abstract class FSMSystem<S> {
 	}
 
 	/**
-	 * returns an ObservedStateCommand for the given states.
-	 * @param states the set of states to scan for
+	 * Get a command that waits for a sequence of states to be observed.
+	 * @param states the sequence of states
 	 * @return the command
 	 */
 	public ObservedStateCommand watchForStatesCommand(
-		@SuppressWarnings("unchecked") S... states) {
+			@SuppressWarnings("unchecked") S... states) {
 		return new ObservedStateCommand(states);
 	}
 
+	/* ======================== Abstract methods ======================== */
+
 	/**
-	 * Reset this system to its start state. This may be called from mode init
-	 * when the robot is enabled.
-	 *
-	 * Note this is distinct from the one-time initialization in the constructor
-	 * as it may be called multiple times in a boot cycle,
-	 * Ex. if the robot is enabled, disabled, then reenabled.
+	 * Reset the current FSM state.
 	 */
 	public abstract void reset();
 
 	/**
-	 * Update FSM based on new inputs. This function only calls the FSM state
-	 * specific handlers.
-	 * @param input Global Input reflecting the input to the robot
+	 * Update the FSM state periodically based on inputs.
+	 * @param input the input object
 	 */
 	public abstract void update(Input input);
 
 	/**
-	 * Decide the next state to transition to. This is a function of the inputs
-	 * and the current state of this FSM. This method should not have any side
-	 * effects on outputs. In other words, this method should only read or get
-	 * values to decide what state to go to.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *		the robot is in autonomous mode.
-	 * @return FSM state for the next iteration
+	 * Get the next state for the FSM based on inputs.
+	 * @param input the input object
+	 * @return the next state
 	 */
 	protected abstract S nextState(Input input);
 
-	private final class ObservedStateCommand extends Command {
+	/* ======================== Command classes ======================== */
 
-		private S[] endStateSequence;
-		private int numMatchingStates;
+	private final class ObservedStateCommand extends Command {
+		private S[] targetSequence;
+		private int sequenceProgress;
 
 		/**
-		 * creates an ObservedStateCommand, which is a command that does nothing
-		 * and ends when a particular sequence of states is observed.
-		 * @param states the sequence of states that triggers the command to end
+		 * Create a command that waits for a sequence of states to be observed.
+		 * @param states the sequence of states
 		 */
 		private ObservedStateCommand(@SuppressWarnings("unchecked") S... states) {
-			endStateSequence = states;
-			numMatchingStates = 0;
+			targetSequence = states;
+			sequenceProgress = 0;
 		}
 
 		@Override
 		public void execute() {
-			if (getCurrentState() == endStateSequence[numMatchingStates]) {
-				numMatchingStates++;
-			} else if (numMatchingStates > 0
-					&& getCurrentState() == endStateSequence[numMatchingStates - 1]) {
-				numMatchingStates = 0;
+			if (getCurrentState() == targetSequence[sequenceProgress]) {
+				sequenceProgress++;
+			} else if (sequenceProgress > 0
+					&& getCurrentState() == targetSequence[sequenceProgress - 1]) {
+				sequenceProgress = 0;
 			}
 		}
 
 		@Override
 		public boolean isFinished() {
-			return numMatchingStates >= endStateSequence.length;
+			return sequenceProgress >= targetSequence.length;
 		}
 	}
 
