@@ -21,7 +21,7 @@ public class AutoPaths {
 	 */
 	public static Command getTestAuto(AutoInput input, Drivetrain drivetrain) {
 		return new AutoBuilder()
-			.doNext(input.pressButtonCommand(ButtonInput.RESEED_DRIVETRAIN))
+			.doNext(input.pressButtonCommand(ButtonInput.DRIVETRAIN_RESEED))
 			.doNext(drivetrain.watchForStatesCommand(DrivetrainState.TELEOP))
 			.close();
 	}

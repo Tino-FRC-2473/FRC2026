@@ -162,15 +162,15 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		double xSpeed = MathUtil.applyDeadband(
-				-input.getAxis(AxialInput.DRIVE_X),
+				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
 				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double ySpeed = MathUtil.applyDeadband(
-				-input.getAxis(AxialInput.DRIVE_Y),
+				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
-				-input.getAxis(AxialInput.ROTATE),
+				-input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
 				DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
 
 		drivetrain.setControl(
@@ -180,7 +180,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
 		);
 
-		if (input.getButtonPressed(ButtonInput.RESEED_DRIVETRAIN)) {
+		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
 			drivetrain.seedFieldCentric();
 		}
 	}

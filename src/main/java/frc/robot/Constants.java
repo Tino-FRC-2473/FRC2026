@@ -9,6 +9,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Frequency;
 
 public class Constants {
+
 	public static final class DrivetrainConstants {
 		// Speed controls
 		// Decimal value corresponding to a percentage of max speed
@@ -32,13 +33,15 @@ public class Constants {
 		public static final Angle PARTIAL_OUT_TARGET_ANGLE = Units.Radians.of(0.79);
 
 		// Target velocities
-		public static final AngularVelocity INTAKE_TARGET_VELOCITY = Units.RotationsPerSecond.of(20);
-		public static final AngularVelocity OUTTAKE_TARGET_VELOCITY = Units.RotationsPerSecond.of(-25.0);
+		public static final AngularVelocity INTAKE_TARGET_VELOCITY = Units.RotationsPerSecond
+				.of(20);
+		public static final AngularVelocity OUTTAKE_TARGET_VELOCITY = Units.RotationsPerSecond
+				.of(-25.0);
 
 		// Gearing ratios
 		public static final double PIVOT_GEARING = 62.5 / (2 * Math.PI);
 		public static final double INTAKE_GEARING = 3.0 / (2 * Math.PI);
-		
+
 		// Motion magic constants
 		public static final double PIVOT_CRUISE_VELOCITY = 20;
 		public static final double PIVOT_ACCELERATION = 60;
@@ -107,4 +110,5 @@ public class Constants {
 		public static final Distance GROUND = Units.Inches.of(0.0);
 		public static final int CONTROL_REQUEST_SUBSTRING_START_INDEX = 9;
 	}
+
 }
