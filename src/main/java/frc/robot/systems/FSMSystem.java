@@ -1,27 +1,77 @@
 package frc.robot.systems;
 
+// Libary imports
 import edu.wpi.first.wpilibj2.command.Command;
+
+// Robot imports
 import frc.robot.input.Input;
 
 /**
- * This is a superclass for FSMs with NECCESARY methods to implement
- *
- * Start implementing an FSM by writing this in a new java file:
- *
- * <code>
- * enum FSMState {
- *	  // add states here
- * }
- * public class _______ extends FSMSystem&lt;FSMState&gt; {
- *	  ...
- * }
- * </code>
- *
- * Your compiler / IDE will tell you what methods you need to implement
- * You should also have state handlers shown in the example
- * @param <S> the type of state
+ * A superclass that all FSM systems should inherit from.
+ * @param <S> the enum containing all FSM states
  */
 public abstract class FSMSystem<S> {
+
+	/* ======================== Public methods ======================== */
+
+	// Current FSM state
+	private S currentState;
+
+	/* ======================== Public methods ======================== */
+
+	/**
+	 * Get the current FSM state.
+	 * @return the current FSM state
+	 */
+	public S getCurrentState() {
+		return currentState;
+	}
+
+	/**
+	 * Set the current FSM state.
+	 * @param newState the new state
+	 */
+	public void setCurrentState(S newState) {
+		currentState = newState;
+	}
+
+	/**
+	 * returns an ObservedStateCommand for the given states.
+	 * @param states the set of states to scan for
+	 * @return the command
+	 */
+	public ObservedStateCommand watchForStatesCommand(
+		@SuppressWarnings("unchecked") S... states) {
+		return new ObservedStateCommand(states);
+	}
+
+	/**
+	 * Reset this system to its start state. This may be called from mode init
+	 * when the robot is enabled.
+	 *
+	 * Note this is distinct from the one-time initialization in the constructor
+	 * as it may be called multiple times in a boot cycle,
+	 * Ex. if the robot is enabled, disabled, then reenabled.
+	 */
+	public abstract void reset();
+
+	/**
+	 * Update FSM based on new inputs. This function only calls the FSM state
+	 * specific handlers.
+	 * @param input Global Input reflecting the input to the robot
+	 */
+	public abstract void update(Input input);
+
+	/**
+	 * Decide the next state to transition to. This is a function of the inputs
+	 * and the current state of this FSM. This method should not have any side
+	 * effects on outputs. In other words, this method should only read or get
+	 * values to decide what state to go to.
+	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 *		the robot is in autonomous mode.
+	 * @return FSM state for the next iteration
+	 */
+	protected abstract S nextState(Input input);
 
 	private final class ObservedStateCommand extends Command {
 
@@ -53,64 +103,5 @@ public abstract class FSMSystem<S> {
 			return numMatchingStates >= endStateSequence.length;
 		}
 	}
-
-	/**
-	 * returns an ObservedStateCommand for the given states.
-	 * @param states the set of states to scan for
-	 * @return the command
-	 */
-	public ObservedStateCommand watchForStatesCommand(
-		@SuppressWarnings("unchecked") S... states) {
-		return new ObservedStateCommand(states);
-	}
-
-	/**
-	 * the current state, defined as part of the provided statespace.
-	 */
-	private S currentState;
-
-	/**
-	 * Return current FSM state.
-	 * @return Current FSM state
-	 */
-	public S getCurrentState() {
-		return currentState;
-	}
-
-	/**
-	 * Sets the current state.
-	 * @param newState the new state
-	 */
-	protected void setCurrentState(S newState) {
-		currentState = newState;
-	}
-
-	/**
-	 * Reset this system to its start state. This may be called from mode init
-	 * when the robot is enabled.
-	 *
-	 * Note this is distinct from the one-time initialization in the constructor
-	 * as it may be called multiple times in a boot cycle,
-	 * Ex. if the robot is enabled, disabled, then reenabled.
-	 */
-	public abstract void reset();
-
-	/**
-	 * Update FSM based on new inputs. This function only calls the FSM state
-	 * specific handlers.
-	 * @param input Global Input reflecting the input to the robot
-	 */
-	public abstract void update(Input input);
-
-	/**
-	 * Decide the next state to transition to. This is a function of the inputs
-	 * and the current state of this FSM. This method should not have any side
-	 * effects on outputs. In other words, this method should only read or get
-	 * values to decide what state to go to.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *		the robot is in autonomous mode.
-	 * @return FSM state for the next iteration
-	 */
-	protected abstract S nextState(Input input);
 
 }

@@ -44,9 +44,6 @@ public class IntakeFSM extends FSMSystem<IntakeFSM.IntakeState> {
 
 	/* ======================== Private variables ======================== */
 
-	// Current FSM state
-	private IntakeState currentState;
-
 	// MotionMagic requests
 	private MotionMagicVoltage pivotMotionRequest;
 	private MotionMagicVelocityVoltage intakeMotionRequest;
@@ -78,14 +75,6 @@ public class IntakeFSM extends FSMSystem<IntakeFSM.IntakeState> {
 	/* ======================== Public methods ======================== */
 
 	/**
-	 * Get the current FSM state.
-	 * @return the current FSM state
-	 */
-	public IntakeState getCurrentState() {
-		return currentState;
-	}
-
-	/**
 	 * Get the status of the ground limit switch.
 	 * @return whether the limit is reached
 	 */
@@ -105,7 +94,7 @@ public class IntakeFSM extends FSMSystem<IntakeFSM.IntakeState> {
 	 * Reset current the FSM state.
 	 */
 	public void reset() {
-		currentState = IntakeState.IDLE_IN;
+		setCurrentState(IntakeState.IDLE_IN);
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -151,7 +140,7 @@ public class IntakeFSM extends FSMSystem<IntakeFSM.IntakeState> {
 						+ getCurrentState().toString());
 		}
 
-		currentState = nextState(input);
+		setCurrentState(nextState(input));
 		updateLogging();
 	}
 
