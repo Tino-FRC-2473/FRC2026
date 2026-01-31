@@ -69,6 +69,7 @@ public class LimelightBallDetectionsJSON {
 	 * @return the NeuralDetector array of the best fuel. Will return null if no targets.
 	 */
 	public NeuralDetector getOptimalFuel() {
+		sortDetectorResults();
 		try {
 			return sortedDetectorResults[0];
 		} catch (java.lang.ArrayIndexOutOfBoundsException e) {
