@@ -56,6 +56,7 @@ public class Robot extends LoggedRobot {
 		System.out.println("-------- Autonomous Init --------");
 
 		AutoInput autoInput = new AutoInput();
+		input.reset();
 		input = autoInput;
 		CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
 	}
@@ -74,6 +75,7 @@ public class Robot extends LoggedRobot {
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
 		input = new TeleopInput();
+		input.reset();
 		CommandScheduler.getInstance().cancelAll();
 		drivetrain.reset();
 		climberFSMSystem.reset();
