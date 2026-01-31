@@ -22,6 +22,7 @@ public class InputTypes {
 		MANUAL_SHOOT_TOGGLE,
 		IDLE_SHOOTER_TOGGLE,
 		REV_INDEXER
+		CLIMBER_DOWN_BUTTON
 	}
 
 }
