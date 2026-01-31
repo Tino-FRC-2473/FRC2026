@@ -81,7 +81,7 @@ public final class AutoInput extends Input {
 	}
 
 	@Override
-	public double getAxis(AxialInput key) {
+	public double getAxisValue(AxialInput key) {
 		return axesValues.get(key);
 	}
 
