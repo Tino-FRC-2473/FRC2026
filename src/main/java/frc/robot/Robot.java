@@ -56,8 +56,8 @@ public class Robot extends LoggedRobot {
 		System.out.println("-------- Autonomous Init --------");
 
 		AutoInput autoInput = new AutoInput();
-		input.reset();
 		input = autoInput;
+		input.reset();
 		CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
 	}
 
