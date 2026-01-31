@@ -12,15 +12,21 @@ import frc.robot.input.InputTypes.ButtonInput;
 
 public abstract class Input {
 
-	private EventLoop inputEventLoop;
-	private Map<ButtonInput, BooleanEvent> buttonEvents;
+	private final EventLoop inputEventLoop;
+	private final Map<ButtonInput, BooleanEvent> buttonEvents;
+	private final BooleanEvent falseEvent;
 
-	/**
-	 * Constructs an Input object.
-	 */
-	public Input() {
+	Input() {
 		inputEventLoop = new EventLoop();
 		buttonEvents = new HashMap<>();
+		falseEvent = new BooleanEvent(inputEventLoop, () -> false);
+	}
+
+	/**
+	 * Resets the input object, resetting all button bindings.
+	 */
+	public void reset() {
+		buttonEvents.clear();
 		for (ButtonInput booleanSignal : ButtonInput.values()) {
 			buttonEvents.put(booleanSignal, getButton(booleanSignal).apply(inputEventLoop));
 		}
@@ -40,7 +46,7 @@ public abstract class Input {
 	 * @return the (raw) button value
 	 */
 	public boolean getButtonValue(ButtonInput key) {
-		return buttonEvents.get(key).getAsBoolean();
+		return getBooleanEvent(key).getAsBoolean();
 	}
 
 	/**
@@ -49,7 +55,7 @@ public abstract class Input {
 	 * @return the button pressed value
 	 */
 	public boolean getButtonPressed(ButtonInput key) {
-		return buttonEvents.get(key).rising().getAsBoolean();
+		return getBooleanEvent(key).rising().getAsBoolean();
 	}
 
 	/**
@@ -58,13 +64,13 @@ public abstract class Input {
 	 * @return the button released value
 	 */
 	public boolean getButtonReleased(ButtonInput key) {
-		return buttonEvents.get(key).falling().getAsBoolean();
+		return buttonEvents.getOrDefault(key, falseEvent).falling().getAsBoolean();
 	}
 
 	protected abstract Function<EventLoop, BooleanEvent> getButton(ButtonInput key);
 
 	protected BooleanEvent getBooleanEvent(ButtonInput key) {
-		return buttonEvents.get(key);
+		return buttonEvents.getOrDefault(key, falseEvent);
 	}
 
 	/**
