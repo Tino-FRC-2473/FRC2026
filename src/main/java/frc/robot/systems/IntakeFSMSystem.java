@@ -252,17 +252,6 @@ public class IntakeFSMSystem {
 		}
 	}
 
-
-	/**
-	 * Getter for intake current state.
-	 * @param input from TeleopInput.
-	 * @return intake current state.
-	*/
-	@AutoLogOutput(key = "Intake Button Pressed?")
-	public boolean getButtonPresses(TeleopInput input) {
-		return input.getButtonPressed(ButtonInput.INTAKE_BUTTON);
-	}
-
 	/**
 	 * Getter for intake current state.
 	 * @return intake current state.
