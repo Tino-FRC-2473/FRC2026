@@ -16,6 +16,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.Constants.DrivetrainConstants;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.input.Input;
@@ -200,6 +201,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 *
 	 */
 	public void targetHub() {
+		Pose2d transformPose = getPose().relativeTo(ShooterConstants.HUB_POSE);
+		
+
 
 	}
 }
