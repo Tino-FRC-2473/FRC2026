@@ -10,7 +10,6 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
@@ -169,7 +168,7 @@ public class IntakeFSMSystem {
 		intakeMotor.setPosition(0);
 
 		if (RobotBase.isSimulation()) {
-			new SingleJointedArmSim(DCMotor.getKrakenX60(2),
+			/*new SingleJointedArmSim(DCMotor.getKrakenX60(2),
 				IntakeConstants.INTAKE_PIVOT_GEARING,
 				IntakeConstants.J,
 				IntakeConstants.PIVOT_ARM_LENGTH,
@@ -178,7 +177,7 @@ public class IntakeFSMSystem {
 				true,
 				0,
 				0);
-
+			*/
 			simGroundLimitSwitch = new DIOSim(groundLimitSwitch);
 			simTopLimitSwitch = new DIOSim(topLimitSwitch);
 		}
@@ -253,6 +252,16 @@ public class IntakeFSMSystem {
 		}
 	}
 
+
+	/**
+	 * Getter for intake current state.
+	 * @param input from TeleopInput.
+	 * @return intake current state.
+	*/
+	@AutoLogOutput(key = "Intake Button Pressed?")
+	public boolean getButtonPresses(TeleopInput input) {
+		return input.getButtonPressed(ButtonInput.INTAKE_BUTTON);
+	}
 
 	/**
 	 * Getter for intake current state.

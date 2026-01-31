@@ -9,7 +9,7 @@ import frc.robot.input.Input;
  * Start implementing an FSM by writing this in a new java file:
  *
  * <code>
- * enum FSMState {
+ * enum FSMState
  *	  // add states here
  * }
  * public class _______ extends FSMSystem&lt;FSMState&gt; {
