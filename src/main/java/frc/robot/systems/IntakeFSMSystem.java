@@ -1,8 +1,6 @@
 package frc.robot.systems;
 
 import org.littletonrobotics.junction.AutoLogOutput;
-// WPILib Imports
-import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
@@ -12,17 +10,19 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
-
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.simulation.DIOSim;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 import static edu.wpi.first.units.Units.Radians;
 
 // Robot Imports
-import frc.robot.constants.IntakeConstants;
 import frc.robot.input.TeleopInput;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.motors.TalonFXWrapper;
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.HardwareMap;
 
 
@@ -52,6 +52,10 @@ public class IntakeFSMSystem {
 	private TalonFXWrapper intakeMotor;
 	private DigitalInput groundLimitSwitch;
 	private DigitalInput topLimitSwitch;
+
+	private SingleJointedArmSim intakeSim;
+	private DIOSim simGroundLimitSwitch;
+	private DIOSim simTopLimitSwitch;
 
 
 
@@ -126,21 +130,6 @@ public class IntakeFSMSystem {
 		intakeMotionMagicConfigs.MotionMagicAcceleration = IntakeConstants.INTAKE_TARGET_ACCEL;
 		intakeMotionMagicConfigs.MotionMagicExpo_kV = IntakeConstants.INTAKE_EXPO_KV;
 
-
-		pivotMotorLeft.getConfigurator().apply(talonFXConfigs);
-
-		BaseStatusSignal.setUpdateFrequencyForAll(
-				IntakeConstants.UPDATE_FREQUENCY_HZ,
-				pivotMotorLeft.getPosition(),
-				pivotMotorLeft.getVelocity(),
-				pivotMotorLeft.getAcceleration(),
-				pivotMotorLeft.getMotorVoltage(),
-				pivotMotorLeft.getRotorPosition(),
-				pivotMotorLeft.getRotorVelocity()
-		);
-
-		pivotMotorLeft.optimizeBusUtilization();
-
 		pivotMotorRight.getConfigurator().apply(talonFXConfigs);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
@@ -179,6 +168,21 @@ public class IntakeFSMSystem {
 		pivotMotorRight.setPosition(0);
 		intakeMotor.setPosition(0);
 
+		if (RobotBase.isSimulation()) {
+			new SingleJointedArmSim(DCMotor.getKrakenX60(2),
+				IntakeConstants.INTAKE_PIVOT_GEARING,
+				IntakeConstants.J,
+				IntakeConstants.PIVOT_ARM_LENGTH,
+				IntakeConstants.PIVOT_MIN_ROTATION,
+				IntakeConstants.PIVOT_MAX_ROTATION,
+				true,
+				0,
+				0);
+
+			simGroundLimitSwitch = new DIOSim(groundLimitSwitch);
+			simTopLimitSwitch = new DIOSim(topLimitSwitch);
+		}
+
 		// Reset state machine
 		reset();
 	}
@@ -212,9 +216,6 @@ public class IntakeFSMSystem {
 	 * @param input
 	 */
 	public void update(TeleopInput input) {
-		if (input != null) {
-			currentState = nextState(input);
-		}
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
 				handleIdleInState(input);
@@ -247,25 +248,21 @@ public class IntakeFSMSystem {
 			default:
 				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
 		}
-		updateLogging();
+		if (input != null) {
+			currentState = nextState(input);
+		}
 	}
+
 
 	/**
-	 * Updates the logging information for the elevator system.
-	 */
-	public void updateLogging() {
-		Logger.recordOutput("Intake/Current State", currentState);
-	}
-
-	/*
 	 * Getter for intake current state.
 	 * @return intake current state.
-
+	*/
 	@AutoLogOutput(key = "Intake/Intake Current State")
 	public IntakeFSMState getIntakeState() {
 		return currentState;
 	}
-	*/
+
 
 	/**
 	 * Getter for intake motor velocity.
@@ -439,7 +436,7 @@ public class IntakeFSMSystem {
 	 */
 	private void handlePartialOutState(TeleopInput input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
-			withPosition(IntakeConstants.PARTIAL_OUT_POSITION));
+			withPosition(IntakeConstants.PARTIAL_OUT_TARGET));
 	}
 	/**
 	 * Handle behavior in IDLE_OUT_STATE.
