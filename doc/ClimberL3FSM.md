@@ -1,3 +1,6 @@
+
+```mermaid
+
 ---
 config:
   layout: elk
@@ -13,26 +16,26 @@ stateDiagram
   MDC --> I:manualOverrideBtnReleased
   
   %% Alignment
-  I --> TA:nextBtn
-  TA --> L1E:nextBtn && isAligned()
+  I --> L1E:nextBtn && isAligned()
+
 
   %% L1 Sequence
-  L1E --> L1E:!(nextBtn && MH_Latched())
-  L1E --> L1R:nextBtn && MH_Latched()
+  L1E --> L1E:!(nextBtn && Moving_Hook_Latched())
+  L1E --> L1R:nextBtn && Moving_Hook_Latched()
   
-  L1R --> L1R:!(nextBtn && SH_Latched())
+  L1R --> L1R:!(nextBtn && Stationary_Hook_Latched())
   
   %% L2 Sequence
-  L1R --> L2E:nextBtn && SH_Latched()
-  L2E --> L2E:!(nextBtn && MH_Latched())
-  L2E --> L2R:nextBtn && MH_Latched()
+  L1R --> L2E:nextBtn && Stationary_Hook_Latched()
+  L2E --> L2E:!(nextBtn && Moving_Hook_Latched())
+  L2E --> L2R:nextBtn && Moving_Hook_Latched()
   
-  L2R --> L2R:!(nextBtn && SH_Latched())
+  L2R --> L2R:!(nextBtn && Stationary_Hook_Latched())
   
   %% L3 Sequence
-  L2R --> L3E:nextBtn && SH_Latched()
-  L3E --> L3E:!(nextBtn && MH_Latched())
-  L3E --> LF:nextBtn && MH_Latched()
+  L2R --> L3E:nextBtn && Stationary_Hook_Latched()
+  L3E --> L3E:!(nextBtn && Moving_Hook_Latched())
+  L3E --> LF:nextBtn && Moving_Hook_Latched()
 
   %% Safety & Auto Down
   L1E --> I:emergencyAbortBtnPressed
@@ -48,7 +51,6 @@ stateDiagram
 
   AI:AUTO_IDLE
   I:IDLE
-  TA:TOWER_ALIGN
   MDC:MANUAL_DIRECT_CONTROL
   L1E:L1_EXTEND
   L1R:L1_RETRACT
@@ -58,3 +60,4 @@ stateDiagram
   LF:LOCKED_FINAL
   AD1:AUTO_DOWN_ONE
   AD2:AUTO_DOWN_TWO
+  ```
