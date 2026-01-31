@@ -88,8 +88,8 @@ public class Constants {
 		//need to test by recording in some manner
 		public static final double MM_CONSTANT_V = 0.12; //taken straight from Phoenix6
 		public static final double MM_CONSTANT_A = 0.01; //taken straight from Phoenix6
-		public static final double HOOD_MAX_ANGLE = 70;
-		public static final double HOOD_MIN_ANGLE = 45;
+		public static final double HOOD_MAX_ANGLE = 45;
+		public static final double HOOD_MIN_ANGLE = 20;
 		public static final double HOOD_INCREMENTER = 5;
 		public static final double FLYWHEEL_INCREMENTER = 10;
 		public static final double FLYWHEEL_MAX_DEGREES = 360;

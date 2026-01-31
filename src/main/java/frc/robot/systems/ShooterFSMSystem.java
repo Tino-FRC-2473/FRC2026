@@ -313,7 +313,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				}
 
 			case INTAKE_STATE:
-				boolean condition = !isAtSpeed() || !isAtAngle();	
+				boolean condition = !isAtSpeed() || !isAtAngle();
 				if (condition || !input.getButtonPressed(ButtonInput.REV_INDEXER)) {
 					indexMotor.set(0);
 					return pastState;
@@ -440,6 +440,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		List<Object> targetValues = calculateTargetValues(hubPose);
 		flywheelTargetSpeed = (double) targetValues.get(0);
 		hoodTargetAngle = (double) targetValues.get(1);
+		drivetrain.targetHub();
 
 		updateFlywheel();
 		//TBD: code to find the distance vector from where we are to hub center (3d vector)

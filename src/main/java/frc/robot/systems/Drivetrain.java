@@ -195,4 +195,13 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return currentState;
 	}
 
+	/**
+	 * Aligns the bot to target the hub for shooting
+	 *
+	 * 
+	 */
+	public void targetHub(){
+
+	}
+
 }
