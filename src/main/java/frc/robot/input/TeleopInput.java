@@ -112,8 +112,6 @@ public final class TeleopInput extends Input {
 			case MANUAL_SHOOT_TOGGLE -> mechController::L2;
 			case REV_INDEXER -> mechController::R2;
 			case IDLE_SHOOTER_TOGGLE -> mechController::touchpad;
-			case CLIMBER_EMERGENCY_ABORT -> mechController::R1;
-			case CLIMBER_DOWN_BUTTON -> mechController::R2;
 
 			default -> throw new IllegalArgumentException("Unknown button action");
 		};
