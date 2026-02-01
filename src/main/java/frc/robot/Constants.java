@@ -2,9 +2,9 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.units.measure.AngularVelocity;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-import edu.wpi.first.units.measure.Distance;
+
+import static edu.wpi.first.units.Units.*;
+import edu.wpi.first.units.measure.*;
 
 public class Constants {
 	public static final class DrivetrainConstants {
@@ -68,18 +68,17 @@ public class Constants {
 		public static final double FLYWHEEL_GEAR_RATIO = 3;
 		public static final double INDEXER_GEAR_RATIO = 3;
 
-		public static final int UPDATE_FREQUENCY_HZ = 200;
-		public static final double FLYWHEEL_ACCELERATION = 160;
-		public static final double FLYWHEEL_JERK = 10 * FLYWHEEL_ACCELERATION;
-		public static final double HOOD_VELOCITY = 20;
-		public static final double HOOD_ACCELERATION = 2 * HOOD_VELOCITY;
-		public static final double HOOD_JERK = 10 * HOOD_ACCELERATION;
+		public static final Frequency UPDATE_FREQUENCY_HZ = Hertz.of(200);
+		public static final AngularAcceleration FLYWHEEL_ACCELERATION = DegreesPerSecondPerSecond.of(160);
+		public static final double FLYWHEEL_JERK = FLYWHEEL_ACCELERATION.times(10).per(Second).magnitude();
+		public static final AngularVelocity HOOD_VELOCITY = DegreesPerSecond.of(20);
+		public static final AngularAcceleration HOOD_ACCELERATION = DegreesPerSecondPerSecond.of(HOOD_VELOCITY.times(2).in(DegreesPerSecond));;
+		public static final double HOOD_JERK = HOOD_ACCELERATION.times(10).per(Second).magnitude();
 
-		public static final double FLYWHEEL_MOE = 0.5; //margin of error, subject to change
-		public static final double HOOD_MOE = 0.1; //margin of error, subject to change
+		public static final AngularVelocity FLYWHEEL_MOE = RotationsPerSecond.of(0.5); //margin of error, subject to change
+		public static final Angle HOOD_MOE = Degrees.of(0.1); //margin of error, subject to change
 
-		public static final double FLYWHEEL_MAX_SPEED = 160;
-		//rotations/second, temporary/placeholder
+		public static final AngularVelocity FLYWHEEL_MAX_SPEED = RotationsPerSecond.of(160);
 
 		public static final double FLYWHEEL_MM_CONSTANT_S = 0.1;
 		//need to test by recording small amount of input that allows any movement at all
@@ -87,11 +86,11 @@ public class Constants {
 		//need to test by recording in some manner
 		public static final double MM_CONSTANT_V = 0.12; //taken straight from Phoenix6
 		public static final double MM_CONSTANT_A = 0.01; //taken straight from Phoenix6
-		public static final double HOOD_MAX_ANGLE = 45;
-		public static final double HOOD_MIN_ANGLE = 20;
-		public static final double HOOD_INCREMENTER = 5;
-		public static final double FLYWHEEL_INCREMENTER = 10;
-		public static final double FLYWHEEL_MAX_DEGREES = 360;
+		public static final Angle HOOD_MAX_ANGLE = Degrees.of(45);
+		public static final Angle HOOD_MIN_ANGLE = Degrees.of(20);
+		public static final Angle HOOD_INCREMENTER = Degrees.of(5);
+		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(10);
+		public static final Angle FLYWHEEL_MAX_DEGREES = Degrees.of(360);
 
 		//All of these are placeholder values, all need to be changed
 		public static final double FLYWHEEL_MM_CONSTANT_P = 0;

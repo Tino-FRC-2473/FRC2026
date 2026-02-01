@@ -1,6 +1,10 @@
 # Intake FSM Spec
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 stateDiagram-v2
   state "Folding Out: PID to Out target" as FOLD_OUT_STATE
   state "Intaking" as INTAKE_STATE
