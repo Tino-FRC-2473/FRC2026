@@ -59,5 +59,10 @@ public class Constants {
 		public static final Distance L1_RETRACT_POS = Units.Inches.of(5.0);
 		public static final Distance GROUND = Units.Inches.of(0.0);
 		public static final int CONTROL_REQUEST_SUBSTRING_START_INDEX = 9;
+		public static final double CLIMBER_ANGLE_RAD = Math.toRadians(48.0);
+		public static final double CLIMBER_GEAR_RATIO = 9.0;
+		public static final double CLIMBER_WEIGHT_LBS = 15.0;
+		public static final double UPDATE_RATE = 0.02;
+		public static final double LIMIT_SWITCH_HEIGHT = 0.01;
 	}
 }

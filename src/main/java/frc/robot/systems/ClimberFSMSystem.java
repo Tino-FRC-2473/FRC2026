@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
 import frc.robot.HardwareMap;
 import frc.robot.input.TeleopInput;
+import frc.robot.motors.TalonFXWrapper;
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 
@@ -35,7 +36,7 @@ import static edu.wpi.first.units.Units.Inches;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 //import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.hardware.TalonFX;
+
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -55,20 +56,20 @@ public class ClimberFSMSystem  {
 		AUTO_IDLE
 	}
 
-	private final TalonFX climberMotorLeft;
-	private final TalonFX climberMotorRight;
+	private final TalonFXWrapper climberMotorLeft;
+	private final TalonFXWrapper climberMotorRight;
 	private final DigitalInput groundLimitSwitchLeft;
 	private final DigitalInput groundLimitSwitchRight;
 
-	private ElevatorSim m_sim;
-	private DIOSim m_limitSimLeft;
-    private DIOSim m_limitSimRight;
+	private ElevatorSim sim;
+	private DIOSim limitSimLeft;
+	private DIOSim limitSimRight;
 
 
 	private ClimberFSMState currentState;
 	private MotionMagicVoltage motionRequest;
 
-	private final double CLIMBER_ANGLE_RAD = Math.toRadians(48.0);
+
 
 
 	/**
@@ -77,8 +78,8 @@ public class ClimberFSMSystem  {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public ClimberFSMSystem() {
-		climberMotorLeft = new TalonFX(HardwareMap.CAN_ID_CLIMBER_LEFT);
-		climberMotorRight = new TalonFX(HardwareMap.CAN_ID_CLIMBER_RIGHT);
+		climberMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_LEFT);
+		climberMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_RIGHT);
 		groundLimitSwitchLeft = new DigitalInput(HardwareMap.
 			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT);
 		groundLimitSwitchRight = new DigitalInput(HardwareMap.
@@ -121,27 +122,28 @@ public class ClimberFSMSystem  {
 
 		climberMotorLeft.setPosition(0);
 		currentState = ClimberFSMState.IDLE;
-		
+
 		if (RobotBase.isSimulation()) {
-            // Adjust mass based on climber angle (Gravity component: mg * sin(theta))
-            double effectiveMass = Units.lbsToKilograms(15.0) * Math.sin(CLIMBER_ANGLE_RAD);
+			// Adjust mass based on climber angle (Gravity component: mg * sin(theta))
+			double effectiveMass = Units.lbsToKilograms(ClimberConstants.CLIMBER_WEIGHT_LBS)
+				* Math.sin(ClimberConstants.CLIMBER_ANGLE_RAD);
 
-            m_sim = new ElevatorSim(
-                DCMotor.getKrakenX60(2),
-                10.0,                                   // Gearing (Standard 10:1)
-                effectiveMass,                          // Angled effective mass
-                Units.inchesToMeters(1.0),              // Drum Radius
-                0.0,                                    // Min Height
-                Units.inchesToMeters(ClimberConstants.UPPER_THRESHOLD.in(Inches)), // Max Height
-                true,                                   // Simulate Gravity
-                0.0,                                    // Starting position
-                0.01,                                   // Measurement StdDev
-                0.0                                     // Starting velocity
-            );
+			sim = new ElevatorSim(
+				DCMotor.getKrakenX60(2),
+				ClimberConstants.CLIMBER_GEAR_RATIO,  // Gearing ( 9:1)
+				effectiveMass,						  // Angled effective mass
+				Units.inchesToMeters(1.0),			  // Drum Radius
+				0.0,									// Min Height
+				Units.inchesToMeters(ClimberConstants.UPPER_THRESHOLD.in(Inches)), // Max Height
+				true,								   // Simulate Gravity
+				0.0,									// Starting position
+				0.0,								   // Measurement StdDev
+				0.0									 // Starting velocity
+			);
 
-			m_limitSimLeft = new DIOSim(groundLimitSwitchLeft);
-            m_limitSimRight = new DIOSim(groundLimitSwitchRight);
-        }
+			limitSimLeft = new DIOSim(groundLimitSwitchLeft);
+			limitSimRight = new DIOSim(groundLimitSwitchRight);
+		}
 
 		reset();
 	}
@@ -175,27 +177,33 @@ public class ClimberFSMSystem  {
 	 * specific handlers.
 	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *              the robot is in autonomous mode.
+	 *			  the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
 
 		if (RobotBase.isSimulation()) {
-            m_sim.setInputVoltage(climberMotorLeft.getSimState().getMotorVoltage());
-            m_sim.update(0.020);
+			sim.setInputVoltage(climberMotorLeft.getSimState().getMotorVoltage());
+			sim.update(ClimberConstants.UPDATE_RATE);
 
-            double posInches = Units.metersToInches(m_sim.getPositionMeters());
-            double velInchesPerSec = Units.metersToInches(m_sim.getVelocityMetersPerSecond());
-            // Feed sim results back to motor state
-            var simState = climberMotorLeft.getSimState();
-            simState.setRawRotorPosition(posInches / ClimberConstants.ROTS_TO_INCHES);
-            simState.setRotorVelocity(velInchesPerSec / ClimberConstants.ROTS_TO_INCHES);
+			double drumCircumferenceMeters = Units.inchesToMeters(1.0) * 2 * Math.PI;
+			double gearRatio = ClimberConstants.CLIMBER_GEAR_RATIO;
 
-            // Update limit switch sims
-            boolean atBottom = posInches <= 0.1;
-            m_limitSimLeft.setValue(atBottom);
-            m_limitSimRight.setValue(atBottom);
+			double rotorRotations = (sim.getPositionMeters()
+				/ drumCircumferenceMeters) * gearRatio;
+			double rotorVelocityRPS = (sim.getVelocityMetersPerSecond()
+				/ drumCircumferenceMeters) * gearRatio;
 
-        }
+			// 3. Update the TalonFX SimState with Rotor-relative units
+			var simState = climberMotorLeft.getSimState();
+			simState.setRawRotorPosition(rotorRotations);
+			simState.setRotorVelocity(rotorVelocityRPS);
+
+			// 4. Update limit switches
+			boolean atBottom = sim.getPositionMeters() <= ClimberConstants.LIMIT_SWITCH_HEIGHT;
+			limitSimLeft.setValue(atBottom);
+			limitSimRight.setValue(atBottom);
+
+		}
 
 		if (input == null) {
 			return;
@@ -212,7 +220,7 @@ public class ClimberFSMSystem  {
 			case AUTO_DOWN_2 -> handleResetToZero(input);
 			case AUTO_UP_1 -> handleL1ExtendState(input);
 			case AUTO_UP_2 -> handleL1RetractState(input);
-			
+
 			default -> throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 
@@ -226,34 +234,53 @@ public class ClimberFSMSystem  {
 	public void updateLogging() {
 		double currentHeight = getClimberHeightInches();
 		double extension = Units.inchesToMeters(currentHeight);
-        double x = extension * Math.cos(CLIMBER_ANGLE_RAD);
-        double z = extension * Math.sin(CLIMBER_ANGLE_RAD);
+		double x = extension * Math.cos(ClimberConstants.CLIMBER_ANGLE_RAD);
+		double z = extension * Math.sin(ClimberConstants.CLIMBER_ANGLE_RAD);
 		Logger.recordOutput("Climber/3DPose", new Pose3d(
-            new Translation3d(x, 0, z), 
-            new Rotation3d(0, -CLIMBER_ANGLE_RAD, 0)
-        ));
+			new Translation3d(x, 0, z),
+			new Rotation3d(0, -ClimberConstants.CLIMBER_ANGLE_RAD, 0)
+		));
 
 		Logger.recordOutput("Climber/Control Request",
 			climberMotorLeft.getAppliedControl().toString().
 				substring(ClimberConstants.CONTROL_REQUEST_SUBSTRING_START_INDEX));
 	}
 
+	/**
+	 * Get the motor position in rotations.
+	 *
+	 * @return motor position in rotations
+	 */
 	@AutoLogOutput(key = "Climber/Position", unit = "rotations")
 	public double getMotorPosition() {
 		return climberMotorLeft.getPosition().getValueAsDouble();
 	}
 
+	/**
+	 * Get the motor velocity in rotations per second.
+	 *
+	 * @return motor velocity in rotations per second
+	 */
 	@AutoLogOutput(key = "Climber/Velocity", unit = "rps")
 	public double getMotorVelocity() {
 		return climberMotorLeft.getVelocity().getValueAsDouble();
 	}
 
+	/**
+	 * Get the motor voltage in volts.
+	 *
+	 * @return motor voltage in volts
+	 */
 	@AutoLogOutput(key = "Climber/Applied Voltage", unit = "volts")
 	public double getMotorVoltage() {
 		return climberMotorLeft.getMotorVoltage().getValueAsDouble();
 	}
 
-
+	/**
+	 * Get the climber height in inches.
+	 *
+	 * @return climber height in inches
+	 */
 	@AutoLogOutput(key = "Climber/Height Inches", unit = "inches")
 	private double getClimberHeightInches() {
 		return climberMotorLeft.getPosition().getValueAsDouble();
@@ -367,14 +394,20 @@ public class ClimberFSMSystem  {
 	private void handleManualDirectControlState(TeleopInput input) {
 		double manualControlValue = MathUtil.applyDeadband(input
 			.getAxis(AxialInput.CLIMBER_MANUAL_CONTROL),
-				ClimberConstants.JOYSTICK_DEADBAND);
+			ClimberConstants.JOYSTICK_DEADBAND);
+
 		if (groundLimitSwitchLeft.get() || groundLimitSwitchRight.get()) {
 			climberMotorLeft.setPosition(0);
-			return;
 		}
-		if (!((manualControlValue < 0 && getClimberHeightInches() <= Inches.of(0).in(Inches))
-			|| (manualControlValue > 0 && getClimberHeightInches()
-			>= ClimberConstants.UPPER_THRESHOLD.in(Inches)))) {
+
+		boolean atBottom = (groundLimitSwitchLeft.get() || groundLimitSwitchRight.get()
+			|| getClimberHeightInches() <= 0);
+		boolean atTop = (getClimberHeightInches() >= ClimberConstants.UPPER_THRESHOLD.in(Inches));
+
+		boolean isUnsafe = ((manualControlValue < 0 && atBottom)
+			|| (manualControlValue > 0 && atTop));
+
+		if (!isUnsafe) {
 			climberMotorLeft.set(manualControlValue * ClimberConstants.MANUAL_SCALE);
 		} else {
 			climberMotorLeft.set(0);
@@ -394,7 +427,8 @@ public class ClimberFSMSystem  {
 	}
 
 	private void handleResetToZero(TeleopInput input) {
-		if (groundLimitSwitchLeft.get() || getClimberHeightInches() <= 0) {
+		if (groundLimitSwitchLeft.get() || getClimberHeightInches() <= 0
+			|| groundLimitSwitchRight.get()) {
 			climberMotorLeft.set(0);
 		} else {
 			climberMotorLeft.setControl(motionRequest.withPosition(
