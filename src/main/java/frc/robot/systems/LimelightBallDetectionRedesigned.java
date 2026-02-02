@@ -3,8 +3,8 @@ package frc.robot.systems;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import frc.robot.Constants;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.logging.Logger;
 
 /**
@@ -34,6 +34,10 @@ public class LimelightBallDetectionRedesigned {
     private String targetJSON;
 
     private double lastTargetValid = -1.0;
+
+    private boolean autoUpdate = true;
+    private long lastAutoUpdateMs = 0L;
+    private long autoUpdateIntervalMs = Constants.LimelightConstants.AUTO_UPDATE_INTERVAL_MS;
 
     /**
     * Constructor for object detection class.
@@ -95,11 +99,57 @@ public class LimelightBallDetectionRedesigned {
     }
 
     /**
+     * Enables or disables automatic NetworkTables updates in getters.
+     * @param enabled true to auto-update on getter calls.
+     */
+    public void setAutoUpdate(boolean enabled) {
+        autoUpdate = enabled;
+    }
+
+    /**
+     * Returns whether automatic updates are enabled.
+     * @return true if auto-update is enabled.
+     */
+    public boolean isAutoUpdateEnabled() {
+        return autoUpdate;
+    }
+
+    /**
+     * Sets the minimum interval between automatic updates.
+     * @param intervalMs minimum interval in milliseconds
+     */
+    public void setAutoUpdateIntervalMs(long intervalMs) {
+        autoUpdateIntervalMs = Math.max(0L, intervalMs);
+    }
+
+    /**
+     * Returns the minimum interval between automatic updates.
+     * @return minimum interval in milliseconds
+     */
+    public long getAutoUpdateIntervalMs() {
+        return autoUpdateIntervalMs;
+    }
+
+    /**
+     * Updates target values if auto-update is enabled.
+     */
+    private void updateIfAuto() {
+        if (!autoUpdate) {
+            return;
+        }
+        long nowMs = System.currentTimeMillis();
+        if (nowMs - lastAutoUpdateMs >= autoUpdateIntervalMs) {
+            updateTargetValues();
+            lastAutoUpdateMs = nowMs;
+        }
+    }
+
+    /**
      * Gets a list of target values.
      * @return a list of the target values.
      */
     public double[] getTargetValuesList() {
-        updateTargetValues();
+        updateIfAuto();
         if (targetValid != 0.0) {
             double[] valueList = new double[]{
                 targetX,
@@ -119,7 +169,7 @@ public class LimelightBallDetectionRedesigned {
      * @return Returns a mapping of values to their names. Returns empty map if target isn't valid.
      */
     public Map<String, Double> getTargetValuesMap() {
-        updateTargetValues();
+        updateIfAuto();
         if (targetValid != 0.0) {
             Map<String, Double> valuesMap = Map.of(
                 "targetX", targetX,
@@ -130,7 +180,7 @@ public class LimelightBallDetectionRedesigned {
             );
             return valuesMap;
         } else {
-            return new HashMap<String, Double>();
+            return Map.of();
         }
     }
 
@@ -139,7 +189,7 @@ public class LimelightBallDetectionRedesigned {
      * @return true if targetValid is non-zero.
      */
     public boolean hasValidTarget() {
-        updateTargetValues();
+        updateIfAuto();
         return targetValid != 0.0;
     }
 
@@ -148,7 +198,7 @@ public class LimelightBallDetectionRedesigned {
      * @return target X offset.
      */
     public double getTargetX() {
-        updateTargetValues();
+        updateIfAuto();
         return targetX;
     }
 
@@ -157,7 +207,7 @@ public class LimelightBallDetectionRedesigned {
      * @return target Y offset.
      */
     public double getTargetY() {
-        updateTargetValues();
+        updateIfAuto();
         return targetY;
     }
 
@@ -166,7 +216,7 @@ public class LimelightBallDetectionRedesigned {
      * @return target area.
      */
     public double getTargetArea() {
-        updateTargetValues();
+        updateIfAuto();
         return targetArea;
     }
 
@@ -175,7 +225,7 @@ public class LimelightBallDetectionRedesigned {
      * @return target validity (0 or 1).
      */
     public double getTargetValid() {
-        updateTargetValues();
+        updateIfAuto();
         return targetValid;
     }
 
@@ -184,7 +234,7 @@ public class LimelightBallDetectionRedesigned {
      * @return target ID.
      */
     public double getTargetID() {
-        updateTargetValues();
+        updateIfAuto();
         return targetID;
     }
 
@@ -193,7 +243,7 @@ public class LimelightBallDetectionRedesigned {
      * @return JSON string.
      */
     public String getTargetJson() {
-        updateTargetValues();
+        updateIfAuto();
         return targetJSON;
     }
 
