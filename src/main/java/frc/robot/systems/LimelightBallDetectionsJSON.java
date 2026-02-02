@@ -3,6 +3,11 @@ package frc.robot.systems;
 import limelight.Limelight;
 import limelight.networktables.LimelightResults;
 import limelight.networktables.target.pipeline.NeuralDetector;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Arrays;
 
 
@@ -44,14 +49,25 @@ public class LimelightBallDetectionsJSON {
 			return;
 		}
 
-		NeuralDetector[] sortedDetectors = Arrays.copyOf(detectorResults, detectorResults.length);
-		Arrays.sort(
-			sortedDetectors,
-			(left, right) -> Double.compare(
-				Math.hypot(left.tx_pixels, left.ty_pixels),
-				Math.hypot(right.tx_pixels, right.ty_pixels)
-			)
-		);
+		double hypotenuse;
+		List<Double> hypotenuses = new ArrayList<Double>();
+		Map<Double, NeuralDetector> detectors = new HashMap<Double, NeuralDetector>();
+
+		for (NeuralDetector result : detectorResults) {
+			hypotenuse = Math.sqrt(Math.pow(result.tx_pixels, 2) + Math.pow(result.ty_pixels, 2));
+			hypotenuses.add(hypotenuse);
+			detectors.put(hypotenuse, result);
+		}
+
+		NeuralDetector[] sortedDetectors = new NeuralDetector[hypotenuses.size()];
+		Collections.sort(hypotenuses);
+		int index = 0;
+
+		for (double h : hypotenuses) {
+			sortedDetectors[index] = detectors.get(h);
+			index++;
+		}
+
 		sortedDetectorResults = sortedDetectors;
 	}
 
