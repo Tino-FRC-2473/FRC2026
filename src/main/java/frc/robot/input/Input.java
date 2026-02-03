@@ -57,12 +57,18 @@ public abstract class Input {
 	}
 
 	/**
-	 * An updater for the robot. This should be called periodically
-	 * in a relevant periodic method in robot.
+	 * Update the input loop periodically.
 	 */
 	public void update() {
 		inputEventLoop.poll();
 	}
+
+	/**
+	 * Gets the axis value for a specific axis.
+	 * @param key the axis identifier
+	 * @return the axis value
+	 */
+	public abstract double getAxisValue(AxialInput key);
 
 	/**
 	 * Gets the (raw) button value for a specific button.
@@ -96,12 +102,5 @@ public abstract class Input {
 	protected BooleanEvent getBooleanEvent(ButtonInput key, BooleanEventType type) {
 		return buttonEvents.getOrDefault(new ButtonInputDescriptor(key, type), falseEvent);
 	}
-
-	/**
-	 * Gets the axis value for a specific axis.
-	 * @param key the axis identifier
-	 * @return the axis value
-	 */
-	public abstract double getAxis(AxialInput key);
 
 }
