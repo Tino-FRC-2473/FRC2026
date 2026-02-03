@@ -18,8 +18,8 @@ public final class AutoInput extends Input {
 
 	public static final int DEFAULT_PRESS_DURATION_CYCLES = 5;
 
-	private Map<ButtonInput, Boolean> buttonValues;
-	private Map<AxialInput, Double> axesValues;
+	private final Map<ButtonInput, Boolean> buttonValues;
+	private final Map<AxialInput, Double> axesValues;
 
 	/**
 	 * Constructs an AutonInput to store input from commands
@@ -81,8 +81,8 @@ public final class AutoInput extends Input {
 	}
 
 	@Override
-	public double getAxis(AxialInput key) {
-		return axesValues.get(key);
+	public double getAxisValue(AxialInput key) {
+		return axesValues.getOrDefault(key, Double.valueOf(0));
 	}
 
 	@Override
