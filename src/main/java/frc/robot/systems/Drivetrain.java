@@ -202,8 +202,5 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	public void targetHub() {
 		Pose2d transformPose = getPose().relativeTo(ShooterConstants.HUB_POSE);
-		
-
-
 	}
 }

@@ -2,9 +2,19 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Frequency;
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Hertz;
+import static edu.wpi.first.units.Units.Seconds;
 
-import static edu.wpi.first.units.Units.*;
-import edu.wpi.first.units.measure.*;
 
 public class Constants {
 	public static final class DrivetrainConstants {
@@ -68,14 +78,21 @@ public class Constants {
 		public static final double FLYWHEEL_GEAR_RATIO = 3;
 		public static final double INDEXER_GEAR_RATIO = 3;
 
+		private static final double JERK_MULT_CONSTANT = 10;
+		//constant to change the magnitude of jerk from acceleration
 		public static final Frequency UPDATE_FREQUENCY_HZ = Hertz.of(200);
-		public static final AngularAcceleration FLYWHEEL_ACCELERATION = DegreesPerSecondPerSecond.of(160);
-		public static final double FLYWHEEL_JERK = FLYWHEEL_ACCELERATION.times(10).per(Second).magnitude();
+		public static final AngularAcceleration FLYWHEEL_ACCELERATION =
+			RotationsPerSecondPerSecond.of(160);
+		public static final double FLYWHEEL_JERK =
+			FLYWHEEL_ACCELERATION.times(JERK_MULT_CONSTANT).per(Seconds).magnitude();
 		public static final AngularVelocity HOOD_VELOCITY = DegreesPerSecond.of(20);
-		public static final AngularAcceleration HOOD_ACCELERATION = DegreesPerSecondPerSecond.of(HOOD_VELOCITY.times(2).in(DegreesPerSecond));;
-		public static final double HOOD_JERK = HOOD_ACCELERATION.times(10).per(Second).magnitude();
+		public static final AngularAcceleration HOOD_ACCELERATION =
+			DegreesPerSecondPerSecond.of(HOOD_VELOCITY.times(2).in(RotationsPerSecond));
+		public static final double HOOD_JERK =
+			HOOD_ACCELERATION.times(JERK_MULT_CONSTANT).per(Seconds).magnitude();
 
-		public static final AngularVelocity FLYWHEEL_MOE = RotationsPerSecond.of(0.5); //margin of error, subject to change
+		public static final AngularVelocity FLYWHEEL_MOE =
+			RotationsPerSecond.of(0.5); //margin of error, subject to change
 		public static final Angle HOOD_MOE = Degrees.of(0.1); //margin of error, subject to change
 
 		public static final AngularVelocity FLYWHEEL_MAX_SPEED = RotationsPerSecond.of(160);

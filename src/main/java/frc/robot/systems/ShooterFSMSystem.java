@@ -14,9 +14,13 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.AngularVelocityUnit;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
+
 
 
 import frc.robot.Constants.ShooterConstants;
@@ -88,11 +92,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 		hoodConfigs = new TalonFXConfiguration();
 
-		var hoodLimitSwitchConfigs = hoodConfigs.SoftwareLimitSwitch;
-		hoodLimitSwitchConfigs.ForwardSoftLimitEnable = true;
-		hoodLimitSwitchConfigs.ForwardSoftLimitThreshold = ShooterConstants.HOOD_MAX_ANGLE;
-		hoodLimitSwitchConfigs.ReverseSoftLimitEnable = true;
-		hoodLimitSwitchConfigs.ReverseSoftLimitThreshold = ShooterConstants.HOOD_MIN_ANGLE;
+		var hoodLimSwitchConfig = hoodConfigs.SoftwareLimitSwitch;
+		hoodLimSwitchConfig.ForwardSoftLimitEnable = true;
+		hoodLimSwitchConfig.ForwardSoftLimitThreshold = ShooterConstants.HOOD_MAX_ANGLE.in(Degrees);
+		hoodLimSwitchConfig.ReverseSoftLimitEnable = true;
+		hoodLimSwitchConfig.ReverseSoftLimitThreshold = ShooterConstants.HOOD_MIN_ANGLE.in(Degrees);
 
 		var hood0Config = hoodConfigs.Slot0;
 		hood0Config.GravityType = GravityTypeValue.Arm_Cosine;
@@ -112,13 +116,17 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		hood0Config.kD = ShooterConstants.HOOD_MM_CONSTANT_D;
 
 		var hoodMotionMagicConfigs = hoodConfigs.MotionMagic;
-		hoodMotionMagicConfigs.MotionMagicCruiseVelocity = ShooterConstants.HOOD_VELOCITY;
-		hoodMotionMagicConfigs.MotionMagicAcceleration = ShooterConstants.HOOD_ACCELERATION;
-		hoodMotionMagicConfigs.MotionMagicJerk = ShooterConstants.HOOD_JERK;
+		hoodMotionMagicConfigs.MotionMagicCruiseVelocity =
+			ShooterConstants.HOOD_VELOCITY.in(DegreesPerSecond);
+		hoodMotionMagicConfigs.MotionMagicAcceleration =
+			ShooterConstants.HOOD_ACCELERATION.in(DegreesPerSecondPerSecond);
+		hoodMotionMagicConfigs.MotionMagicJerk =
+			ShooterConstants.HOOD_JERK;
 
 		var hoodFeedbackConfigs = hoodConfigs.Feedback;
 		//set to 2 (divided by 360 to get in terms of degrees)
-		var hoodRatio = ShooterConstants.HOOD_GEAR_RATIO / ShooterConstants.FLYWHEEL_MAX_DEGREES;
+		var hoodRatio =
+			ShooterConstants.HOOD_GEAR_RATIO / ShooterConstants.FLYWHEEL_MAX_DEGREES.in(Degrees);
 		hoodFeedbackConfigs.SensorToMechanismRatio = hoodRatio;
 
 		hoodMotor.getConfigurator().apply(hoodConfigs);
@@ -140,7 +148,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 		var flywheelMotionMagicConfigs = flywheelConfigs.MotionMagic;
 		//160 rps/s
-		flywheelMotionMagicConfigs.MotionMagicAcceleration = ShooterConstants.FLYWHEEL_ACCELERATION;
+		flywheelMotionMagicConfigs.MotionMagicAcceleration =
+			ShooterConstants.FLYWHEEL_ACCELERATION.in(RotationsPerSecondPerSecond);
 		//1600 rps/s/s, 10* acceleration
 		flywheelMotionMagicConfigs.MotionMagicJerk = ShooterConstants.FLYWHEEL_JERK;
 
@@ -219,9 +228,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @return Boolean statement whether or not it is at flywheel speed or not
 	 */
 	public boolean isAtSpeed() {
-		double flyDifference = flywheelTargetSpeed.magnitude() - flywheelSpeed.magnitude();
+		double flyDifference =
+			flywheelTargetSpeed.in(RotationsPerSecond) - flywheelSpeed.in(RotationsPerSecond);
 		return (
-			Math.abs(flyDifference) <= ShooterConstants.FLYWHEEL_MOE
+			Math.abs(flyDifference) <= ShooterConstants.FLYWHEEL_MOE.in(RotationsPerSecond)
 			);
 	}
 
@@ -230,9 +240,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @return Boolean statement whether or not it is at angle or not
 	 */
 	public boolean isAtAngle() {
-		double hoodDifference = hoodTargetAngle.magnitude() - hoodAngle.magnitude();
+		double hoodDifference = hoodTargetAngle.in(Degrees) - hoodAngle.in(Degrees);
 		return (
-			Math.abs(hoodDifference) < ShooterConstants.HOOD_MOE
+			Math.abs(hoodDifference) < ShooterConstants.HOOD_MOE.in(Degrees)
 			);
 	}
 
@@ -398,7 +408,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 */
 	private void handleIdleState(TeleopInput input) {
 		flywheelTargetSpeed = RotationsPerSecond.of(0);
-		hoodTargetAngle = Degrees.of(ShooterConstants.HOOD_MAX_ANGLE);
+		hoodTargetAngle = ShooterConstants.HOOD_MAX_ANGLE;
 		updateFlywheel();
 		updateHood();
 		indexMotor.set(0);
@@ -484,7 +494,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		//shooter_prep_toggle will be for hood movement
 		// passer_prep_toggle will be the deincrementer
 		// manual_shoot_toggle will be the flywheel control
-		double hoodIncrement = ShooterConstants.HOOD_INCREMENTER;
+		double hoodIncrement = ShooterConstants.HOOD_INCREMENTER.in(Degrees);
 		// for checkstyles
 		//if hood is changing
 		boolean hoodSet = input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE);
@@ -494,25 +504,27 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		boolean flywheelSet = input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE);
 
 		if (hoodSet && incrementSet) {
-			if (hoodTargetAngle.magnitude() - hoodIncrement >= ShooterConstants.HOOD_MIN_ANGLE) {
-				hoodTargetAngle = Degrees.of(hoodTargetAngle.magnitude() - hoodIncrement);
+			double hoodChangeMinus = hoodTargetAngle.in(Degrees) - hoodIncrement;
+			if (hoodChangeMinus >= ShooterConstants.HOOD_MIN_ANGLE.in(Degrees)) {
+				hoodTargetAngle = Degrees.of(hoodTargetAngle.in(Degrees) - hoodIncrement);
 			} else {
-				hoodTargetAngle = Degrees.of(ShooterConstants.HOOD_MIN_ANGLE);
+				hoodTargetAngle = ShooterConstants.HOOD_MIN_ANGLE;
 			}
 			//decrease hood angle by 5 degrees
 		} else if (hoodSet) {
-			if (hoodTargetAngle.magnitude() + hoodIncrement <= ShooterConstants.HOOD_MAX_ANGLE) {
-				hoodTargetAngle = Degrees.of(hoodTargetAngle.magnitude() + hoodIncrement);
+			double hoodChangePlus = hoodTargetAngle.in(Degrees) + hoodIncrement;
+			if (hoodChangePlus <= ShooterConstants.HOOD_MAX_ANGLE.in(Degrees)) {
+				hoodTargetAngle = Degrees.of(hoodTargetAngle.in(Degrees) + hoodIncrement);
 			} else {
-				hoodTargetAngle = Degrees.of(ShooterConstants.HOOD_MAX_ANGLE);
+				hoodTargetAngle = ShooterConstants.HOOD_MAX_ANGLE;
 			}
 			//increase hood angle by 5 degrees
 		}
 		updateHood();
-		double flyIncrement = ShooterConstants.FLYWHEEL_INCREMENTER;
+		double flyIncrement = ShooterConstants.FLYWHEEL_INCREMENTER.in(RotationsPerSecond);
 		//how much the flywheel speed increases/decreases each click
 		if (flywheelSet && incrementSet) {
-			var change = flywheelTargetSpeed.magnitude() - flyIncrement;
+			var change = flywheelTargetSpeed.in(RotationsPerSecond) - flyIncrement;
 			if (change > 0) {
 				flywheelTargetSpeed = RotationsPerSecond.of(change);
 			} else {
@@ -520,11 +532,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			}
 			//decrease flywheel speed by some constant, right now set to 10 m/s
 		} else if (flywheelSet) {
-			var change = flywheelTargetSpeed.magnitude() + flyIncrement;
-			if (change < ShooterConstants.FLYWHEEL_MAX_SPEED) {
+			var change = flywheelTargetSpeed.in(RotationsPerSecond) + flyIncrement;
+			if (change < ShooterConstants.FLYWHEEL_MAX_SPEED.in(RotationsPerSecond)) {
 				flywheelTargetSpeed = RotationsPerSecond.of(change);
 			} else {
-				flywheelTargetSpeed = RotationsPerSecond.of(ShooterConstants.FLYWHEEL_MAX_SPEED);
+				flywheelTargetSpeed = ShooterConstants.FLYWHEEL_MAX_SPEED;
 			}
 
 			//increase flywheel speed by some constant, right now set to 10 m/s
