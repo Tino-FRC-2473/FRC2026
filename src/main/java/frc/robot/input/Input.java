@@ -82,4 +82,11 @@ public abstract class Input {
 		return buttonEvents.getOrDefault(key, falseEvent);
 	}
 
+	/**
+	 * Gets the axis value for a specific axis.
+	 * @param key the axis identifier
+	 * @return the axis value
+	 */
+	public abstract double getAxis(AxialInput key);
+
 }
