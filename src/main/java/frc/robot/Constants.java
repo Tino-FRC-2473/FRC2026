@@ -7,6 +7,10 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 
 public class Constants {
+	public static final class LimelightConstants {
+		public static final long AUTO_UPDATE_INTERVAL_MS = 20L;
+	}
+
 	public static final class DrivetrainConstants {
 		public static final int NUM_MODULES = 4;
 		public static final double SYS_ID_VOLT_DAMP = 6;
