@@ -12,17 +12,47 @@ import frc.robot.input.InputTypes.ButtonInput;
 
 public abstract class Input {
 
-	private EventLoop inputEventLoop;
-	private Map<ButtonInput, BooleanEvent> buttonEvents;
+	protected enum BooleanEventType {
+		BASE(e -> e),
+		RISING(e -> e.rising()),
+		FALLING(e -> e.falling());
 
-	/**
-	 * Create an Input object.
-	 */
-	public Input() {
+		private Function<BooleanEvent, BooleanEvent> eventTransformer;
+
+		public Function<BooleanEvent, BooleanEvent> getTransformer() {
+			return eventTransformer;
+		}
+
+		BooleanEventType(Function<BooleanEvent, BooleanEvent> eventModification) {
+			eventTransformer = eventModification;
+		}
+	}
+
+	private record ButtonInputDescriptor(ButtonInput key, BooleanEventType type) { }
+
+	private final EventLoop inputEventLoop;
+	private final Map<ButtonInputDescriptor, BooleanEvent> buttonEvents;
+	private final BooleanEvent falseEvent;
+
+	Input() {
 		inputEventLoop = new EventLoop();
 		buttonEvents = new HashMap<>();
+		falseEvent = new BooleanEvent(inputEventLoop, () -> false);
+	}
+
+	/**
+	 * Resets the input object, resetting all button bindings.
+	 */
+	public void reset() {
+		buttonEvents.clear();
+		inputEventLoop.clear();
 		for (ButtonInput booleanSignal : ButtonInput.values()) {
-			buttonEvents.put(booleanSignal, getButton(booleanSignal).apply(inputEventLoop));
+			for (BooleanEventType type : BooleanEventType.values()) {
+				buttonEvents.put(
+					new ButtonInputDescriptor(booleanSignal, type),
+					type.eventTransformer.apply(getButton(booleanSignal).apply(inputEventLoop))
+				);
+			}
 		}
 	}
 
@@ -46,7 +76,7 @@ public abstract class Input {
 	 * @return the (raw) button value
 	 */
 	public boolean getButtonValue(ButtonInput key) {
-		return buttonEvents.get(key).getAsBoolean();
+		return getBooleanEvent(key, BooleanEventType.BASE).getAsBoolean();
 	}
 
 	/**
@@ -55,7 +85,7 @@ public abstract class Input {
 	 * @return the button pressed value
 	 */
 	public boolean getButtonPressed(ButtonInput key) {
-		return buttonEvents.get(key).rising().getAsBoolean();
+		return getBooleanEvent(key, BooleanEventType.RISING).getAsBoolean();
 	}
 
 	/**
@@ -64,13 +94,13 @@ public abstract class Input {
 	 * @return the button released value
 	 */
 	public boolean getButtonReleased(ButtonInput key) {
-		return buttonEvents.get(key).falling().getAsBoolean();
+		return getBooleanEvent(key, BooleanEventType.FALLING).getAsBoolean();
 	}
 
 	protected abstract Function<EventLoop, BooleanEvent> getButton(ButtonInput key);
 
-	protected BooleanEvent getBooleanEvent(ButtonInput key) {
-		return buttonEvents.get(key);
+	protected BooleanEvent getBooleanEvent(ButtonInput key, BooleanEventType type) {
+		return buttonEvents.getOrDefault(new ButtonInputDescriptor(key, type), falseEvent);
 	}
 
 }
