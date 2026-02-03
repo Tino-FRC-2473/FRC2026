@@ -393,10 +393,9 @@ public class ClimberFSMSystem  {
 
 	private void handleManualDirectControlState(TeleopInput input) {
 		double manualControlValue = MathUtil.applyDeadband(input
-			.getAxis(AxialInput.CLIMBER_MANUAL_CONTROL),
-			ClimberConstants.JOYSTICK_DEADBAND);
-
-		if (groundLimitSwitchLeft.get() || groundLimitSwitchRight.get()) {
+			.getAxisValue(AxialInput.CLIMBER_MANUAL_CONTROL),
+				ClimberConstants.JOYSTICK_DEADBAND);
+		if (groundLimitSwitchLeft.get()) {
 			climberMotorLeft.setPosition(0);
 		}
 
