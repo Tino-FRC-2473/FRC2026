@@ -103,11 +103,5 @@ public abstract class Input {
 		return buttonEvents.getOrDefault(new ButtonInputDescriptor(key, type), falseEvent);
 	}
 
-	/**
-	 * Gets the axis value for a specific axis.
-	 * @param key the axis identifier
-	 * @return the axis value
-	 */
-	public abstract double getAxis(AxialInput key);
 
 }
