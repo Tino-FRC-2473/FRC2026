@@ -67,6 +67,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private TalonFXConfiguration flywheelConfigs;
 	private TalonFXConfiguration indexConfigs;
 	private Drivetrain drivetrain;
+	private MotionMagicVelocityVoltage flywheelRequest;
+	private MotionMagicVoltage hoodRequest;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -80,6 +82,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		target3Pose = ShooterConstants.TARGET3_POSE;
 		hubPose = ShooterConstants.HUB_POSE;
 
+		flywheelRequest = new MotionMagicVelocityVoltage(0);
+		hoodRequest = new MotionMagicVoltage(0);
 		flywheelMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_FLYWHEEL
 		);
@@ -257,29 +261,32 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	@Override
 	public void update(Input input) {
 		curPose = drivetrain.getPose();
-		switch (getCurrentState()) {
-			case IDLE_STATE:
-				handleIdleState((TeleopInput) input);
-				break;
+		if (getCurrentState() != null) {
+			switch (getCurrentState()) {
+				case IDLE_STATE:
+					handleIdleState((TeleopInput) input);
+					break;
 
-			case SHOOTER_PREP_STATE:
-				handleShooterPrepState((TeleopInput) input);
-				break;
+				case SHOOTER_PREP_STATE:
+					handleShooterPrepState((TeleopInput) input);
+					break;
 
-			case PASSER_PREP_STATE:
-				handlePasserPrepState((TeleopInput) input);
-				break;
+				case PASSER_PREP_STATE:
+					handlePasserPrepState((TeleopInput) input);
+					break;
 
-			case INTAKE_STATE:
-				handleIntakeState((TeleopInput) input);
-				break;
+				case INTAKE_STATE:
+					handleIntakeState((TeleopInput) input);
+					break;
 
-			case MANUAL_PREP_STATE:
-				handleManualPrepState((TeleopInput) input);
-				break;
+				case MANUAL_PREP_STATE:
+					handleManualPrepState((TeleopInput) input);
+					break;
 
-			default:
-				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
+				default:
+					throw new IllegalStateException("Invalid state: "
+					+ getCurrentState().toString());
+			}
 		}
 		setCurrentState(nextState(input));
 	}
@@ -302,102 +309,108 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	@Override
 	protected ShooterFSMState nextState(Input input) {
-		switch (getCurrentState()) {
-			case IDLE_STATE:
-				if (input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.PASSER_PREP_STATE;
-				} else if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.SHOOTER_PREP_STATE;
-				} else if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.MANUAL_PREP_STATE;
-				}
+		if (getCurrentState() != null) {
+			switch (getCurrentState()) {
+				case IDLE_STATE:
+					if (input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.PASSER_PREP_STATE;
+					} else if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.SHOOTER_PREP_STATE;
+					} else if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.MANUAL_PREP_STATE;
+					}
 
-			case PASSER_PREP_STATE:
-				if (input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.IDLE_STATE;
-				}
-				if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.SHOOTER_PREP_STATE;
-				}
-				if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.MANUAL_PREP_STATE;
-				}
-				if (isAtSpeed() && isAtAngle() && input.getButtonPressed(ButtonInput.REV_INDEXER)) {
-					//need to make sure to change colors for if its at speed and at angle so that
-					// they know when to pull triggers
-					pastState = getCurrentState();
-					return ShooterFSMState.INTAKE_STATE;
-				}
+				case PASSER_PREP_STATE:
+					if (input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.IDLE_STATE;
+					}
+					if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.SHOOTER_PREP_STATE;
+					}
+					if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.MANUAL_PREP_STATE;
+					}
+					if (isAtSpeed() && isAtAngle()
+						&& input.getButtonPressed(ButtonInput.REV_INDEXER)) {
+						//need to change colors for if its at speed and at angle so that
+						// they know when to pull triggers
+						pastState = getCurrentState();
+						return ShooterFSMState.INTAKE_STATE;
+					}
 
-			case INTAKE_STATE:
-				boolean condition = !isAtSpeed() || !isAtAngle();
-				if (condition || !input.getButtonPressed(ButtonInput.REV_INDEXER)) {
-					indexMotor.set(0);
-					return pastState;
-					//pastState should only store shooter_prep, passer_prep, and manual_prep
-				}
+				case INTAKE_STATE:
+					boolean condition = !isAtSpeed() || !isAtAngle();
+					if (condition || !input.getButtonPressed(ButtonInput.REV_INDEXER)) {
+						return pastState;
+						//pastState should only store shooter_prep, passer_prep, and manual_prep
+					}
 
-				if (input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.IDLE_STATE;
-				}
+					if (input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.IDLE_STATE;
+					}
 
-				if (input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.PASSER_PREP_STATE;
-				}
+					if (input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.PASSER_PREP_STATE;
+					}
 
-				if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.SHOOTER_PREP_STATE;
-				}
+					if (input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.SHOOTER_PREP_STATE;
+					}
 
-				if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.MANUAL_PREP_STATE;
-				}
+					if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.MANUAL_PREP_STATE;
+					}
 
-			case SHOOTER_PREP_STATE:
-				if (input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.IDLE_STATE;
-				}
-				if (input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.PASSER_PREP_STATE;
-				}
-				if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.MANUAL_PREP_STATE;
-				}
-				if (isAtSpeed() && isAtAngle() && input.getButtonPressed(ButtonInput.REV_INDEXER)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.INTAKE_STATE;
-				}
+				case SHOOTER_PREP_STATE:
+					if (input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.IDLE_STATE;
+					}
+					if (input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.PASSER_PREP_STATE;
+					}
+					if (input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.MANUAL_PREP_STATE;
+					}
+					if (isAtSpeed() && isAtAngle()
+						&& input.getButtonPressed(ButtonInput.REV_INDEXER)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.INTAKE_STATE;
+					}
 
-			case MANUAL_PREP_STATE:
-				// Manual can only go to idle (we need the button inputs for right and left
-				// bumper to adjust manually)
-				if (input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.IDLE_STATE;
-				}
+				case MANUAL_PREP_STATE:
+					// Manual can only go to idle (we need the button inputs for right and left
+					// bumper to adjust manually)
+					if (input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.IDLE_STATE;
+					}
 
-				boolean atTarget = isAtSpeed() && isAtAngle();
-				if (atTarget && input.getButtonPressed(ButtonInput.REV_INDEXER)) {
-					pastState = getCurrentState();
-					return ShooterFSMState.INTAKE_STATE;
-				}
+					boolean atTarget = isAtSpeed() && isAtAngle();
+					if (atTarget && input.getButtonPressed(ButtonInput.REV_INDEXER)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.INTAKE_STATE;
+					}
 
-			default:
-				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
+				default:
+					throw new IllegalStateException("Invalid state: "
+					+ getCurrentState().toString());
+			}
 		}
+
+		throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
@@ -475,7 +488,13 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleIntakeState(TeleopInput input) {
-		indexMotor.setVoltage(flywheelMotor.getMotorVoltage().getValueAsDouble());
+		boolean condition = !isAtSpeed() || !isAtAngle();
+		if (condition || !input.getButtonPressed(ButtonInput.REV_INDEXER)) {
+			indexMotor.set(0);
+			//pastState should only store shooter_prep, passer_prep, and manual_prep
+		} else {
+			indexMotor.setVoltage(flywheelMotor.getMotorVoltage().getValueAsDouble());
+		}
 	}
 
 	/**
@@ -549,14 +568,12 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	}
 
 	private void updateFlywheel() {
-		MotionMagicVelocityVoltage flywheelRequest = new MotionMagicVelocityVoltage(0);
 		flywheelMotor.setControl(flywheelRequest.withVelocity(flywheelTargetSpeed.magnitude()));
 		var curSpeed = flywheelMotor.getVelocity().getValue().in(Units.RotationsPerSecond);
 		flywheelSpeed = RotationsPerSecond.of(curSpeed);
 	}
 
 	private void updateHood() {
-		MotionMagicVoltage hoodRequest = new MotionMagicVoltage(0);
 		hoodMotor.setControl(hoodRequest.withPosition(hoodTargetAngle.magnitude()));
 		hoodAngle = Degrees.of(hoodMotor.getPosition().getValue().in(Units.Degrees));
 	}
