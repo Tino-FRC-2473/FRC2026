@@ -114,6 +114,12 @@ public class Constants {
 		public static final double CLIMBER_WEIGHT_LBS = 15.0;
 		public static final double UPDATE_RATE = 0.02;
 		public static final double LIMIT_SWITCH_HEIGHT = 0.01;
+		public static final double EFFECTIVE_WEIGHT = edu.wpi.first.math.util.Units.lbsToKilograms(
+			ClimberConstants.CLIMBER_WEIGHT_LBS)
+			* Math.sin(ClimberConstants.CLIMBER_ANGLE_RAD
+			);
+		public static final double DRUM_CIRCUMFERENCE_METERS = edu.wpi.first.math.util.Units
+			.inchesToMeters(1.0) * 2 * Math.PI;
 	}
 
 }

@@ -127,8 +127,7 @@ public class ClimberFSMSystem  {
 
 		if (RobotBase.isSimulation()) {
 			// Adjust mass based on climber angle (Gravity component: mg * sin(theta))
-			double effectiveMass = Units.lbsToKilograms(ClimberConstants.CLIMBER_WEIGHT_LBS)
-				* Math.sin(ClimberConstants.CLIMBER_ANGLE_RAD);
+			double effectiveMass = ClimberConstants.EFFECTIVE_WEIGHT;
 
 			sim = new ElevatorSim(
 				DCMotor.getKrakenX60(2),
@@ -187,7 +186,7 @@ public class ClimberFSMSystem  {
 			sim.setInputVoltage(climberMotorLeft.getSimState().getMotorVoltage());
 			sim.update(ClimberConstants.UPDATE_RATE);
 
-			double drumCircumferenceMeters = Units.inchesToMeters(1.0) * 2 * Math.PI;
+			double drumCircumferenceMeters = ClimberConstants.DRUM_CIRCUMFERENCE_METERS;
 			double gearRatio = ClimberConstants.CLIMBER_GEAR_RATIO;
 
 			double rotorRotations = (sim.getPositionMeters()
