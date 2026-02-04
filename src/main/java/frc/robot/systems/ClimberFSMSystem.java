@@ -9,6 +9,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
+
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
@@ -24,6 +25,7 @@ import org.littletonrobotics.junction.Logger;
 
 import frc.robot.Constants.ClimberConstants;
 
+
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
@@ -37,10 +39,10 @@ import static edu.wpi.first.units.Units.Inches;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 //import com.ctre.phoenix6.controls.VoltageOut;
 
-import com.ctre.phoenix6.signals.GravityTypeValue;
+
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
+
 
 public class ClimberFSMSystem  {
 	public enum ClimberFSMState {
@@ -103,15 +105,15 @@ public class ClimberFSMSystem  {
 		sensorConfig.SensorToMechanismRatio = ClimberConstants.ROTS_TO_INCHES;
 
 		var slot0 = talonFXConfigs.Slot0;
-		slot0.GravityType = GravityTypeValue.Elevator_Static;
-		slot0.kG = ClimberConstants.KG;
+		//slot0.GravityType = GravityTypeValue.Elevator_Static;
+		//slot0.kG = ClimberConstants.KG;
 		slot0.kS = ClimberConstants.KS;
 		slot0.kV = ClimberConstants.KV;
 		slot0.kA = ClimberConstants.KA;
 		slot0.kP = ClimberConstants.KP;
 		slot0.kI = ClimberConstants.KI;
 		slot0.kD = ClimberConstants.KD;
-		slot0.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
+		//slot0.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
 		var motionMagicConfigs = talonFXConfigs.MotionMagic;
 		motionMagicConfigs.MotionMagicCruiseVelocity = ClimberConstants.CRUISE_VELO;
@@ -315,6 +317,7 @@ public class ClimberFSMSystem  {
 	}
 
 	private ClimberFSMState nextState(TeleopInput input) {
+		System.out.println(getCurrentState());
 		if (input == null) {
 			return ClimberFSMState.IDLE;
 		}
@@ -381,6 +384,8 @@ public class ClimberFSMSystem  {
 					return ClimberFSMState.LOCKED_FINAL;
 				}
 				return ClimberFSMState.L1_RETRACT;
+			case LOCKED_FINAL:
+				return ClimberFSMState.LOCKED_FINAL;
 			default:
 				throw new UnsupportedOperationException("Unknown state");
 		}
@@ -414,9 +419,15 @@ public class ClimberFSMSystem  {
 	}
 
 	private void handleL1ExtendState(TeleopInput input) {
+		// DutyCycleOut n = new DutyCycleOut(0.5);
+		// DutyCycleOut b = new DutyCycleOut(0.5);
+		// climberMotorLeft.setControl(n);
+		// climberMotorRight.setControl(b);
+
 		climberMotorLeft.setControl(motionRequest.withPosition(
 			ClimberConstants.L1_EXTEND_POS.in(Inches)
 		));
+		System.out.println(motionRequest.getControlInfo());
 	}
 
 	private void handleL1RetractState(TeleopInput input) {
