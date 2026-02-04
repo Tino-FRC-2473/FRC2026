@@ -347,6 +347,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				visionPoseMeters,
 				timestampSeconds,
 				visionStdDevs);
+		drivetrain.resetPose(visionPoseMeters);
 	}
 
 }
