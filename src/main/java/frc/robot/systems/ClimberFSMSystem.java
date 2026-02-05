@@ -2,19 +2,33 @@ package frc.robot.systems;
 
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.system.plant.DCMotor;
 
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
+
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.simulation.ElevatorSim;
+import edu.wpi.first.wpilibj.simulation.DIOSim;
 import frc.robot.HardwareMap;
 import frc.robot.input.TeleopInput;
+import frc.robot.motors.TalonFXWrapper;
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 
+
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import frc.robot.Constants.ClimberConstants;
 
+
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+
 
 import static edu.wpi.first.units.Units.Inches;
 
@@ -24,11 +38,11 @@ import static edu.wpi.first.units.Units.Inches;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 //import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.GravityTypeValue;
+
+
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
+
 
 public class ClimberFSMSystem  {
 	public enum ClimberFSMState {
@@ -44,10 +58,15 @@ public class ClimberFSMSystem  {
 		AUTO_IDLE
 	}
 
-	private final TalonFX climberMotorLeft;
-	private final TalonFX climberMotorRight;
+	private final TalonFXWrapper climberMotorLeft;
+	private final TalonFXWrapper climberMotorRight;
 	private final DigitalInput groundLimitSwitchLeft;
 	private final DigitalInput groundLimitSwitchRight;
+
+	private ElevatorSim sim;
+	private DIOSim limitSimLeft;
+	private DIOSim limitSimRight;
+
 
 	private ClimberFSMState currentState;
 	private MotionMagicVoltage motionRequest;
@@ -61,13 +80,17 @@ public class ClimberFSMSystem  {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public ClimberFSMSystem() {
-		climberMotorLeft = new TalonFX(HardwareMap.CAN_ID_CLIMBER_LEFT);
-		climberMotorRight = new TalonFX(HardwareMap.CAN_ID_CLIMBER_RIGHT);
-		climberMotorLeft.setControl(new Follower(HardwareMap.CAN_ID_CLIMBER_RIGHT,
+		climberMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_LEFT);
+		climberMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_RIGHT);
+		groundLimitSwitchLeft = new DigitalInput(HardwareMap.
+			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT);
+		groundLimitSwitchRight = new DigitalInput(HardwareMap.
+			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_RIGHT);
+
+
+		climberMotorRight.setControl(new Follower(HardwareMap.CAN_ID_CLIMBER_LEFT,
 			MotorAlignmentValue.Opposed));
 		motionRequest = new MotionMagicVoltage(0);
-		climberMotorRight.setControl(new Follower(
-			climberMotorLeft.getDeviceID(), MotorAlignmentValue.Opposed));
 		var talonFXConfigs = new TalonFXConfiguration();
 		var outputConfigs = talonFXConfigs.MotorOutput;
 		outputConfigs.NeutralMode = NeutralModeValue.Brake;
@@ -82,15 +105,15 @@ public class ClimberFSMSystem  {
 		sensorConfig.SensorToMechanismRatio = ClimberConstants.ROTS_TO_INCHES;
 
 		var slot0 = talonFXConfigs.Slot0;
-		slot0.GravityType = GravityTypeValue.Elevator_Static;
-		slot0.kG = ClimberConstants.KG;
+		//slot0.GravityType = GravityTypeValue.Elevator_Static;
+		//slot0.kG = ClimberConstants.KG;
 		slot0.kS = ClimberConstants.KS;
 		slot0.kV = ClimberConstants.KV;
 		slot0.kA = ClimberConstants.KA;
 		slot0.kP = ClimberConstants.KP;
 		slot0.kI = ClimberConstants.KI;
 		slot0.kD = ClimberConstants.KD;
-		slot0.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
+		//slot0.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
 		var motionMagicConfigs = talonFXConfigs.MotionMagic;
 		motionMagicConfigs.MotionMagicCruiseVelocity = ClimberConstants.CRUISE_VELO;
@@ -98,15 +121,31 @@ public class ClimberFSMSystem  {
 		motionMagicConfigs.MotionMagicExpo_kV = ClimberConstants.EXPO_KV;
 
 		climberMotorLeft.getConfigurator().apply(talonFXConfigs);
-		climberMotorRight.getConfigurator().apply(talonFXConfigs);
 
 		climberMotorLeft.setPosition(0);
-		climberMotorRight.setPosition(0);
 		currentState = ClimberFSMState.IDLE;
-		groundLimitSwitchLeft = new DigitalInput(HardwareMap.
-			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT);
-		groundLimitSwitchRight = new DigitalInput(HardwareMap.
-			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_RIGHT);
+
+		if (RobotBase.isSimulation()) {
+			// Adjust mass based on climber angle (Gravity component: mg * sin(theta))
+			double effectiveMass = ClimberConstants.EFFECTIVE_WEIGHT;
+
+			sim = new ElevatorSim(
+				DCMotor.getKrakenX60(2),
+				ClimberConstants.CLIMBER_GEAR_RATIO,  // Gearing ( 9:1)
+				effectiveMass,						  // Angled effective mass
+				Units.inchesToMeters(1.0),			  // Drum Radius
+				0.0,									// Min Height
+				Units.inchesToMeters(ClimberConstants.UPPER_THRESHOLD.in(Inches)), // Max Height
+				true,								   // Simulate Gravity
+				0.0,									// Starting position
+				0.0,								   // Measurement StdDev
+				0.0									 // Starting velocity
+			);
+
+			limitSimLeft = new DIOSim(groundLimitSwitchLeft);
+			limitSimRight = new DIOSim(groundLimitSwitchRight);
+		}
+
 		reset();
 	}
 
@@ -116,6 +155,7 @@ public class ClimberFSMSystem  {
 	 *
 	 * @return current FSM state
 	 */
+	@AutoLogOutput(key = "Climber/State")
 	public ClimberFSMState getCurrentState() {
 		return currentState;
 	}
@@ -138,26 +178,50 @@ public class ClimberFSMSystem  {
 	 * specific handlers.
 	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *              the robot is in autonomous mode.
+	 *			  the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
+
+		if (RobotBase.isSimulation()) {
+			sim.setInputVoltage(climberMotorLeft.getSimState().getMotorVoltage());
+			sim.update(ClimberConstants.UPDATE_RATE);
+
+			double drumCircumferenceMeters = ClimberConstants.DRUM_CIRCUMFERENCE_METERS;
+			double gearRatio = ClimberConstants.CLIMBER_GEAR_RATIO;
+
+			double rotorRotations = (sim.getPositionMeters()
+				/ drumCircumferenceMeters) * gearRatio;
+			double rotorVelocityRPS = (sim.getVelocityMetersPerSecond()
+				/ drumCircumferenceMeters) * gearRatio;
+
+			// 3. Update the TalonFX SimState with Rotor-relative units
+			var simState = climberMotorLeft.getSimState();
+			simState.setRawRotorPosition(rotorRotations);
+			simState.setRotorVelocity(rotorVelocityRPS);
+
+			// 4. Update limit switches
+			boolean atBottom = sim.getPositionMeters() <= ClimberConstants.LIMIT_SWITCH_HEIGHT;
+			limitSimLeft.setValue(atBottom);
+			limitSimRight.setValue(atBottom);
+
+		}
+
 		if (input == null) {
 			return;
 		}
 
-		Logger.recordOutput("Climber/Current State", currentState.toString());
-
 		switch (currentState) {
 			case IDLE -> handleIdleState(input);
+			case AUTO_IDLE -> handleIdleState(input);
+			case LOCKED_FINAL -> handleIdleState(input);
 			case MANUAL_DIRECT_CONTROL -> handleManualDirectControlState(input);
 			case L1_EXTEND -> handleL1ExtendState(input);
 			case L1_RETRACT -> handleL1RetractState(input);
-			case AUTO_IDLE -> handleIdleState(input);
 			case AUTO_DOWN_1 -> handleL1ExtendState(input);
 			case AUTO_DOWN_2 -> handleResetToZero(input);
 			case AUTO_UP_1 -> handleL1ExtendState(input);
 			case AUTO_UP_2 -> handleL1RetractState(input);
-			case LOCKED_FINAL -> handleIdleState(input);
+
 			default -> throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
 
@@ -169,24 +233,56 @@ public class ClimberFSMSystem  {
 	 * Update logging values for this system.
 	 */
 	public void updateLogging() {
-		Logger.recordOutput("Climber/Position",
-			climberMotorLeft.getPosition().getValueAsDouble());
-		Logger.recordOutput("Left motor speed", climberMotorLeft.getDescription());
-		Logger.recordOutput("Climber/Velocity",
-			climberMotorLeft.getVelocity().getValueAsDouble());
-		Logger.recordOutput("Climber/Applied Voltage",
-			climberMotorLeft.getMotorVoltage().getValueAsDouble());
+		double currentHeight = getClimberHeightInches();
+		double extension = Units.inchesToMeters(currentHeight);
+		double x = extension * Math.cos(ClimberConstants.CLIMBER_ANGLE_RAD);
+		double z = extension * Math.sin(ClimberConstants.CLIMBER_ANGLE_RAD);
+		Logger.recordOutput("Climber/3DPose", new Pose3d(
+			new Translation3d(x, 0, z),
+			new Rotation3d(0, -ClimberConstants.CLIMBER_ANGLE_RAD, 0)
+		));
+
 		Logger.recordOutput("Climber/Control Request",
 			climberMotorLeft.getAppliedControl().toString().
 				substring(ClimberConstants.CONTROL_REQUEST_SUBSTRING_START_INDEX));
-		Logger.recordOutput("Climber/Height Inches", getClimberHeightInches());
-		Logger.recordOutput("Climber/Left Is At Bottom?", groundLimitSwitchLeft.get());
-		Logger.recordOutput("Climber/Right Is At Bottom?", groundLimitSwitchRight.get());
-		Logger.recordOutput("Climber/Is Extended L1?", getClimberHeightInches()
-			>= ClimberConstants.L1_EXTEND_POS.in(Inches)
-			- ClimberConstants.POSITION_TOLERANCE_L1.in(Inches));
 	}
 
+	/**
+	 * Get the motor position in rotations.
+	 *
+	 * @return motor position in rotations
+	 */
+	@AutoLogOutput(key = "Climber/Position", unit = "rotations")
+	public double getMotorPosition() {
+		return climberMotorLeft.getPosition().getValueAsDouble();
+	}
+
+	/**
+	 * Get the motor velocity in rotations per second.
+	 *
+	 * @return motor velocity in rotations per second
+	 */
+	@AutoLogOutput(key = "Climber/Velocity", unit = "rps")
+	public double getMotorVelocity() {
+		return climberMotorLeft.getVelocity().getValueAsDouble();
+	}
+
+	/**
+	 * Get the motor voltage in volts.
+	 *
+	 * @return motor voltage in volts
+	 */
+	@AutoLogOutput(key = "Climber/Applied Voltage", unit = "volts")
+	public double getMotorVoltage() {
+		return climberMotorLeft.getMotorVoltage().getValueAsDouble();
+	}
+
+	/**
+	 * Get the climber height in inches.
+	 *
+	 * @return climber height in inches
+	 */
+	@AutoLogOutput(key = "Climber/Height Inches", unit = "inches")
 	private double getClimberHeightInches() {
 		return climberMotorLeft.getPosition().getValueAsDouble();
 	}
@@ -196,10 +292,21 @@ public class ClimberFSMSystem  {
 		return (height <= 0.0 || groundLimitSwitchLeft.get() || groundLimitSwitchRight.get());
 	}
 
+	@AutoLogOutput(key = "Climber/Is Extended L1?")
 	private boolean isExtendedL1() {
 		double height = getClimberHeightInches();
 		return height >= ClimberConstants.L1_EXTEND_POS.in(Inches)
 			- ClimberConstants.POSITION_TOLERANCE_L1.in(Inches);
+	}
+
+	@AutoLogOutput(key = "Climber/Right Is At Bottom?")
+	private boolean rightLimit() {
+		return groundLimitSwitchRight.get();
+	}
+
+	@AutoLogOutput(key = "Climber/Left Is At Bottom?")
+	private boolean leftLimit() {
+		return groundLimitSwitchLeft.get();
 	}
 
 	private boolean isRetractedL1() {
@@ -209,6 +316,7 @@ public class ClimberFSMSystem  {
 	}
 
 	private ClimberFSMState nextState(TeleopInput input) {
+		System.out.println(getCurrentState());
 		if (input == null) {
 			return ClimberFSMState.IDLE;
 		}
@@ -234,7 +342,7 @@ public class ClimberFSMSystem  {
 				if (input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP)) {
 					return ClimberFSMState.IDLE;
 				}
-				return ClimberFSMState.IDLE;
+				return ClimberFSMState.MANUAL_DIRECT_CONTROL;
 			case AUTO_UP_1:
 				if (isExtendedL1()) {
 					return ClimberFSMState.IDLE;
@@ -272,11 +380,11 @@ public class ClimberFSMSystem  {
 					return ClimberFSMState.IDLE;
 				}
 				if (isRetractedL1()) {
-					if (currentState == ClimberFSMState.L1_RETRACT) {
-						return ClimberFSMState.LOCKED_FINAL;
-					}
+					return ClimberFSMState.LOCKED_FINAL;
 				}
 				return ClimberFSMState.L1_RETRACT;
+			case LOCKED_FINAL:
+				return ClimberFSMState.LOCKED_FINAL;
 			default:
 				throw new UnsupportedOperationException("Unknown state");
 		}
@@ -294,11 +402,15 @@ public class ClimberFSMSystem  {
 		if (groundLimitSwitchLeft.get()) {
 			climberMotorLeft.setPosition(0);
 		}
-		if (groundLimitSwitchRight.get()) {
-			climberMotorRight.setPosition(0);
-		}
-		if (!(groundLimitSwitchLeft.get() && manualControlValue < 0
-			&& groundLimitSwitchRight.get())) {
+
+		boolean atBottom = (groundLimitSwitchLeft.get() || groundLimitSwitchRight.get()
+			|| getClimberHeightInches() <= 0);
+		boolean atTop = (getClimberHeightInches() >= ClimberConstants.UPPER_THRESHOLD.in(Inches));
+
+		boolean isUnsafe = ((manualControlValue < 0 && atBottom)
+			|| (manualControlValue > 0 && atTop));
+
+		if (!isUnsafe) {
 			climberMotorLeft.set(manualControlValue * ClimberConstants.MANUAL_SCALE);
 		} else {
 			climberMotorLeft.set(0);
@@ -306,31 +418,31 @@ public class ClimberFSMSystem  {
 	}
 
 	private void handleL1ExtendState(TeleopInput input) {
-		if (climberMotorLeft.getMotionMagicAtTarget().getValue()) {
-			climberMotorLeft.setControl(motionRequest.withPosition(
-				ClimberConstants.L1_EXTEND_POS.in(Inches)
-			));
-		}
+		// DutyCycleOut n = new DutyCycleOut(0.5);
+		// DutyCycleOut b = new DutyCycleOut(0.5);
+		// climberMotorLeft.setControl(n);
+		// climberMotorRight.setControl(b);
+
+		climberMotorLeft.setControl(motionRequest.withPosition(
+			ClimberConstants.L1_EXTEND_POS.in(Inches)
+		));
+		System.out.println(motionRequest.getControlInfo());
 	}
 
 	private void handleL1RetractState(TeleopInput input) {
-		if (climberMotorLeft.getMotionMagicAtTarget().getValue()) {
-			climberMotorLeft.setControl(motionRequest.withPosition(
-				ClimberConstants.L1_RETRACT_POS.in(Inches)
-			));
-		}
+		climberMotorLeft.setControl(motionRequest.withPosition(
+			ClimberConstants.L1_RETRACT_POS.in(Inches)
+		));
 	}
 
 	private void handleResetToZero(TeleopInput input) {
-		if (groundLimitSwitchLeft.get()) {
+		if (groundLimitSwitchLeft.get() || getClimberHeightInches() <= 0
+			|| groundLimitSwitchRight.get()) {
 			climberMotorLeft.set(0);
 		} else {
 			climberMotorLeft.setControl(motionRequest.withPosition(
 				ClimberConstants.GROUND.in(Inches)
 			));
-		}
-		if (groundLimitSwitchRight.get()) {
-			climberMotorRight.set(0);
 		}
 	}
 }

@@ -10,6 +10,10 @@ import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj.event.EventLoop;
 import frc.robot.input.InputTypes.ButtonInput;
 
+/**
+ * Base class for input handling in the robot.
+ * Extend this class to implement specific input types like TeleopInput or AutoInput.
+ */
 public abstract class Input {
 
 	protected enum BooleanEventType {
@@ -102,5 +106,6 @@ public abstract class Input {
 	protected BooleanEvent getBooleanEvent(ButtonInput key, BooleanEventType type) {
 		return buttonEvents.getOrDefault(new ButtonInputDescriptor(key, type), falseEvent);
 	}
+
 
 }
