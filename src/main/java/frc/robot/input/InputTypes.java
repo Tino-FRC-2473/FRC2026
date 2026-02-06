@@ -2,17 +2,32 @@ package frc.robot.input;
 
 public class InputTypes {
 
-	// change this as needed & update TeleopInput to support new input types
+	// Inputs that come in the form of an axis value
 	public enum AxialInput {
-		DRIVE_Y,
-		ROTATE,
-		DRIVE_X,
+		// Drivetrain
+		DRIVETRAIN_DRIVE_X,
+		DRIVETRAIN_DRIVE_Y,
+		DRIVETRAIN_ROTATE,
+
+		// Intake
+
+		// Climber
 		CLIMBER_MANUAL_CONTROL
 	}
 
-	// change this as needed & update TeleopInput to support new input types
+	// Inputs that come in the form of a button press
 	public enum ButtonInput {
-		RESEED_DRIVETRAIN,
+		// Drivetrain
+		DRIVETRAIN_RESEED,
+
+		// Intake
+		INTAKE_FOLD_IN,
+		INTAKE_FOLD_OUT,
+		INTAKE_PARTIAL_OUT,
+		INTAKE_INTAKE,
+		INTAKE_OUTTAKE,
+
+		// Climber
 		CLIMBER_MANUAL_OVERRIDE,
 		CLIMBER_NEXT_STEP,
 		CLIMBER_EMERGENCY_ABORT,

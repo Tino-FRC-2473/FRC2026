@@ -102,8 +102,8 @@ public class IntakeFSMSystem {
 		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
 		swLimitSwitch.ForwardSoftLimitEnable = true; // enable top limit
 		swLimitSwitch.ReverseSoftLimitEnable = true; // enable bottom limit
-		swLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.INTAKE_UPPER_TARGET.in(Radians);
-		swLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.INTAKE_GROUND_TARGET.in(Radians);
+		swLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.GROUND_TARGET_ANGLE.in(Radians);
+		swLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.UPPER_TARGET_ANGLE.in(Radians);
 
 		var pivotConfig = talonFXConfigs.Feedback;
 		pivotConfig.SensorToMechanismRatio = IntakeConstants.INTAKE_PIVOT_GEARING;
@@ -143,7 +143,7 @@ public class IntakeFSMSystem {
 		pivotMotorRight.getConfigurator().apply(talonFXConfigs);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
-				IntakeConstants.UPDATE_FREQUENCY_HZ,
+				IntakeConstants.UPDATE_FREQUENCY,
 				pivotMotorRight.getPosition(),
 				pivotMotorRight.getVelocity(),
 				pivotMotorRight.getAcceleration(),
@@ -157,7 +157,7 @@ public class IntakeFSMSystem {
 		intakeMotor.getConfigurator().apply(intakeConfigs);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
-				IntakeConstants.UPDATE_FREQUENCY_HZ,
+				IntakeConstants.UPDATE_FREQUENCY,
 				intakeMotor.getPosition(),
 				intakeMotor.getVelocity(),
 				intakeMotor.getAcceleration(),
@@ -458,7 +458,7 @@ public class IntakeFSMSystem {
 	 */
 	private void handleFoldOutState(TeleopInput input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
-			withPosition(IntakeConstants.INTAKE_GROUND_TARGET));
+			withPosition(IntakeConstants.GROUND_TARGET_ANGLE));
 	}
 	/**
 	 * Handle behavior in PARTIAL_OUT_STATE.
@@ -467,7 +467,7 @@ public class IntakeFSMSystem {
 	 */
 	private void handlePartialOutState(TeleopInput input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
-			withPosition(IntakeConstants.PARTIAL_OUT_TARGET));
+			withPosition(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE));
 	}
 	/**
 	 * Handle behavior in IDLE_OUT_STATE.
@@ -503,7 +503,7 @@ public class IntakeFSMSystem {
 	 */
 	private void handleFoldInState(TeleopInput input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
-			withPosition(IntakeConstants.INTAKE_UPPER_TARGET));
+			withPosition(IntakeConstants.UPPER_TARGET_ANGLE));
 	}
 
 
@@ -516,7 +516,7 @@ public class IntakeFSMSystem {
 	private boolean isBottomLimitReached() {
 		if (RobotBase.isSimulation()) {
 			return pivotMotorRight.getRotorPosition().getValueAsDouble()
-				<= IntakeConstants.INTAKE_GROUND_TARGET.in(Radians);
+				<= IntakeConstants.GROUND_TARGET_ANGLE.in(Radians);
 		}
 		return groundLimitSwitch.get(); // switch is normally open
 	}
@@ -528,7 +528,7 @@ public class IntakeFSMSystem {
 	private boolean isTopLimitReached() {
 		if (RobotBase.isSimulation()) {
 			return pivotMotorRight.getRotorPosition().getValueAsDouble()
-				>= IntakeConstants.INTAKE_UPPER_TARGET.in(Radians);
+				>= IntakeConstants.UPPER_TARGET_ANGLE.in(Radians);
 		}
 		return topLimitSwitch.get(); // switch is normally open
 	}
