@@ -27,7 +27,6 @@ public class Robot extends LoggedRobot {
 	// Systems
 	private Drivetrain drivetrain;
 	private Vision vision;
-	private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any

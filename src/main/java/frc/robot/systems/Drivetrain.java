@@ -84,8 +84,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private CommandSwerveDrivetrain drivetrain;
 	//Pathfind command
 	private Command pathfindCommand = null;
-	// Limelight instance
-	private Limelight limelight;
 
 	//TODO: Need to clean this stuff up and put it in constants
 	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method instead of the drivetrain's periodic?
@@ -106,8 +104,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	public Drivetrain() {
 		drivetrain = TunerConstants.createDrivetrain();
-
-		limelight = new Limelight("limelight");
+		//updateLimelightYaw();
 
 		SmartDashboard.putData(CommandScheduler.getInstance());
 
@@ -178,7 +175,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@Override
 	public void update(TeleopInput input) {
 		drivetrain.periodic();
-		updateLimelightYaw();
+		//updateLimelightYaw();
 		CommandScheduler.getInstance().run();
 
 		Logger.recordOutput("Vision/AlignmentPose", pathfindTarget);
@@ -301,19 +298,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		CommandScheduler.getInstance().schedule(pathfindCommand);
 	}
 
-	private void updateLimelightYaw() {
-		AngularVelocity3d zeroAngularVelocity = new AngularVelocity3d(
-			AngularVelocity.ofRelativeUnits(0, RadiansPerSecond),
-			AngularVelocity.ofRelativeUnits(0, RadiansPerSecond),
-			AngularVelocity.ofRelativeUnits(0, RadiansPerSecond));
-		Orientation3d llOrientation = new Orientation3d(
-			getDrivetrainRotation(), zeroAngularVelocity);
-		ImuMode imuMode = ImuMode.SyncInternalImu;
-		limelight.getSettings().withImuMode(imuMode).withRobotOrientation(
-			llOrientation
-		);
-	}
-
 	private void handleTeleopState(TeleopInput input) {
 		if (input == null) {
 			return;
@@ -366,11 +350,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			Pose2d visionPoseMeters,
 			double timestampSeconds,
 			Matrix<N3, N1> visionStdDevs) {
-		drivetrain.addVisionMeasurement(
-				visionPoseMeters,
-				timestampSeconds,
-				visionStdDevs);
-		drivetrain.resetPose(visionPoseMeters);
+		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(), visionPoseMeters.getY(), getDrivetrainRotation().toRotation2d().plus(Rotation2d.kCCW_90deg)), timestampSeconds, visionStdDevs);
+		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
 	}
 
 }

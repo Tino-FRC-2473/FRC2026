@@ -56,6 +56,6 @@ public class Constants {
 		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(
 			0.02, 0.02, Math.toRadians(1));
 		//TODO: Measure this on the bot
-		public static final Pose3d LL4_OFFSET = new Pose3d(0.096, -0.03, 0.55, new Rotation3d());
+		public static final Pose3d LL4_OFFSET = new Pose3d(0.096, -0.03, 0.55, new Rotation3d(0, 0, 0));
 	}
 }

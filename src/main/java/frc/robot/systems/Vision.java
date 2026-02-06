@@ -18,6 +18,7 @@ import frc.robot.Constants.VisionConstants;
 import limelight.Limelight;
 import limelight.networktables.AngularVelocity3d;
 import limelight.networktables.LimelightPoseEstimator.BotPose;
+import limelight.networktables.LimelightSettings.ImuMode;
 import limelight.networktables.LimelightSettings.LEDMode;
 import limelight.networktables.Orientation3d;
 import limelight.networktables.PoseEstimate;
@@ -41,7 +42,8 @@ public class Vision {
 		limelight = new Limelight(limelightName);
 		limelight.getSettings()
 			.withLimelightLEDMode(LEDMode.PipelineControl)
-			.withCameraOffset(VisionConstants.LL4_OFFSET)
+			//.withCameraOffset(VisionConstants.LL4_OFFSET)
+			.withImuMode(ImuMode.ExternalImu)
 			.save();
 		visionConsumer = consumer;
 	}
@@ -58,13 +60,17 @@ public class Vision {
 					DegreesPerSecond.of(0), DegreesPerSecond.of(0))))
 			.save();
 
-		Optional<PoseEstimate> visionEstimate = BotPose.BLUE.get(limelight);
+		Optional<PoseEstimate> visionEstimate = BotPose.BLUE_MEGATAG2.get(limelight);
 		visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
+			//Logger.recordOutput("Vision/LLRotation", limelight.networktables.);
 			Logger.recordOutput("Vision/MT2Pose", poseEstimate.pose.toPose2d());
-			visionConsumer.accept(
+
+			if (poseEstimate.pose.toPose2d().getX() > 1) {
+				visionConsumer.accept(
 					poseEstimate.pose.toPose2d(),
 					poseEstimate.timestampSeconds,
 					VisionConstants.LL4_STDEVS);
+			}
 		});
 	}
 
