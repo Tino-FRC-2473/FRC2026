@@ -57,22 +57,17 @@ public final class TeleopInput extends Input {
 			case DRIVETRAIN_RESEED -> mechController::options;
 
 			// Intake
-			case INTAKE_FOLD_IN -> mechController::circle;
-			case INTAKE_FOLD_OUT -> mechController::circle;
-			case INTAKE_PARTIAL_OUT -> mechController::options;
-			case INTAKE_INTAKE -> mechController::triangle;
-			case INTAKE_OUTTAKE -> mechController::square;
+			case PARTIAL_OUT_BUTTON -> mechController::options;
+			case INTAKE_BUTTON -> mechController::triangle;
+			case OUTTAKE_BUTTON -> mechController::square;
+			case FOLD_IN_BUTTON -> mechController::circle;
+			case FOLD_OUT_BUTTON -> mechController::cross;
 
 			// Climber
 			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
 			case CLIMBER_NEXT_STEP -> mechController::square;
 			case CLIMBER_EMERGENCY_ABORT -> mechController::R1;
 			case CLIMBER_DOWN_BUTTON -> mechController::R2;
-			case PARTIAL_OUT_BUTTON -> mechController::options;
-			case INTAKE_BUTTON -> mechController::triangle;
-			case OUTTAKE_BUTTON -> mechController::square;
-			case FOLD_IN_BUTTON -> mechController::circle;
-			case FOLD_OUT_BUTTON -> mechController::cross;
 
 			default -> throw new IllegalArgumentException("Unknown button input");
 		};
