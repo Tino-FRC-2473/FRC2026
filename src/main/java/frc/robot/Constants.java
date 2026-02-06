@@ -109,5 +109,7 @@ public class Constants {
 
 		//other
 		public static final int UPDATE_FREQUENCY_HZ = 100;
+		public static final double SIM_UPDATE_SECONDS = 0.02;
+		public static final Angle SIM_LIMIT_SWITCH_BUFFER = Units.Radians.of(0.01);
 	}
 }

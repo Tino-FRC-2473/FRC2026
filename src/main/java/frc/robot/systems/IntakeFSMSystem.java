@@ -9,10 +9,16 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
+import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
+import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 import static edu.wpi.first.units.Units.Radians;
@@ -52,6 +58,10 @@ public class IntakeFSMSystem {
 	private DigitalInput groundLimitSwitch;
 	private DigitalInput topLimitSwitch;
 
+	private Angle posRadians;
+
+
+	private TalonFXSimState pivotSimState;
 	private SingleJointedArmSim intakeSim;
 	private DIOSim simGroundLimitSwitch;
 	private DIOSim simTopLimitSwitch;
@@ -70,13 +80,14 @@ public class IntakeFSMSystem {
 		intakeMotionRequest = new MotionMagicVelocityVoltage(0);
 
 
-
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
 
 		//initialize motors
 		pivotMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_PIVOT_LEFT);
 		pivotMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_PIVOT_RIGHT);
+
+		pivotSimState = pivotMotorRight.getSimState();
 
 
 		intakeMotor = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_INTAKE);
@@ -168,16 +179,14 @@ public class IntakeFSMSystem {
 		intakeMotor.setPosition(0);
 
 		if (RobotBase.isSimulation()) {
-			/*new SingleJointedArmSim(DCMotor.getKrakenX60(2),
+			intakeSim = new SingleJointedArmSim(DCMotor.getKrakenX60(2),
 				IntakeConstants.INTAKE_PIVOT_GEARING,
 				IntakeConstants.J,
 				IntakeConstants.PIVOT_ARM_LENGTH,
 				IntakeConstants.PIVOT_MIN_ROTATION,
 				IntakeConstants.PIVOT_MAX_ROTATION,
 				true,
-				0,
 				0);
-			*/
 			simGroundLimitSwitch = new DIOSim(groundLimitSwitch);
 			simTopLimitSwitch = new DIOSim(topLimitSwitch);
 		}
@@ -215,6 +224,30 @@ public class IntakeFSMSystem {
 	 * @param input
 	 */
 	public void update(TeleopInput input) {
+		if (RobotBase.isSimulation()) {
+			//posRadians = Units.Radians.of(intakeSim.getAngleRads());
+
+
+			// In this method, we update our simulation of what our elevator is doing
+			// First, we set our "inputs" (voltages)
+			intakeSim.setInput(pivotMotorRight.get() * RobotController.getBatteryVoltage());
+			// Next, we update it. The standard loop time is 20ms.
+			intakeSim.update(IntakeConstants.SIM_UPDATE_SECONDS);
+			// Finally, we set our simulated encoder's readings and simulated battery voltage
+			pivotMotorRight.setPosition(intakeSim.getAngleRads());
+
+			/*
+			//update limit switch sims
+			boolean atTop = posRadians <= IntakeConstants.SIM_LIMIT_SWITCH_BUFFER;
+			boolean atBottom = posRadians >= IntakeConstants.SIM_LIMIT_SWITCH_BUFFER;
+			simGroundLimitSwitch.setValue(position);
+			simTopLimitSwitch.setValue(atTop);
+			*/
+
+			// SimBattery estimates loaded battery voltages
+			RoboRioSim.setVInVoltage(
+				BatterySim.calculateDefaultBatteryLoadedVoltage(intakeSim.getCurrentDrawAmps()));
+		}
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
 				handleIdleInState(input);
@@ -495,7 +528,7 @@ public class IntakeFSMSystem {
 	private boolean isTopLimitReached() {
 		if (RobotBase.isSimulation()) {
 			return pivotMotorRight.getRotorPosition().getValueAsDouble()
-				<= IntakeConstants.INTAKE_UPPER_TARGET.in(Radians);
+				>= IntakeConstants.INTAKE_UPPER_TARGET.in(Radians);
 		}
 		return topLimitSwitch.get(); // switch is normally open
 	}
