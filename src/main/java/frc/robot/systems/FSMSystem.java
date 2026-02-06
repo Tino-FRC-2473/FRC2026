@@ -7,27 +7,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.input.Input;
 
 /**
-<<<<<<< HEAD
- * This is a superclass for FSMs with NECCESARY methods to implement
- *
- * Start implementing an FSM by writing this in a new java file:
- *
- * <code>
- * enum FSMState
- *	  // add states here
- * }
- * public class _______ extends FSMSystem&lt;FSMState&gt; {
- *	  ...
- * }
- * </code>
- *
- * Your compiler / IDE will tell you what methods you need to implement
- * You should also have state handlers shown in the example
- * @param <S> the type of state
-=======
  * A superclass that all FSM systems should inherit from.
  * @param <S> the enum containing all FSM states
->>>>>>> main
  */
 public abstract class FSMSystem<S> {
 

@@ -23,15 +23,15 @@ import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 import static edu.wpi.first.units.Units.Radians;
 
+import frc.robot.input.Input;
 // Robot Imports
-import frc.robot.input.TeleopInput;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.HardwareMap;
 
 
-public class IntakeFSMSystem {
+public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	public enum IntakeFSMState {
 		IDLE_IN_STATE,
 		FOLD_OUT_STATE,
@@ -44,8 +44,6 @@ public class IntakeFSMSystem {
 	/* ======================== Constants ======================== */
 
 	/* ======================== Private variables ======================== */
-
-	private IntakeFSMState currentState;
 
 	private MotionMagicVoltage pivotMotionRequest;
 	private MotionMagicVelocityVoltage intakeMotionRequest;
@@ -200,20 +198,12 @@ public class IntakeFSMSystem {
 	// overridden methods don't require javadocs
 	// however, you may want to add implementation specific javadocs
 
-	/**
-	* Get the current FSM state.
-	* @return current FSM state.
-	*/
-	public IntakeFSMState getCurrentState() {
-		return currentState;
-	}
-
 
 	/**
 	 * resets the FSM_STATE.
 	 */
 	public void reset() {
-		currentState = IntakeFSMState.IDLE_OUT_STATE;
+		setCurrentState(IntakeFSMState.IDLE_OUT_STATE);
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -223,7 +213,7 @@ public class IntakeFSMSystem {
 	 * updates the current state in IntakeFSMState.
 	 * @param input
 	 */
-	public void update(TeleopInput input) {
+	public void update(Input input) {
 		if (RobotBase.isSimulation()) {
 			//posRadians = Units.Radians.of(intakeSim.getAngleRads());
 
@@ -283,7 +273,7 @@ public class IntakeFSMSystem {
 			default:
 				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
 		}
-		currentState = nextState(input);
+		setCurrentState(nextState(input));
 	}
 
 	/**
@@ -292,7 +282,7 @@ public class IntakeFSMSystem {
 	*/
 	@AutoLogOutput(key = "Intake/Intake Current State")
 	public IntakeFSMState getIntakeState() {
-		return currentState;
+		return getCurrentState();
 	}
 
 
@@ -372,7 +362,7 @@ public class IntakeFSMSystem {
 	/* ======================== Protected methods ======================== */
 
 
-	protected IntakeFSMState nextState(TeleopInput input) {
+	protected IntakeFSMState nextState(Input input) {
 		if (input == null) {
 			return IntakeFSMState.IDLE_OUT_STATE;
 		}
@@ -450,62 +440,62 @@ public class IntakeFSMSystem {
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in IDLE_IN_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleIdleInState(TeleopInput input) {
+	private void handleIdleInState(Input input) {
 	}
 	/**
 	 * Handle behavior in FOLD_OUT_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleFoldOutState(TeleopInput input) {
+	private void handleFoldOutState(Input input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
 			withPosition(IntakeConstants.GROUND_TARGET_ANGLE));
 	}
 	/**
 	 * Handle behavior in PARTIAL_OUT_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handlePartialOutState(TeleopInput input) {
+	private void handlePartialOutState(Input input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
 			withPosition(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE));
 	}
 	/**
 	 * Handle behavior in IDLE_OUT_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleIdleOutState(TeleopInput input) {
+	private void handleIdleOutState(Input input) {
 		intakeMotor.setControl(intakeMotionRequest.
 			withVelocity(0));
 	}
 	/**
 	 * Handle behavior in INTAKE_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleIntakeState(TeleopInput input) {
+	private void handleIntakeState(Input input) {
 		intakeMotor.setControl(intakeMotionRequest.
 			withVelocity(IntakeConstants.INTAKE_TARGET_VELOCITY));
 	}
 	/**
 	 * Handle behavior in OUTTAKE_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleOuttakeState(TeleopInput input) {
+	private void handleOuttakeState(Input input) {
 		intakeMotor.setControl(intakeMotionRequest.
 			withVelocity(IntakeConstants.OUTTAKE_TARGET_VELOCITY));
 	}
 	/**
 	 * Handle behavior in FOLD_IN_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleFoldInState(TeleopInput input) {
+	private void handleFoldInState(Input input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
 			withPosition(IntakeConstants.UPPER_TARGET_ANGLE));
 	}
