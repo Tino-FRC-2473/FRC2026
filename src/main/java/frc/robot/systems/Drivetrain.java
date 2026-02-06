@@ -44,6 +44,10 @@ import frc.robot.TeleopInput;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
+import limelight.networktables.LimelightSettings.ImuMode;
+import limelight.Limelight;
+import limelight.networktables.AngularVelocity3d;
+import limelight.networktables.Orientation3d;
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/* ======================== Constants ======================== */
@@ -80,11 +84,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private CommandSwerveDrivetrain drivetrain;
 	//Pathfind command
 	private Command pathfindCommand = null;
+	// Limelight instance
+	private Limelight limelight;
 
 	//TODO: Need to clean this stuff up and put it in constants
 	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method instead of the drivetrain's periodic?
 	//Pathfind targeting stuff
-	private AprilTagFieldLayout field = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+	private AprilTagFieldLayout field = AprilTagFieldLayout
+		.loadField(AprilTagFields.k2026RebuiltWelded);
 	private Pose2d test = field.getTagPose(8).orElse(null).toPose2d();
 
 	private Transform2d offsetTransform = new Transform2d(
@@ -99,6 +106,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	public Drivetrain() {
 		drivetrain = TunerConstants.createDrivetrain();
+
+		limelight = new Limelight("limelight");
 
 		SmartDashboard.putData(CommandScheduler.getInstance());
 
@@ -169,6 +178,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@Override
 	public void update(TeleopInput input) {
 		drivetrain.periodic();
+		updateLimelightYaw();
 		CommandScheduler.getInstance().run();
 
 		Logger.recordOutput("Vision/AlignmentPose", pathfindTarget);
@@ -289,6 +299,19 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		pathfindCommand = AutoBuilder.pathfindToPose(pathfindTarget,
 					DrivetrainConstants.PATH_CONSTRAINTS);
 		CommandScheduler.getInstance().schedule(pathfindCommand);
+	}
+
+	private void updateLimelightYaw() {
+		AngularVelocity3d zeroAngularVelocity = new AngularVelocity3d(
+			AngularVelocity.ofRelativeUnits(0, RadiansPerSecond),
+			AngularVelocity.ofRelativeUnits(0, RadiansPerSecond),
+			AngularVelocity.ofRelativeUnits(0, RadiansPerSecond));
+		Orientation3d llOrientation = new Orientation3d(
+			getDrivetrainRotation(), zeroAngularVelocity);
+		ImuMode imuMode = ImuMode.SyncInternalImu;
+		limelight.getSettings().withImuMode(imuMode).withRobotOrientation(
+			llOrientation
+		);
 	}
 
 	private void handleTeleopState(TeleopInput input) {
