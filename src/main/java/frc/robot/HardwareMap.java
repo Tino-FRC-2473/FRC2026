@@ -45,6 +45,14 @@ public final class HardwareMap {
 	 * @return if the hardware for the drivetrain is present
 	 */
 	public static boolean isDrivetrainEnabled() {
-		return true;
+		return false;
+	}
+
+	/**
+	 * Hardware map entry for the climber subsystem.
+	 * @return if the hardware for the climber is present
+	 */
+	public static boolean isClimberEnabled() {
+		return false;
 	}
 }

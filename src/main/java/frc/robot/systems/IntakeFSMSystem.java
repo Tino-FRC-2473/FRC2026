@@ -248,6 +248,9 @@ public class IntakeFSMSystem {
 			RoboRioSim.setVInVoltage(
 				BatterySim.calculateDefaultBatteryLoadedVoltage(intakeSim.getCurrentDrawAmps()));
 		}
+		if (input == null) {
+			return;
+		}
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
 				handleIdleInState(input);
@@ -280,9 +283,7 @@ public class IntakeFSMSystem {
 			default:
 				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
 		}
-		if (input != null) {
-			currentState = nextState(input);
-		}
+		currentState = nextState(input);
 	}
 
 	/**
@@ -372,6 +373,9 @@ public class IntakeFSMSystem {
 
 
 	protected IntakeFSMState nextState(TeleopInput input) {
+		if (input == null) {
+			return IntakeFSMState.IDLE_OUT_STATE;
+		}
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
 				if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
