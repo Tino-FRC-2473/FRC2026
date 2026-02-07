@@ -122,9 +122,10 @@ public class Constants {
 		public static final Pose2d OUTPOST_POSE = new Pose2d();
 		public static final Pose2d TARGET3_POSE = new Pose2d();
 		public static final Pose2d HUB_POSE = new Pose2d();
-		public static final double HOOD_GEAR_RATIO = 4;
+		//public static final double HOOD_GEAR_RATIO = 4;
+		public static final double SPINDEX_GEAR_RATIO = 3;
 		public static final double FLYWHEEL_GEAR_RATIO = 3;
-		public static final double INDEXER_GEAR_RATIO = 3;
+		public static final double FEEDER_GEAR_RATIO = 3;
 
 		private static final double JERK_MULT_CONSTANT = 10;
 		//constant to change the magnitude of jerk from acceleration
@@ -133,27 +134,28 @@ public class Constants {
 			RotationsPerSecondPerSecond.of(160);
 		public static final double FLYWHEEL_JERK =
 			FLYWHEEL_ACCELERATION.times(JERK_MULT_CONSTANT).per(Seconds).magnitude();
-		public static final AngularVelocity HOOD_VELOCITY = DegreesPerSecond.of(20);
-		public static final AngularAcceleration HOOD_ACCELERATION =
-			DegreesPerSecondPerSecond.of(HOOD_VELOCITY.times(2).in(RotationsPerSecond));
-		public static final double HOOD_JERK =
-			HOOD_ACCELERATION.times(JERK_MULT_CONSTANT).per(Seconds).magnitude();
+		// public static final AngularVelocity HOOD_VELOCITY = DegreesPerSecond.of(20);
+		// public static final AngularAcceleration HOOD_ACCELERATION =
+		// 	DegreesPerSecondPerSecond.of(HOOD_VELOCITY.times(2).in(RotationsPerSecond));
+		// public static final double HOOD_JERK =
+		// 	HOOD_ACCELERATION.times(JERK_MULT_CONSTANT).per(Seconds).magnitude();
 
 		public static final AngularVelocity FLYWHEEL_MOE =
 			RotationsPerSecond.of(0.5); //margin of error, subject to change
-		public static final Angle HOOD_MOE = Degrees.of(0.1); //margin of error, subject to change
+		// public static final Angle HOOD_MOE = Degrees.of(0.1); //margin of error, subject to change
 
 		public static final AngularVelocity FLYWHEEL_MAX_SPEED = RotationsPerSecond.of(160);
 
 		public static final double FLYWHEEL_MM_CONSTANT_S = 0.1;
 		//need to test by recording small amount of input that allows any movement at all
-		public static final double HOOD_MM_CONSTANT_S = 0.1;
+		// public static final double HOOD_MM_CONSTANT_S = 0.1;
 		//need to test by recording in some manner
 		public static final double MM_CONSTANT_V = 0.12; //taken straight from Phoenix6
 		public static final double MM_CONSTANT_A = 0.01; //taken straight from Phoenix6
-		public static final Angle HOOD_MAX_ANGLE = Degrees.of(45);
-		public static final Angle HOOD_MIN_ANGLE = Degrees.of(20);
-		public static final Angle HOOD_INCREMENTER = Degrees.of(5);
+		// public static final Angle HOOD_MAX_ANGLE = Degrees.of(45);
+		// public static final Angle HOOD_MIN_ANGLE = Degrees.of(20);
+		// public static final Angle HOOD_INCREMENTER = Degrees.of(5);
+		public static final Angle HOOD_ANGLE = Degrees.of(45);
 		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(10);
 		public static final Angle FLYWHEEL_MAX_DEGREES = Degrees.of(360);
 
@@ -161,10 +163,12 @@ public class Constants {
 		public static final double FLYWHEEL_MM_CONSTANT_P = 0;
 		public static final double FLYWHEEL_MM_CONSTANT_I = 0;
 		public static final double FLYWHEEL_MM_CONSTANT_D = 0;
-		public static final double HOOD_MM_CONSTANT_P = 0;
-		public static final double HOOD_MM_CONSTANT_I = 0;
-		public static final double HOOD_MM_CONSTANT_D = 0;
-		public static final double HOOD_MM_CONSTANT_G = 0.82;
+		// public static final double HOOD_MM_CONSTANT_P = 0;
+		// public static final double HOOD_MM_CONSTANT_I = 0;
+		// public static final double HOOD_MM_CONSTANT_D = 0;
+		// public static final double HOOD_MM_CONSTANT_G = 0.82;
 		//just an estimate, will use Recalc with measurements to calculate later
+
+		public static final double SPINDEX_CONSTANT_VOLTAGE = 4;
 	}
 }

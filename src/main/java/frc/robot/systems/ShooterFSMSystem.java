@@ -1,21 +1,17 @@
 package frc.robot.systems;
 
+import java.util.ArrayList;
 import java.util.List;
 
 // Third party Hardware Imports
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.GravityTypeValue;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.AngularVelocityUnit;
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import edu.wpi.first.units.Measure;
@@ -56,19 +52,17 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private Pose2d hubPose;
 	private Pose2d target3Pose; //probably going to be the mirrored side of the outpost
 	private TalonFX flywheelMotor;
-	private TalonFX indexMotor;
-	private TalonFX hoodMotor;
+	private TalonFX feederMotor;
+	private TalonFX spindexMotor;
 	private Measure<AngularVelocityUnit> flywheelSpeed; //Units.RotationsPerSecond
 	private Measure<AngularVelocityUnit> flywheelTargetSpeed; //Units.RotationsPerSecond
 	private Measure<AngleUnit> hoodAngle; //Units.Degrees
-	private Measure<AngleUnit> hoodTargetAngle; //Units.Degrees
 	private ShooterFSMState pastState;
-	private TalonFXConfiguration hoodConfigs;
+	private TalonFXConfiguration spindexConfigs;
 	private TalonFXConfiguration flywheelConfigs;
-	private TalonFXConfiguration indexConfigs;
+	private TalonFXConfiguration feederConfigs;
 	private Drivetrain drivetrain;
 	private MotionMagicVelocityVoltage flywheelRequest;
-	private MotionMagicVoltage hoodRequest;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -81,59 +75,29 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		outpostPose = ShooterConstants.OUTPOST_POSE;
 		target3Pose = ShooterConstants.TARGET3_POSE;
 		hubPose = ShooterConstants.HUB_POSE;
+		hoodAngle = ShooterConstants.HOOD_ANGLE;
 
 		flywheelRequest = new MotionMagicVelocityVoltage(0);
-		hoodRequest = new MotionMagicVoltage(0);
 		flywheelMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_FLYWHEEL
 		);
-		indexMotor = new TalonFXWrapper(
-			HardwareMap.CAN_ID_INDEXER
+		feederMotor = new TalonFXWrapper(
+			HardwareMap.CAN_ID_FEEDER
 		);
-		hoodMotor = new TalonFXWrapper(
-			HardwareMap.CAN_ID_HOOD
+		spindexMotor = new TalonFXWrapper(
+			HardwareMap.CAN_ID_SPINDEXER
 		);
 
-		hoodConfigs = new TalonFXConfiguration();
+		spindexConfigs = new TalonFXConfiguration();
 
-		var hoodLimSwitchConfig = hoodConfigs.SoftwareLimitSwitch;
-		hoodLimSwitchConfig.ForwardSoftLimitEnable = true;
-		hoodLimSwitchConfig.ForwardSoftLimitThreshold = ShooterConstants.HOOD_MAX_ANGLE.in(Degrees);
-		hoodLimSwitchConfig.ReverseSoftLimitEnable = true;
-		hoodLimSwitchConfig.ReverseSoftLimitThreshold = ShooterConstants.HOOD_MIN_ANGLE.in(Degrees);
-
-		var hood0Config = hoodConfigs.Slot0;
-		hood0Config.GravityType = GravityTypeValue.Arm_Cosine;
-		//voltage output to overcome gravity
-		hood0Config.kG = ShooterConstants.HOOD_MM_CONSTANT_G;
-		//voltage output to overcome static friction
-		hood0Config.kS = ShooterConstants.HOOD_MM_CONSTANT_S;
-		//voltage for 1 rps in the motor, 0.12+++
-		hood0Config.kV = ShooterConstants.MM_CONSTANT_V;
-		//voltage for acceleration for 1 rps in the motor
-		hood0Config.kA = ShooterConstants.MM_CONSTANT_A;
-		//account for position error of 1 rotation
-		hood0Config.kP = ShooterConstants.HOOD_MM_CONSTANT_P;
-		//output for integrated error
-		hood0Config.kI = ShooterConstants.HOOD_MM_CONSTANT_I;
-		//account for velocity error of 1rps
-		hood0Config.kD = ShooterConstants.HOOD_MM_CONSTANT_D;
-
-		var hoodMotionMagicConfigs = hoodConfigs.MotionMagic;
-		hoodMotionMagicConfigs.MotionMagicCruiseVelocity =
-			ShooterConstants.HOOD_VELOCITY.in(DegreesPerSecond);
-		hoodMotionMagicConfigs.MotionMagicAcceleration =
-			ShooterConstants.HOOD_ACCELERATION.in(DegreesPerSecondPerSecond);
-		hoodMotionMagicConfigs.MotionMagicJerk =
-			ShooterConstants.HOOD_JERK;
-
-		var hoodFeedbackConfigs = hoodConfigs.Feedback;
+		var spindexFeedbackConfigs = spindexConfigs.Feedback;
+		var spindexRatio =
+			ShooterConstants.SPINDEX_GEAR_RATIO;
+		spindexFeedbackConfigs.SensorToMechanismRatio = spindexRatio;
 		//set to 2 (divided by 360 to get in terms of degrees)
-		var hoodRatio =
-			ShooterConstants.HOOD_GEAR_RATIO / ShooterConstants.FLYWHEEL_MAX_DEGREES.in(Degrees);
-		hoodFeedbackConfigs.SensorToMechanismRatio = hoodRatio;
+		
 
-		hoodMotor.getConfigurator().apply(hoodConfigs);
+		spindexMotor.getConfigurator().apply(spindexConfigs);
 
 		flywheelConfigs = new TalonFXConfiguration();
 		var flywheel0Config = flywheelConfigs.Slot0;
@@ -163,33 +127,31 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 		flywheelMotor.getConfigurator().apply(flywheelConfigs);
 
-		indexConfigs = new TalonFXConfiguration();
-		var indexFeedbackConfigs = indexConfigs.Feedback;
+		feederConfigs = new TalonFXConfiguration();
+		var feederFeedbackConfigs = feederConfigs.Feedback;
 		//set to 3
-		indexFeedbackConfigs.SensorToMechanismRatio = ShooterConstants.INDEXER_GEAR_RATIO;
+		feederFeedbackConfigs.SensorToMechanismRatio = ShooterConstants.FEEDER_GEAR_RATIO;
 
-		indexMotor.getConfigurator().apply(indexConfigs);
-
-		hoodMotor.setPosition(ShooterConstants.HOOD_MAX_ANGLE);
+		feederMotor.getConfigurator().apply(feederConfigs);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				ShooterConstants.UPDATE_FREQUENCY_HZ,
-				hoodMotor.getPosition(),
-				hoodMotor.getVelocity(),
-				hoodMotor.getAcceleration(),
-				hoodMotor.getMotorVoltage(),
-				hoodMotor.getRotorPosition(),
-				hoodMotor.getRotorVelocity()
+				spindexMotor.getPosition(),
+				spindexMotor.getVelocity(),
+				spindexMotor.getAcceleration(),
+				spindexMotor.getMotorVoltage(),
+				spindexMotor.getRotorPosition(),
+				spindexMotor.getRotorVelocity()
 		);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				ShooterConstants.UPDATE_FREQUENCY_HZ,
-				indexMotor.getPosition(),
-				indexMotor.getVelocity(),
-				indexMotor.getAcceleration(),
-				indexMotor.getMotorVoltage(),
-				indexMotor.getRotorPosition(),
-				indexMotor.getRotorVelocity()
+				feederMotor.getPosition(),
+				feederMotor.getVelocity(),
+				feederMotor.getAcceleration(),
+				feederMotor.getMotorVoltage(),
+				feederMotor.getRotorPosition(),
+				feederMotor.getRotorVelocity()
 		);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
@@ -202,8 +164,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				flywheelMotor.getRotorVelocity()
 		);
 
-		hoodMotor.optimizeBusUtilization();
-		indexMotor.optimizeBusUtilization();
+		spindexMotor.optimizeBusUtilization();
+		feederMotor.optimizeBusUtilization();
 		flywheelMotor.optimizeBusUtilization();
 		reset();
 	}
@@ -243,12 +205,12 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * Checks if the target angle matches the actual angle within a margin of error.
 	 * @return Boolean statement whether or not it is at angle or not
 	 */
-	public boolean isAtAngle() {
-		double hoodDifference = hoodTargetAngle.in(Degrees) - hoodAngle.in(Degrees);
-		return (
-			Math.abs(hoodDifference) < ShooterConstants.HOOD_MOE.in(Degrees)
-			);
-	}
+	// public boolean isAtAngle() {
+	// 	double hoodDifference = hoodTargetAngle.in(Degrees) - hoodAngle.in(Degrees);
+	// 	return (
+	// 		Math.abs(hoodDifference) < ShooterConstants.HOOD_MOE.in(Degrees)
+	// 		);
+	// }
 
 	@Override
 	public void reset() {
@@ -336,8 +298,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						pastState = getCurrentState();
 						return ShooterFSMState.MANUAL_PREP_STATE;
 					}
-					if (isAtSpeed() && isAtAngle()
-						&& input.getButtonPressed(ButtonInput.REV_INDEXER)) {
+					if (isAtSpeed()
+						&& input.getButtonPressed(ButtonInput.REV_FEEDER)) {
 						//need to change colors for if its at speed and at angle so that
 						// they know when to pull triggers
 						pastState = getCurrentState();
@@ -345,8 +307,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 					}
 
 				case INTAKE_STATE:
-					boolean condition = !isAtSpeed() || !isAtAngle();
-					if (condition || !input.getButtonPressed(ButtonInput.REV_INDEXER)) {
+					if (!isAtSpeed() || !input.getButtonPressed(ButtonInput.REV_FEEDER)) {
 						return pastState;
 						//pastState should only store shooter_prep, passer_prep, and manual_prep
 					}
@@ -384,8 +345,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						pastState = getCurrentState();
 						return ShooterFSMState.MANUAL_PREP_STATE;
 					}
-					if (isAtSpeed() && isAtAngle()
-						&& input.getButtonPressed(ButtonInput.REV_INDEXER)) {
+					if (isAtSpeed()
+						&& input.getButtonPressed(ButtonInput.REV_FEEDER)) {
 						pastState = getCurrentState();
 						return ShooterFSMState.INTAKE_STATE;
 					}
@@ -398,8 +359,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						return ShooterFSMState.IDLE_STATE;
 					}
 
-					boolean atTarget = isAtSpeed() && isAtAngle();
-					if (atTarget && input.getButtonPressed(ButtonInput.REV_INDEXER)) {
+					if (isAtSpeed() && input.getButtonPressed(ButtonInput.REV_FEEDER)) {
 						pastState = getCurrentState();
 						return ShooterFSMState.INTAKE_STATE;
 					}
@@ -421,10 +381,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 */
 	private void handleIdleState(TeleopInput input) {
 		flywheelTargetSpeed = RotationsPerSecond.of(0);
-		hoodTargetAngle = ShooterConstants.HOOD_MAX_ANGLE;
 		updateFlywheel();
-		updateHood();
-		indexMotor.set(0);
+		//updateHood();
+		feederMotor.set(0);
 		//set hoodMotor to 20 degrees/base angle?
 		//hood remains at current angle.
 	}
@@ -446,13 +405,12 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			correctTarget = outpostPose;
 		}
 
-		//index 0 is flywheel velocity, index 1 is hood angle
+		//feeder 0 is flywheel velocity, feeder 1 is hood angle
 		List<Object> targetValues = calculateTargetValues(correctTarget);
 		flywheelTargetSpeed = RotationsPerSecond.of((double) targetValues.get(0));
-		hoodTargetAngle = Degrees.of((double) targetValues.get(1));
 
 		updateFlywheel();
-		updateHood();
+		//updateHood();
 		// TBD: code to find the distance vector from where we are to passing targets
 		// (preferably outpost and thelocation of outpost on the other side) (3d vector)
 	}
@@ -463,7 +421,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * order to make a pass
 	 */
 	public List<Object> calculateTargetValues(Pose2d target) {
-		return null;
+		List<Object> tList = new ArrayList<Object>();
+		tList.add(3); //flywheelSpeed
+		tList.add(26); //hoodAngle
+		return tList;
 		//code to be determined based off of regression model
 	}
 
@@ -475,8 +436,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private void handleShooterPrepState(TeleopInput input) {
 		List<Object> targetValues = calculateTargetValues(hubPose);
 		flywheelTargetSpeed = RotationsPerSecond.of((double) targetValues.get(0));
-		hoodTargetAngle = Degrees.of((double) targetValues.get(1));
-		drivetrain.targetHub();
+		//drivetrain.targetHub();
 
 		updateFlywheel();
 		//TBD: code to find the distance vector from where we are to hub center (3d vector)
@@ -488,12 +448,13 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleIntakeState(TeleopInput input) {
-		boolean condition = !isAtSpeed() || !isAtAngle();
-		if (condition || !input.getButtonPressed(ButtonInput.REV_INDEXER)) {
-			indexMotor.set(0);
+		if (!isAtSpeed() || !input.getButtonPressed(ButtonInput.REV_FEEDER)) {
+			feederMotor.set(0);
+			spindexMotor.set(0);
 			//pastState should only store shooter_prep, passer_prep, and manual_prep
 		} else {
-			indexMotor.setVoltage(flywheelMotor.getMotorVoltage().getValueAsDouble());
+			feederMotor.setVoltage(flywheelMotor.getMotorVoltage().getValueAsDouble());
+			spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
 		}
 	}
 
@@ -513,33 +474,34 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		//shooter_prep_toggle will be for hood movement
 		// passer_prep_toggle will be the deincrementer
 		// manual_shoot_toggle will be the flywheel control
-		double hoodIncrement = ShooterConstants.HOOD_INCREMENTER.in(Degrees);
+		// double hoodIncrement = ShooterConstants.HOOD_INCREMENTER.in(Degrees);
 		// for checkstyles
 		//if hood is changing
-		boolean hoodSet = input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE);
+		// boolean hoodSet = input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE);
 		//if we are deincrementing
 		boolean incrementSet = input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE);
 		//if flywheel is changing
 		boolean flywheelSet = input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE);
 
-		if (hoodSet && incrementSet) {
-			double hoodChangeMinus = hoodTargetAngle.in(Degrees) - hoodIncrement;
-			if (hoodChangeMinus >= ShooterConstants.HOOD_MIN_ANGLE.in(Degrees)) {
-				hoodTargetAngle = Degrees.of(hoodTargetAngle.in(Degrees) - hoodIncrement);
-			} else {
-				hoodTargetAngle = ShooterConstants.HOOD_MIN_ANGLE;
-			}
-			//decrease hood angle by 5 degrees
-		} else if (hoodSet) {
-			double hoodChangePlus = hoodTargetAngle.in(Degrees) + hoodIncrement;
-			if (hoodChangePlus <= ShooterConstants.HOOD_MAX_ANGLE.in(Degrees)) {
-				hoodTargetAngle = Degrees.of(hoodTargetAngle.in(Degrees) + hoodIncrement);
-			} else {
-				hoodTargetAngle = ShooterConstants.HOOD_MAX_ANGLE;
-			}
-			//increase hood angle by 5 degrees
-		}
-		updateHood();
+		// if (hoodSet && incrementSet) {
+		// 	double hoodChangeMinus = hoodTargetAngle.in(Degrees) - hoodIncrement;
+		// 	if (hoodChangeMinus >= ShooterConstants.HOOD_MIN_ANGLE.in(Degrees)) {
+		// 		hoodTargetAngle = Degrees.of(hoodTargetAngle.in(Degrees) - hoodIncrement);
+		// 	} else {
+		// 		hoodTargetAngle = ShooterConstants.HOOD_MIN_ANGLE;
+		// 	}
+		// 	//decrease hood angle by 5 degrees
+		// } else if (hoodSet) {
+		// 	double hoodChangePlus = hoodTargetAngle.in(Degrees) + hoodIncrement;
+		// 	if (hoodChangePlus <= ShooterConstants.HOOD_MAX_ANGLE.in(Degrees)) {
+		// 		hoodTargetAngle = Degrees.of(hoodTargetAngle.in(Degrees) + hoodIncrement);
+		// 	} else {
+		// 		hoodTargetAngle = ShooterConstants.HOOD_MAX_ANGLE;
+		// 	}
+		// 	//increase hood angle by 5 degrees
+		// }
+		// updateHood();
+
 		double flyIncrement = ShooterConstants.FLYWHEEL_INCREMENTER.in(RotationsPerSecond);
 		//how much the flywheel speed increases/decreases each click
 		if (flywheelSet && incrementSet) {
@@ -573,8 +535,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		flywheelSpeed = RotationsPerSecond.of(curSpeed);
 	}
 
-	private void updateHood() {
-		hoodMotor.setControl(hoodRequest.withPosition(hoodTargetAngle.magnitude()));
-		hoodAngle = Degrees.of(hoodMotor.getPosition().getValue().in(Units.Degrees));
-	}
+	// private void updateHood() {
+	// 	hoodMotor.setControl(hoodRequest.withPosition(hoodTargetAngle.magnitude()));
+	// 	hoodAngle = Degrees.of(hoodMotor.getPosition().getValue().in(Units.Degrees));
+	// }
 }
