@@ -27,6 +27,8 @@ public class Constants {
 		// Drivetrain deadbands
 		public static final double TRANSLATIONAL_DEADBAND = 0.1;
 		public static final double ROTATIONAL_DEADBAND = 0.1;
+
+		public static final boolean DISABLEHAL = false;
 	}
 
 	public class IntakeConstants {
