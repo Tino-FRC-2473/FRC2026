@@ -350,7 +350,7 @@ public class FieldConstants {
 		public static final Pose2d BLUE2_STARTING_POSITION = new Pose2d(
 			13.02004,
 			4.03479,
-		new Rotation2d());
+			new Rotation2d());
 		public static final Pose2d BLUE3_STARTING_POSITION = new Pose2d(
 			13.02004,
 			6.052185,
