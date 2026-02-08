@@ -402,12 +402,12 @@ public class FieldConstants {
 													"main",
 													"deploy",
 													"apriltags",
-													FieldType.WELDED.getJsonFolder(),
+													FIELDTYPE.getJsonFolder(),
 													name + ".json")
 											: Path.of(
 													Filesystem.getDeployDirectory().getPath(),
 													"apriltags",
-													FieldType.WELDED.getJsonFolder(),
+													FIELDTYPE.getJsonFolder(),
 													name + ".json");
 							layout = new AprilTagFieldLayout(p);
 							layoutString = new ObjectMapper().writeValueAsString(layout);
