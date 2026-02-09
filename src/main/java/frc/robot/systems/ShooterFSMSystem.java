@@ -17,6 +17,8 @@ import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
 
+import com.revrobotics.CANSparkMax;
+
 
 
 import frc.robot.Constants.ShooterConstants;
@@ -53,16 +55,16 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private Pose2d target3Pose; //probably going to be the mirrored side of the outpost
 	private TalonFX flywheelMotor;
 	private TalonFX feederMotor;
-	private TalonFX spindexMotor;
+	private CANSparkMax spindexMotor;
 	private Measure<AngularVelocityUnit> flywheelSpeed; //Units.RotationsPerSecond
 	private Measure<AngularVelocityUnit> flywheelTargetSpeed; //Units.RotationsPerSecond
 	private Measure<AngleUnit> hoodAngle; //Units.Degrees
 	private ShooterFSMState pastState;
-	private TalonFXConfiguration spindexConfigs;
 	private TalonFXConfiguration flywheelConfigs;
 	private TalonFXConfiguration feederConfigs;
 	private Drivetrain drivetrain;
 	private MotionMagicVelocityVoltage flywheelRequest;
+	private MotionMagicVelocityVoltage feederRequest;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -84,20 +86,21 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feederMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_FEEDER
 		);
-		spindexMotor = new TalonFXWrapper(
-			HardwareMap.CAN_ID_SPINDEXER
-		);
+		spindexMotor = new CANSparkMax(HardwareMap.CAN_ID_SPINDEXER,
+			CANSparkMax.MotorType.kBrushed);
+		spindexMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
-		spindexConfigs = new TalonFXConfiguration();
+		// spindexMotor = new TalonFXWrapper(HardwareMap.CAN_ID_SPINDEXER);
+		// spindexConfigs = new TalonFXConfiguration();
 
-		var spindexFeedbackConfigs = spindexConfigs.Feedback;
-		var spindexRatio =
-			ShooterConstants.SPINDEX_GEAR_RATIO;
-		spindexFeedbackConfigs.SensorToMechanismRatio = spindexRatio;
-		//set to 2 (divided by 360 to get in terms of degrees)
+		// var spindexFeedbackConfigs = spindexConfigs.Feedback;
+		// var spindexRatio =
+		// 	ShooterConstants.SPINDEX_GEAR_RATIO;
+		// spindexFeedbackConfigs.SensorToMechanismRatio = spindexRatio;
+		// //set to 2 (divided by 360 to get in terms of degrees)
 		
 
-		spindexMotor.getConfigurator().apply(spindexConfigs);
+		// spindexMotor.getConfigurator().apply(spindexConfigs);
 
 		flywheelConfigs = new TalonFXConfiguration();
 		var flywheel0Config = flywheelConfigs.Slot0;
@@ -117,9 +120,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		var flywheelMotionMagicConfigs = flywheelConfigs.MotionMagic;
 		//160 rps/s
 		flywheelMotionMagicConfigs.MotionMagicAcceleration =
-			ShooterConstants.FLYWHEEL_ACCELERATION.in(RotationsPerSecondPerSecond);
+			ShooterConstants.MAGIC_ACCELERATION.in(RotationsPerSecondPerSecond);
 		//1600 rps/s/s, 10* acceleration
-		flywheelMotionMagicConfigs.MotionMagicJerk = ShooterConstants.FLYWHEEL_JERK;
+		flywheelMotionMagicConfigs.MotionMagicJerk = ShooterConstants.MAGIC_JERK;
 
 		var flywheelFeedbackConfigs = flywheelConfigs.Feedback;
 		//set to 3
@@ -128,21 +131,32 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		flywheelMotor.getConfigurator().apply(flywheelConfigs);
 
 		feederConfigs = new TalonFXConfiguration();
+		var feeder0Config = feederConfigs.Slot0;
+		feeder0Config.kS = ShooterConstants.FEEDER_MM_CONSTANT_S;
+		feeder0Config.kV = ShooterConstants.MM_CONSTANT_V;
+		feeder0Config.kA = ShooterConstants.MM_CONSTANT_A;
+		feeder0Config.kP = ShooterConstants.FEEDER_MM_CONSTANT_P;
+		feeder0Config.kI = ShooterConstants.FEEDER_MM_CONSTANT_I;
+		feeder0Config.kD = ShooterConstants.FEEDER_MM_CONSTANT_D;
+
+		var feederMotionMagicConfigs = feederConfigs.MotionMagic;
+		feederMotionMagicConfigs.MotionMagicAcceleration = ShooterConstants.MAGIC_ACCELERATION.in(RotationsPerSecondPerSecond);
+		feederMotionMagicConfigs.MotionMagicJerk = ShooterConstants.MAGIC_JERK;
 		var feederFeedbackConfigs = feederConfigs.Feedback;
 		//set to 3
 		feederFeedbackConfigs.SensorToMechanismRatio = ShooterConstants.FEEDER_GEAR_RATIO;
 
 		feederMotor.getConfigurator().apply(feederConfigs);
 
-		BaseStatusSignal.setUpdateFrequencyForAll(
-				ShooterConstants.UPDATE_FREQUENCY_HZ,
-				spindexMotor.getPosition(),
-				spindexMotor.getVelocity(),
-				spindexMotor.getAcceleration(),
-				spindexMotor.getMotorVoltage(),
-				spindexMotor.getRotorPosition(),
-				spindexMotor.getRotorVelocity()
-		);
+		// BaseStatusSignal.setUpdateFrequencyForAll(
+		// 		ShooterConstants.UPDATE_FREQUENCY_HZ,
+		// 		spindexMotor.getPosition(),
+		// 		spindexMotor.getVelocity(),
+		// 		spindexMotor.getAcceleration(),
+		// 		spindexMotor.getMotorVoltage(),
+		// 		spindexMotor.getRotorPosition(),
+		// 		spindexMotor.getRotorVelocity()
+		// );
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				ShooterConstants.UPDATE_FREQUENCY_HZ,
@@ -164,7 +178,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				flywheelMotor.getRotorVelocity()
 		);
 
-		spindexMotor.optimizeBusUtilization();
+		// spindexMotor.optimizeBusUtilization();
 		feederMotor.optimizeBusUtilization();
 		flywheelMotor.optimizeBusUtilization();
 		reset();
@@ -449,10 +463,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 */
 	private void handleIntakeState(TeleopInput input) {
 		if (!isAtSpeed() || !input.getButtonPressed(ButtonInput.REV_FEEDER)) {
-			feederMotor.set(0);
+			feederMotor.setControl(feederRequest.withVelocity(0));
 			spindexMotor.set(0);
 			//pastState should only store shooter_prep, passer_prep, and manual_prep
 		} else {
+			feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
 			feederMotor.setVoltage(flywheelMotor.getMotorVoltage().getValueAsDouble());
 			spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
 		}

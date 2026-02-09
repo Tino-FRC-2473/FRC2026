@@ -130,10 +130,10 @@ public class Constants {
 		private static final double JERK_MULT_CONSTANT = 10;
 		//constant to change the magnitude of jerk from acceleration
 		public static final Frequency UPDATE_FREQUENCY_HZ = Hertz.of(200);
-		public static final AngularAcceleration FLYWHEEL_ACCELERATION =
+		public static final AngularAcceleration MAGIC_ACCELERATION =
 			RotationsPerSecondPerSecond.of(160);
-		public static final double FLYWHEEL_JERK =
-			FLYWHEEL_ACCELERATION.times(JERK_MULT_CONSTANT).per(Seconds).magnitude();
+		public static final double MAGIC_JERK =
+			MAGIC_ACCELERATION.times(JERK_MULT_CONSTANT).per(Seconds).magnitude();
 		// public static final AngularVelocity HOOD_VELOCITY = DegreesPerSecond.of(20);
 		// public static final AngularAcceleration HOOD_ACCELERATION =
 		// 	DegreesPerSecondPerSecond.of(HOOD_VELOCITY.times(2).in(RotationsPerSecond));
@@ -159,6 +159,11 @@ public class Constants {
 		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(10);
 		public static final Angle FLYWHEEL_MAX_DEGREES = Degrees.of(360);
 
+		public static final double FEEDER_MM_CONSTANT_S = 0.1;
+		public static final double FEEDER_MM_CONSTANT_P = 0;
+		public static final double FEEDER_MM_CONSTANT_I = 0;
+		public static final double FEEDER_MM_CONSTANT_D = 0;
+
 		//All of these are placeholder values, all need to be changed
 		public static final double FLYWHEEL_MM_CONSTANT_P = 0;
 		public static final double FLYWHEEL_MM_CONSTANT_I = 0;
@@ -169,6 +174,6 @@ public class Constants {
 		// public static final double HOOD_MM_CONSTANT_G = 0.82;
 		//just an estimate, will use Recalc with measurements to calculate later
 
-		public static final double SPINDEX_CONSTANT_VOLTAGE = 4;
+		public static final double SPINDEX_CONSTANT_SPEED = 0.1; //ranges from -1 to 1
 	}
 }
