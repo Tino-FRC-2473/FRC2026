@@ -17,6 +17,7 @@ import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
 import frc.robot.systems.ClimberFSMSystem;
+import frc.robot.systems.ShooterFSMSystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -28,8 +29,9 @@ public class Robot extends LoggedRobot {
 	private Input input;
 
 	// Systems
-	private Drivetrain drivetrain;
-	private ClimberFSMSystem climberFSMSystem;
+	//private Drivetrain drivetrain;
+	//private ClimberFSMSystem climberFSMSystem;
+	private ShooterFSMSystem shooterFSMSystem;
 
 
 	/**
@@ -45,10 +47,11 @@ public class Robot extends LoggedRobot {
 		Logger.start();
 
 		// Instantiate all systems here
-		if (HardwareMap.isDrivetrainEnabled()) {
-			drivetrain = new Drivetrain();
-		}
-		climberFSMSystem = new ClimberFSMSystem();
+		// if (HardwareMap.isDrivetrainEnabled()) {
+		// 	drivetrain = new Drivetrain();
+		// }
+		// climberFSMSystem = new ClimberFSMSystem();
+		shooterFSMSystem = new ShooterFSMSystem();
 	}
 
 	@Override
@@ -58,14 +61,15 @@ public class Robot extends LoggedRobot {
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
 		input.reset();
-		CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
+		//CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-		drivetrain.update(input);
+		//drivetrain.update(input);
 		input.update();
-		CommandScheduler.getInstance().run();
+		//CommandScheduler.getInstance().run();
+		//shooterFSMSystem.update((TeleopInput) input);
 
 		// logs motor values
 		MotorManager.update();
@@ -76,16 +80,18 @@ public class Robot extends LoggedRobot {
 		System.out.println("-------- Teleop Init --------");
 		input = new TeleopInput();
 		input.reset();
-		CommandScheduler.getInstance().cancelAll();
-		drivetrain.reset();
-		climberFSMSystem.reset();
+		//CommandScheduler.getInstance().cancelAll();
+		// drivetrain.reset();
+		// climberFSMSystem.reset();
+		shooterFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		drivetrain.update(input);
+		//drivetrain.update(input);
 		input.update();
-		climberFSMSystem.update((TeleopInput) input);
+		//climberFSMSystem.update((TeleopInput) input);
+		shooterFSMSystem.update((TeleopInput) input);
 
 		// logs motor values
 		MotorManager.update();

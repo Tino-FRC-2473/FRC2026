@@ -7,6 +7,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Frequency;
+import edu.wpi.first.units.measure.Voltage;
+
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
@@ -175,5 +177,6 @@ public class Constants {
 		//just an estimate, will use Recalc with measurements to calculate later
 
 		public static final double SPINDEX_CONSTANT_SPEED = 0.1; //ranges from -1 to 1
+		public static final double SPINDEX_CONSTANT_VOLTAGE = 1;
 	}
 }

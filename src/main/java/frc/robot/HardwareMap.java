@@ -19,9 +19,9 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_INTAKE = 8;
 
 	//temp values for us to not have errors, need to be changed
-	public static final int CAN_ID_FLYWHEEL = 0;
-	public static final int CAN_ID_FEEDER = 0;
-	public static final int CAN_ID_SPINDEXER = 0;
+	public static final int CAN_ID_FLYWHEEL = 5;
+	public static final int CAN_ID_FEEDER = 12;
+	public static final int CAN_ID_SPINDEXER = 24;
 
 	//rio - dio ports
 	public static final int INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT = 0;
