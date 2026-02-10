@@ -16,9 +16,8 @@ import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
-// import frc.robot.systems.FSMSystem;
 import frc.robot.systems.IntakeFSMSystem;
-// import frc.robot.systems.ClimberFSMSystem;
+import frc.robot.systems.ClimberFSMSystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -31,7 +30,7 @@ public class Robot extends LoggedRobot {
 
 	// Systems
 	private Drivetrain drivetrain;
-	// private FSMSystem<ClimberFSMSystem.ClimberFSMState> climberFSMSystem;
+	private ClimberFSMSystem climberFSMSystem;
 	private IntakeFSMSystem intakeFSMSystem;
 
 
@@ -51,7 +50,7 @@ public class Robot extends LoggedRobot {
 		if (HardwareMap.isDrivetrainEnabled()) {
 			drivetrain = new Drivetrain();
 		}
-		// climberFSMSystem = new ClimberFSMSystem();
+		climberFSMSystem = new ClimberFSMSystem();
 		intakeFSMSystem = new IntakeFSMSystem();
 	}
 
@@ -82,7 +81,7 @@ public class Robot extends LoggedRobot {
 		input.reset();
 		CommandScheduler.getInstance().cancelAll();
 		drivetrain.reset();
-		// climberFSMSystem.reset();
+		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 	}
 
@@ -90,7 +89,7 @@ public class Robot extends LoggedRobot {
 	public void teleopPeriodic() {
 		drivetrain.update(input);
 		input.update();
-		// climberFSMSystem.update((TeleopInput) input);
+		climberFSMSystem.update((TeleopInput) input);
 		intakeFSMSystem.update((TeleopInput) input);
 
 		// logs motor values

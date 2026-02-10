@@ -316,7 +316,6 @@ public class ClimberFSMSystem {
 	}
 
 	private ClimberFSMState nextState(TeleopInput input) {
-		//System.out.println(getCurrentState());
 		if (input == null) {
 			return ClimberFSMState.IDLE;
 		}
