@@ -54,7 +54,10 @@ public final class TeleopInput extends Input {
 		return switch (key) {
 
 			// Drivetrain
-			case DRIVETRAIN_RESEED -> mechController::options;
+			case DRIVETRAIN_RESEED -> driveController::options;
+			case PATHFINDING -> driveController::circle;
+			case INCREASEP -> driveController::R1;
+			case DECREASEP -> driveController::R2;
 
 			// Intake
 			case INTAKE_FOLD_IN -> mechController::circle;

@@ -16,6 +16,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -35,13 +36,14 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PS4Controller.Button;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants;
-import frc.robot.TeleopInput;
+import frc.robot.input.TeleopInput;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.input.Input;
@@ -175,7 +177,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		update(null);
 	}
 
-	@Override
 	public void update(Input input) {
 		drivetrain.periodic();
 		//updateLimelightYaw();
@@ -262,18 +263,18 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	/* ======================== Private methods ======================== */
 
-	@Override
+
 	protected DrivetrainState nextState(Input input) {
 		if (input == null) {
 			return DrivetrainState.TELEOP;
 		}
 
-		if (input.increasep()) {
+		if (input.getButtonPressed(ButtonInput.INCREASEP)) {
 			Constants.ModuleConstants.DRIVE_P += 0.1;
 			Constants.ModuleConstants.STEER_P += 0.1;
 
 			System.out.println("P is now " + Constants.ModuleConstants.DRIVE_P);
-		} else if (input.decreasep()) {
+		} else if (input.getButtonPressed(ButtonInput.DECREASEP)) {
 			Constants.ModuleConstants.DRIVE_P -= 0.1;
 			Constants.ModuleConstants.STEER_P -= 0.1;
 
@@ -282,14 +283,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		switch (currentState) {
 			case TELEOP:
-				if (input.isPathfindButtonPressed()) {
+				if (input.getButtonPressed(ButtonInput.PATHFINDING)) {
 					startPathfinding();
 					return DrivetrainState.PATHFIND;
 				} else {
 					return DrivetrainState.TELEOP;
 				}
 			case PATHFIND:
-				if (input.isPathfindButtonPressed()) {
+				if (input.getButtonPressed(ButtonInput.PATHFINDING)) {
 					return DrivetrainState.PATHFIND;
 				} else {
 					pathfindCommand.cancel();
@@ -305,11 +306,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	private void startPathfinding() {
 		pathfindCommand = AutoBuilder.pathfindToPose(pathfindTarget,
-					DrivetrainConstants.PATH_CONSTRAINTS);
+					PathConstraints.unlimitedConstraints(12));
 		CommandScheduler.getInstance().schedule(pathfindCommand);
 	}
 
-	private void handleTeleopState(TeleopInput input) {
+	private void handleTeleopState(Input input) {
 		if (input == null) {
 			return;
 		}

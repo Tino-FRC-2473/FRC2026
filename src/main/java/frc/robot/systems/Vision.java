@@ -24,6 +24,7 @@ import limelight.networktables.LimelightSettings.LEDMode;
 import limelight.networktables.Orientation3d;
 import limelight.networktables.PoseEstimate;
 
+
 public class Vision {
 	private Limelight limelight;
 	private VisionConsumer visionConsumer;
@@ -60,7 +61,7 @@ public class Vision {
 					new AngularVelocity3d(DegreesPerSecond.of(0),
 					DegreesPerSecond.of(0), DegreesPerSecond.of(0))))
 			.save();
-
+		System.out.println(BotPose.BLUE_MEGATAG2.get(limelight));
 		Optional<PoseEstimate> visionEstimate = BotPose.BLUE_MEGATAG2.get(limelight);
 		visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
 			//Logger.recordOutput("Vision/LLRotation", limelight.);

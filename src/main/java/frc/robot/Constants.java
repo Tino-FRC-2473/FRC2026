@@ -87,7 +87,7 @@ public class Constants {
 		public static final String CAN_BUS_NAME = "Drivetrain";
 		//TODO: Get some actual values for this
 		public static final PathConstraints PATH_CONSTRAINTS = PathConstraints.unlimitedConstraints(12);
-		
+
 		//new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
 
 	}

@@ -9,11 +9,13 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import frc.robot.Constants.VisionConstants;
+import frc.robot.input.TeleopInput;
 
 // WPILib Imports
 
 // Systems
 import frc.robot.motors.MotorManager;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.systems.Drivetrain;
 import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.Vision;
@@ -25,13 +27,15 @@ import frc.robot.systems.Vision;
 public class Robot extends LoggedRobot {
 
 	// Robot input
-	private Input input;
+	private TeleopInput input;
 
 	// Systems
 	private Drivetrain drivetrain;
 	private ClimberFSMSystem climberFSMSystem;
 
 	private Vision vision;
+
+
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -57,10 +61,8 @@ public class Robot extends LoggedRobot {
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
 
-		AutoInput autoInput = new AutoInput();
-		input = autoInput;
 		input.reset();
-		CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
+
 	}
 
 	@Override
@@ -126,7 +128,7 @@ public class Robot extends LoggedRobot {
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
-	public void robotPeriodic() { 
+	public void robotPeriodic() {
 		vision.periodic();
 	}
 }

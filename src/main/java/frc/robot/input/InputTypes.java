@@ -19,6 +19,9 @@ public class InputTypes {
 	public enum ButtonInput {
 		// Drivetrain
 		DRIVETRAIN_RESEED,
+		PATHFINDING,
+		INCREASEP,
+		DECREASEP,
 
 		// Intake
 		INTAKE_FOLD_IN,
