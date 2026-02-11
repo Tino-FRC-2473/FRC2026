@@ -1,16 +1,33 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 
 import com.pathplanner.lib.path.PathConstraints;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.N8;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.units.measure.MomentOfInertia;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Filesystem;
 
 public class Constants {
 	public static final class DrivetrainConstants {
@@ -50,12 +67,113 @@ public class Constants {
 		public static final double STEER_S = 0;
 	}
 
+	public static final class SimConstants {
+		public static final Mass MASS_WITH_BUMPER = Pounds.of(115);
+		public static final Distance ROBOT_LENGTH = Inches.of(34.5);
+		public static final Distance ROBOT_WIDTH = Inches.of(34.5);
+		public static final double WHEEL_COF = 1.2;
+
+		public static final double STEER_P = 70;
+		public static final double STEER_I = 0;
+		public static final double STEER_D = 4.5;
+		public static final double STEER_S = 0;
+		public static final double STEER_V = 1.91;
+		public static final double STEER_A = 0;
+
+		public static final double STEER_MOTOR_GEAR_RATIO = 16.0;
+		public static final Voltage DRIVE_FRICTION_VOLTAGE = Volts.of(0.1);
+		public static final Voltage STEER_FRICTION_VOLTAGE = Volts.of(0.51);
+		public static final MomentOfInertia STEER_INERTIA = KilogramSquareMeters.of(0.05);
+
+		/* ================== PhotonSim Camera Properties ==================== */
+		public static final int CAM_FPS = 100;
+		public static final int CAM_RES_WIDTH_PIX = 640;
+		public static final int CAM_RES_HEIGHT_PIX = 480;
+
+
+		/* THE FOLLOWING CAMERA PROPERTIES ARE TAKEN FROM THE camprops.sqlite FILE */
+		public static final Matrix<N3, N3> CAMERA_CALIBRATION = new Matrix<>(
+			N3.instance, N3.instance,
+				new double[] {
+					554.8363329613238,
+					0.0,
+					319.771006175582,
+					0.0,
+					555.7640379607542,
+					210.90231168898111,
+					0.0,
+					0.0,
+					1.0
+				}
+			);
+
+		public static final Matrix<N8, N1> CAMERA_DISTORTION = new Matrix<>(
+			N8.instance, N1.instance,
+				new double[] {
+					0.032904169887820925,
+					0.024981667114235325,
+					-0.0024512685439365967,
+					9.347928373666906E-4,
+					-0.15993971100687385,
+					-2.8908154357146817E-4,
+					1.516375932970693E-4,
+					0.006735034604041476
+				}
+			);
+	}
+
 	public static final class VisionConstants {
+
+		public static final AprilTagFieldLayout TAG_LAYOUT;
+
+		static {
+			AprilTagFieldLayout hi;
+			try {
+				hi = new AprilTagFieldLayout(Filesystem.getDeployDirectory().toPath()
+					.resolve("2026-rebuilt-welded.json"));
+			} catch (Exception e) {
+				System.out.println("aaaa");
+				hi = AprilTagFieldLayout.loadField(AprilTagFields.k2022RapidReact);
+			}
+			TAG_LAYOUT = hi;
+		}
+
+		public static final int TAG_ID_TEST_STATION = 1;
+		public static final int TAG_ID_TEST_REEF_LEFT = 67;
+		public static final int TAG_ID_TEST_REEF_RIGHT = 4;
+
+		public static final String REEF_CAMERA_NAME = "Camera";
+
+		public static final Transform3d ROBOT_CAM =
+			new Transform3d(Units.inchesToMeters(7.129),
+				-Units.inchesToMeters(4.306),
+				Units.inchesToMeters(14.56), new Rotation3d(0.0, 0.0, 0.0));
+
+
+		public static final double MAX_AMBIGUITY = 0.1;
+		public static final double MAX_Z_ERROR = 0.3; // meters
+		public static final Distance STOP_PATHFINDING_UPDATES = Meters.of(2);
+		public static final Angle MAX_POSE_ROT_OFFSET = Degrees.of(5);
+
+		public static final double LINEAR_STD_DEV_BASELINE = 0.02;
+		public static final double ANGULAR_STD_DEV_BASELINE = 0.06;
+
+		public static final double[] CAMERA_STD_DEV_FACTORS = new double[] {
+			1.0, // Reef Camera
+			1 // Station Camera
+		};
+
+		public static final double FIELD_BORDER_MARGIN = 0.5;
+		public static final double FIELD_LENGTH = 17.5483;
+		public static final double FIELD_WIDTH = 8.0519;
+
 		public static final String LIMELIGHT_NAME = "limelight-four";
 		//TODO: Find some actual values for this.
 		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(
 			0.02, 0.02, Math.toRadians(1));
 		//TODO: Measure this on the bot
 		public static final Pose3d LL4_OFFSET = new Pose3d(0.096, -0.03, 0.55, new Rotation3d());
+		public static final boolean DISABLE_HAL = false;
 	}
+
 }

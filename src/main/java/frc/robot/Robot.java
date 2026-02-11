@@ -15,7 +15,7 @@ import frc.robot.Constants.VisionConstants;
 // Systems
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
-import frc.robot.systems.Vision;
+import frc.robot.systems.LimelightVision;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -26,7 +26,7 @@ public class Robot extends LoggedRobot {
 
 	// Systems
 	private Drivetrain drivetrain;
-	private Vision vision;
+	private LimelightVision vision;
 	private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
 
 	/**
@@ -45,7 +45,8 @@ public class Robot extends LoggedRobot {
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
 			drivetrain = new Drivetrain();
-			vision = new Vision(drivetrain::addVisionMeasurement, () -> drivetrain.getDrivetrainRotation(), VisionConstants.LIMELIGHT_NAME);
+			vision = new LimelightVision(drivetrain::addVisionMeasurement,
+				() -> drivetrain.getDrivetrainRotation(), VisionConstants.LIMELIGHT_NAME);
 		}
 
 	}
@@ -109,7 +110,7 @@ public class Robot extends LoggedRobot {
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
-	public void robotPeriodic() { 
+	public void robotPeriodic() {
 		vision.periodic();
 	}
 }

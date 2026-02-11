@@ -1,11 +1,6 @@
 package frc.robot.systems;
 
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-
-import java.util.Optional;
 import java.util.function.Supplier;
-
-import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -13,17 +8,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 
-import frc.robot.Constants.VisionConstants;
-
-import limelight.Limelight;
-import limelight.networktables.AngularVelocity3d;
-import limelight.networktables.LimelightPoseEstimator.BotPose;
-import limelight.networktables.LimelightSettings.LEDMode;
-import limelight.networktables.Orientation3d;
-import limelight.networktables.PoseEstimate;
-
-public class Vision {
-	private Limelight limelight;
+public abstract class Vision {
 	private VisionConsumer visionConsumer;
 	private Supplier<Rotation3d> rotationSupplier;
 
@@ -32,40 +17,32 @@ public class Vision {
 	 * Construct a vision object.
 	 * @param consumer The consumer to accept vision observations.
 	 * @param rotSupplier The supplier for the robot's rotation.
-	 * @param limelightName The name of the Limelight
 	 */
 	public Vision(
-		VisionConsumer consumer, Supplier<Rotation3d> rotSupplier,
-		String limelightName) {
+		VisionConsumer consumer, Supplier<Rotation3d> rotSupplier) {
 		rotationSupplier = rotSupplier;
-		limelight = new Limelight(limelightName);
-		limelight.getSettings()
-			.withLimelightLEDMode(LEDMode.PipelineControl)
-			.withCameraOffset(VisionConstants.LL4_OFFSET)
-			.save();
 		visionConsumer = consumer;
 	}
 
 	/**
 	 * Periodic method for the vision subsystem.
 	 */
-	public void periodic() {
-		limelight.getSettings()
-		.withRobotOrientation(
-			new Orientation3d(
-					rotationSupplier.get(),
-					new AngularVelocity3d(DegreesPerSecond.of(0),
-					DegreesPerSecond.of(0), DegreesPerSecond.of(0))))
-			.save();
+	abstract void periodic();
 
-		Optional<PoseEstimate> visionEstimate = BotPose.BLUE.get(limelight);
-		visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
-			Logger.recordOutput("Vision/MT2Pose", poseEstimate.pose.toPose2d());
-			visionConsumer.accept(
-					poseEstimate.pose.toPose2d(),
-					poseEstimate.timestampSeconds,
-					VisionConstants.LL4_STDEVS);
-		});
+	/**
+	 * Getter for the visonConsumer.
+	 * @return visionconsumer
+	 */
+	public VisionConsumer getVisionConsumer() {
+		return visionConsumer;
+	}
+
+	/**
+	 * Getter for the rotationSupplier.
+	 * @return rotationSupplier
+	 */
+	public Supplier<Rotation3d> getRotationSupplier() {
+		return rotationSupplier;
 	}
 
 
