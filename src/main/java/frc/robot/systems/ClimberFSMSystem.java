@@ -1,48 +1,37 @@
 package frc.robot.systems;
 
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
-
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DigitalInput;
 
+import static edu.wpi.first.units.Units.Inches;
+
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
+
 import frc.robot.HardwareMap;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 
-
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import frc.robot.Constants.ClimberConstants;
 
-
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-
-
-import static edu.wpi.first.units.Units.Inches;
-
-
-
-//import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
-
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-//import com.ctre.phoenix6.controls.VoltageOut;
-
-
+import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 
 public class ClimberFSMSystem  {
 	public enum ClimberFSMState {
@@ -71,9 +60,6 @@ public class ClimberFSMSystem  {
 	private ClimberFSMState currentState;
 	private MotionMagicVoltage motionRequest;
 
-
-
-
 	/**
 	 * Create ClimberFSMSystem and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
@@ -82,16 +68,53 @@ public class ClimberFSMSystem  {
 	public ClimberFSMSystem() {
 		climberMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_LEFT);
 		climberMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_RIGHT);
+		climberMotorRight.setControl(new Follower(HardwareMap.CAN_ID_CLIMBER_LEFT,
+			MotorAlignmentValue.Opposed));
+
+		motionRequest = new MotionMagicVoltage(0);
+		var talonFXConfigs = getConfig();
+		climberMotorLeft.getConfigurator().apply(talonFXConfigs);
+		climberMotorLeft.setPosition(0);
+
+		currentState = ClimberFSMState.IDLE;
+
 		groundLimitSwitchLeft = new DigitalInput(HardwareMap.
 			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT);
 		groundLimitSwitchRight = new DigitalInput(HardwareMap.
 			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_RIGHT);
 
 
-		climberMotorRight.setControl(new Follower(HardwareMap.CAN_ID_CLIMBER_LEFT,
-			MotorAlignmentValue.Opposed));
-		motionRequest = new MotionMagicVoltage(0);
+		if (RobotBase.isSimulation()) {
+
+			double effectiveMass = ClimberConstants.EFFECTIVE_WEIGHT;
+			sim = new ElevatorSim(
+				DCMotor.getKrakenX60(2),
+				ClimberConstants.CLIMBER_GEAR_RATIO,
+				effectiveMass,
+				Units.inchesToMeters(1.0),
+				0.0,
+				Units.inchesToMeters(ClimberConstants.UPPER_THRESHOLD.in(Inches)),
+				true,
+				0.0,
+				0.0,
+				0.0
+			);
+
+			limitSimLeft = new DIOSim(groundLimitSwitchLeft);
+			limitSimRight = new DIOSim(groundLimitSwitchRight);
+		}
+
+		reset();
+	}
+
+
+	/**
+	 * Get the TalonFXConfiguration for the climber motors.
+	 * @return TalonFXConfiguration for the climber motors
+	 */
+	public TalonFXConfiguration getConfig() {
 		var talonFXConfigs = new TalonFXConfiguration();
+
 		var outputConfigs = talonFXConfigs.MotorOutput;
 		outputConfigs.NeutralMode = NeutralModeValue.Brake;
 
@@ -105,50 +128,23 @@ public class ClimberFSMSystem  {
 		sensorConfig.SensorToMechanismRatio = ClimberConstants.ROTS_TO_INCHES;
 
 		var slot0 = talonFXConfigs.Slot0;
-		//slot0.GravityType = GravityTypeValue.Elevator_Static;
-		//slot0.kG = ClimberConstants.KG;
+		slot0.GravityType = GravityTypeValue.Elevator_Static;
+		slot0.kG = ClimberConstants.KG;
 		slot0.kS = ClimberConstants.KS;
 		slot0.kV = ClimberConstants.KV;
 		slot0.kA = ClimberConstants.KA;
 		slot0.kP = ClimberConstants.KP;
 		slot0.kI = ClimberConstants.KI;
 		slot0.kD = ClimberConstants.KD;
-		//slot0.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
+		slot0.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
 		var motionMagicConfigs = talonFXConfigs.MotionMagic;
 		motionMagicConfigs.MotionMagicCruiseVelocity = ClimberConstants.CRUISE_VELO;
 		motionMagicConfigs.MotionMagicAcceleration = ClimberConstants.TARGET_ACCEL;
 		motionMagicConfigs.MotionMagicExpo_kV = ClimberConstants.EXPO_KV;
 
-		climberMotorLeft.getConfigurator().apply(talonFXConfigs);
-
-		climberMotorLeft.setPosition(0);
-		currentState = ClimberFSMState.IDLE;
-
-		if (RobotBase.isSimulation()) {
-			// Adjust mass based on climber angle (Gravity component: mg * sin(theta))
-			double effectiveMass = ClimberConstants.EFFECTIVE_WEIGHT;
-
-			sim = new ElevatorSim(
-				DCMotor.getKrakenX60(2),
-				ClimberConstants.CLIMBER_GEAR_RATIO,  // Gearing ( 9:1)
-				effectiveMass,						  // Angled effective mass
-				Units.inchesToMeters(1.0),			  // Drum Radius
-				0.0,									// Min Height
-				Units.inchesToMeters(ClimberConstants.UPPER_THRESHOLD.in(Inches)), // Max Height
-				true,								   // Simulate Gravity
-				0.0,									// Starting position
-				0.0,								   // Measurement StdDev
-				0.0									 // Starting velocity
-			);
-
-			limitSimLeft = new DIOSim(groundLimitSwitchLeft);
-			limitSimRight = new DIOSim(groundLimitSwitchRight);
-		}
-
-		reset();
+		return talonFXConfigs;
 	}
-
 
 	/**
 	 * Get the current FSM state.
@@ -194,12 +190,10 @@ public class ClimberFSMSystem  {
 			double rotorVelocityRPS = (sim.getVelocityMetersPerSecond()
 				/ drumCircumferenceMeters) * gearRatio;
 
-			// 3. Update the TalonFX SimState with Rotor-relative units
 			var simState = climberMotorLeft.getSimState();
 			simState.setRawRotorPosition(rotorRotations);
 			simState.setRotorVelocity(rotorVelocityRPS);
 
-			// 4. Update limit switches
 			boolean atBottom = sim.getPositionMeters() <= ClimberConstants.LIMIT_SWITCH_HEIGHT;
 			limitSimLeft.setValue(atBottom);
 			limitSimRight.setValue(atBottom);
@@ -237,6 +231,7 @@ public class ClimberFSMSystem  {
 		double extension = Units.inchesToMeters(currentHeight);
 		double x = extension * Math.cos(ClimberConstants.CLIMBER_ANGLE_RAD);
 		double z = extension * Math.sin(ClimberConstants.CLIMBER_ANGLE_RAD);
+
 		Logger.recordOutput("Climber/3DPose", new Pose3d(
 			new Translation3d(x, 0, z),
 			new Rotation3d(0, -ClimberConstants.CLIMBER_ANGLE_RAD, 0)
@@ -316,7 +311,6 @@ public class ClimberFSMSystem  {
 	}
 
 	private ClimberFSMState nextState(TeleopInput input) {
-		System.out.println(getCurrentState());
 		if (input == null) {
 			return ClimberFSMState.IDLE;
 		}
@@ -418,15 +412,9 @@ public class ClimberFSMSystem  {
 	}
 
 	private void handleL1ExtendState(TeleopInput input) {
-		// DutyCycleOut n = new DutyCycleOut(0.5);
-		// DutyCycleOut b = new DutyCycleOut(0.5);
-		// climberMotorLeft.setControl(n);
-		// climberMotorRight.setControl(b);
-
 		climberMotorLeft.setControl(motionRequest.withPosition(
 			ClimberConstants.L1_EXTEND_POS.in(Inches)
 		));
-		System.out.println(motionRequest.getControlInfo());
 	}
 
 	private void handleL1RetractState(TeleopInput input) {
