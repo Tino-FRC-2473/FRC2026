@@ -7,11 +7,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Frequency;
-import edu.wpi.first.units.measure.Voltage;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Hertz;
@@ -129,6 +126,10 @@ public class Constants {
 		public static final double FLYWHEEL_GEAR_RATIO = 3;
 		public static final double FEEDER_GEAR_RATIO = 3;
 
+		public static final double CURRENT_LIMIT = 40;
+
+		public static final double TEMP_FLYSPEED = 20;
+
 		private static final double JERK_MULT_CONSTANT = 10;
 		//constant to change the magnitude of jerk from acceleration
 		public static final Frequency UPDATE_FREQUENCY_HZ = Hertz.of(200);
@@ -144,7 +145,8 @@ public class Constants {
 
 		public static final AngularVelocity FLYWHEEL_MOE =
 			RotationsPerSecond.of(0.5); //margin of error, subject to change
-		// public static final Angle HOOD_MOE = Degrees.of(0.1); //margin of error, subject to change
+		// public static final Angle HOOD_MOE = Degrees.of(0.1);
+		//margin of error, subject to change
 
 		public static final AngularVelocity FLYWHEEL_MAX_SPEED = RotationsPerSecond.of(160);
 
@@ -152,8 +154,7 @@ public class Constants {
 		//need to test by recording small amount of input that allows any movement at all
 		// public static final double HOOD_MM_CONSTANT_S = 0.1;
 		//need to test by recording in some manner
-		public static final double MM_CONSTANT_V = 0.12; //taken straight from Phoenix6
-		public static final double MM_CONSTANT_A = 0.01; //taken straight from Phoenix6
+		public static final double MM_CONSTANT_V = 0.112; //taken straight from Phoenix6
 		// public static final Angle HOOD_MAX_ANGLE = Degrees.of(45);
 		// public static final Angle HOOD_MIN_ANGLE = Degrees.of(20);
 		// public static final Angle HOOD_INCREMENTER = Degrees.of(5);
@@ -162,7 +163,7 @@ public class Constants {
 		public static final Angle FLYWHEEL_MAX_DEGREES = Degrees.of(360);
 
 		public static final double FEEDER_MM_CONSTANT_S = 0.1;
-		public static final double FEEDER_MM_CONSTANT_P = 0;
+		public static final double FEEDER_MM_CONSTANT_P = 0.1;
 		public static final double FEEDER_MM_CONSTANT_I = 0;
 		public static final double FEEDER_MM_CONSTANT_D = 0;
 
