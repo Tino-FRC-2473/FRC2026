@@ -10,7 +10,7 @@ stateDiagram-v2
   state "Partial out" as PARTIAL_OUT_STATE
   state "Folding In: PID to IN target" as FOLD_IN_STATE
 
-  [*] --> IDLE_IN_STATE 
+  [*] --> IDLE_OUT_STATE 
   IDLE_IN_STATE --> FOLD_OUT_STATE: Only Circle button pressed
   FOLD_OUT_STATE --> IDLE_OUT_STATE: Folding Out Complete 
   IDLE_OUT_STATE --> INTAKE_STATE: Only Triangle Button pressed

@@ -57,11 +57,11 @@ public final class TeleopInput extends Input {
 			case DRIVETRAIN_RESEED -> mechController::options;
 
 			// Intake
-			case INTAKE_FOLD_IN -> mechController::circle;
-			case INTAKE_FOLD_OUT -> mechController::circle;
-			case INTAKE_PARTIAL_OUT -> mechController::options;
-			case INTAKE_INTAKE -> mechController::triangle;
-			case INTAKE_OUTTAKE -> mechController::square;
+			case PARTIAL_OUT_BUTTON -> mechController::share;
+			case INTAKE_BUTTON -> mechController::circle;
+			case OUTTAKE_BUTTON -> mechController::cross;
+			case FOLD_IN_BUTTON -> mechController::L1;
+			case FOLD_OUT_BUTTON -> mechController::L2;
 
 			// Climber
 			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;

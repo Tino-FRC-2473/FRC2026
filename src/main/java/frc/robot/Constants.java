@@ -29,51 +29,6 @@ public class Constants {
 		public static final double ROTATIONAL_DEADBAND = 0.1;
 	}
 
-	public class IntakeConstants {
-		// Target angles
-		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(2.09);
-		public static final Angle UPPER_TARGET_ANGLE = Units.Radians.of(0);
-		public static final Angle PARTIAL_OUT_TARGET_ANGLE = Units.Radians.of(0.79);
-
-		// Target velocities
-		public static final AngularVelocity INTAKE_TARGET_VELOCITY = Units.RotationsPerSecond
-				.of(20);
-		public static final AngularVelocity OUTTAKE_TARGET_VELOCITY = Units.RotationsPerSecond
-				.of(-25.0);
-
-		// Gearing ratios
-		public static final double PIVOT_GEARING = 62.5 / (2 * Math.PI);
-		public static final double INTAKE_GEARING = 3.0 / (2 * Math.PI);
-
-		// Motion magic constants
-		public static final double PIVOT_CRUISE_VELOCITY = 20;
-		public static final double PIVOT_ACCELERATION = 60;
-		public static final double PIVOT_EXPO_KV = 0.35;
-
-		public static final double INTAKE_CRUISE_VELOCITY = 7;
-		public static final double INTAKE_ACCELERATION = 20;
-		public static final double INTAKE_EXPO_KV = 0.12;
-
-		// PID values
-		public static final double PIVOT_G = 0.35;
-		public static final double PIVOT_S = 0.25;
-		public static final double PIVOT_V = 0.12;
-		public static final double PIVOT_A = 0.01;
-		public static final double PIVOT_P = 5.0;
-		public static final double PIVOT_I = 0.0;
-		public static final double PIVOT_D = 0.2;
-		public static final double INTAKE_G = 0.0;
-		public static final double INTAKE_S = 0.20;
-		public static final double INTAKE_V = 0.12;
-		public static final double INTAKE_A = 0.0;
-		public static final double INTAKE_P = 0.15;
-		public static final double INTAKE_I = 0.0;
-		public static final double INTAKE_D = 0.0;
-
-		// Update frequency
-		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
-	}
-
 	public static final class ModuleConstants {
 		public static final double DRIVE_P = 0.1;
 		public static final double DRIVE_I = 0;
@@ -125,4 +80,54 @@ public class Constants {
 			.inchesToMeters(1.0) * 2 * Math.PI;
 	}
 
+	public static final class IntakeConstants {
+		//Targets for Pivot
+		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(2.09);
+		public static final Angle UPPER_TARGET_ANGLE = Units.Radians.of(0);
+		public static final Angle PARTIAL_OUT_TARGET_ANGLE = Units.Radians.of(0.79);
+
+		public static final double PIVOT_MAX_ROTATION = 2.09;
+		public static final double PIVOT_MIN_ROTATION = 0;
+
+		//Arm length in meters
+		public static final double PIVOT_ARM_LENGTH = 0.5;
+
+		//The moment of inertia of the arm in kg-m²; can be calculated from CAD software.
+		public static final double J = 0.1;
+
+		//Pivot PID
+		public static final double PIVOT_KG = 0.35;
+		public static final double PIVOT_KS = 0.25;
+		public static final double PIVOT_KV = 0.12;
+		public static final double PIVOT_KA = 0.01;
+		public static final double PIVOT_KP = 5.0;
+		public static final double PIVOT_KI = 0.0;
+		public static final double PIVOT_KD = 0.2;
+
+		//Intake Motor PID
+		public static final double INTAKE_KV = 0.12;
+		public static final double INTAKE_KA = 0.0;
+		public static final double INTAKE_KP = 0.15;
+		public static final double INTAKE_KI = 0.0;
+		public static final double INTAKE_KD = 0.0;
+		public static final double INTAKE_TARGET_VELOCITY = 20;
+		public static final double OUTTAKE_TARGET_VELOCITY = -25.0;
+
+		//Intake Gearing/Velocity Factors
+		public static final double INTAKE_PIVOT_GEARING = 62.5 / (2 * Math.PI);
+		public static final double INTAKE_GEARING = 3 / (2 * Math.PI);
+
+		public static final double PIVOT_CRUISE_VELO = 20;
+		public static final double PIVOT_TARGET_ACCEL = 60;
+		public static final double PIVOT_EXPO_KV = 0.35;
+
+		public static final double INTAKE_CRUISE_VELO = 7;
+		public static final double INTAKE_TARGET_ACCEL = 20;
+		public static final double INTAKE_EXPO_KV = 0.12;
+
+		//other
+		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
+		public static final double SIM_UPDATE_SECONDS = 0.02;
+		public static final Angle SIM_LIMIT_SWITCH_BUFFER = Units.Radians.of(0.01);
+	}
 }
