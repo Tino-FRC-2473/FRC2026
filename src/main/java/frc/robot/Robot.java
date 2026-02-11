@@ -15,6 +15,7 @@ import frc.robot.Constants.VisionConstants;
 // Systems
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
+import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.Vision;
 
 /**
@@ -22,10 +23,14 @@ import frc.robot.systems.Vision;
  * each mode, as described in the TimedRobot documentation.
  */
 public class Robot extends LoggedRobot {
-	private TeleopInput input;
+
+	// Robot input
+	private Input input;
 
 	// Systems
 	private Drivetrain drivetrain;
+	private ClimberFSMSystem climberFSMSystem;
+
 	private Vision vision;
 
 	/**
@@ -35,7 +40,6 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void robotInit() {
 		System.out.println("robotInit");
-		input = new TeleopInput();
 
 		Logger.recordMetadata("FRC 2473", "REBUILT");
 		Logger.addDataReceiver(new NT4Publisher());
@@ -46,16 +50,24 @@ public class Robot extends LoggedRobot {
 			drivetrain = new Drivetrain();
 			vision = new Vision(drivetrain::addVisionMeasurement, () -> drivetrain.getDrivetrainRotation(), VisionConstants.LIMELIGHT_NAME);
 		}
-
+		climberFSMSystem = new ClimberFSMSystem();
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
+
+		AutoInput autoInput = new AutoInput();
+		input = autoInput;
+		input.reset();
+		CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
 	}
 
 	@Override
 	public void autonomousPeriodic() {
+		drivetrain.update(input);
+		input.update();
+		CommandScheduler.getInstance().run();
 
 		// logs motor values
 		MotorManager.update();
@@ -64,12 +76,18 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
+		input = new TeleopInput();
+		input.reset();
+		CommandScheduler.getInstance().cancelAll();
 		drivetrain.reset();
+		climberFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
 		drivetrain.update(input);
+		input.update();
+		climberFSMSystem.update((TeleopInput) input);
 
 		// logs motor values
 		MotorManager.update();
