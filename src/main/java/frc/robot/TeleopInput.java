@@ -76,6 +76,14 @@ public class TeleopInput {
 		return driveController.getCircleButton();
 	}
 
+	public boolean increasep() {
+		return driveController.getR1ButtonPressed();
+	}
+
+	public boolean decreasep() {
+		return driveController.getL1ButtonPressed();
+	}
+
 	/* ======================== Private methods ======================== */
 
 }

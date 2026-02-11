@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.DegreesPerSecond;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.Matrix;
@@ -62,7 +63,7 @@ public class Vision {
 
 		Optional<PoseEstimate> visionEstimate = BotPose.BLUE_MEGATAG2.get(limelight);
 		visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
-			//Logger.recordOutput("Vision/LLRotation", limelight.networktables.);
+			//Logger.recordOutput("Vision/LLRotation", limelight.);
 			Logger.recordOutput("Vision/MT2Pose", poseEstimate.pose.toPose2d());
 
 			if (poseEstimate.pose.toPose2d().getX() > 1) {

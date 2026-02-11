@@ -40,6 +40,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ModuleConstants;
+import frc.robot.Constants;
 import frc.robot.TeleopInput;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
@@ -269,6 +270,18 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return DrivetrainState.TELEOP;
 		}
 
+		if (input.increasep()) {
+			Constants.ModuleConstants.DRIVE_P += 0.1;
+			Constants.ModuleConstants.STEER_P += 0.1;
+
+			System.out.println("P is now " + Constants.ModuleConstants.DRIVE_P);
+		} else if (input.decreasep()) {
+			Constants.ModuleConstants.DRIVE_P -= 0.1;
+			Constants.ModuleConstants.STEER_P -= 0.1;
+
+			System.out.println("P is now " + Constants.ModuleConstants.DRIVE_P);
+		}
+
 		switch (currentState) {
 			case TELEOP:
 				if (input.isPathfindButtonPressed()) {
@@ -303,12 +316,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
-		double xSpeed = MathUtil.applyDeadband(
+		double xSpeed = -MathUtil.applyDeadband(
 				-input.getDriverLeftY(),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-		double ySpeed = MathUtil.applyDeadband(
-				-input.getDriverLeftX(),
+		double ySpeed = -MathUtil.applyDeadband(
+				input.getDriverLeftX(),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
@@ -317,8 +330,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		drivetrain.setControl(
 			driveFieldCentric
-				.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-				.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+				.withVelocityX(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+				.withVelocityY(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 				.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
 		);
 
@@ -350,7 +363,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			Pose2d visionPoseMeters,
 			double timestampSeconds,
 			Matrix<N3, N1> visionStdDevs) {
-		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(), visionPoseMeters.getY(), getDrivetrainRotation().toRotation2d().plus(Rotation2d.kCCW_90deg)), timestampSeconds, visionStdDevs);
+		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(), visionPoseMeters.getY(), visionPoseMeters.getRotation().plus(Rotation2d.kCCW_90deg)), timestampSeconds, visionStdDevs);
 		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
 	}
 

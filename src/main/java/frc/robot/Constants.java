@@ -2,6 +2,8 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import java.nio.file.Path;
+
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.Matrix;
@@ -29,23 +31,24 @@ public class Constants {
 		public static final int PIGEON2_CAN_ID = 1;
 		public static final String CAN_BUS_NAME = "Drivetrain";
 		//TODO: Get some actual values for this
-		public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
-			3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
+		public static final PathConstraints PATH_CONSTRAINTS = PathConstraints.unlimitedConstraints(12);
+		
+		//new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
 
 	}
 
 	public static final class ModuleConstants {
-		public static final double DRIVE_P = 0.8;
+		public static double DRIVE_P = 0.4;
 		public static final double DRIVE_I = 0;
-		public static final double DRIVE_D = 0.5;
+		public static final double DRIVE_D = 0.1;
 		public static final double DRIVE_V = 0.124;
 
 		public static final double DRIVE_CURRENT_LIMIT = 60;
 		public static final double STEER_CURRENT_LIMIT = 60;
 
-		public static final double STEER_P = 0.8;
+		public static double STEER_P = 0.4;
 		public static final double STEER_I = 0;
-		public static final double STEER_D = 0.2;
+		public static final double STEER_D = 0.1;
 		public static final double STEER_V = 0.1;
 		public static final double STEER_S = 0;
 	}
@@ -56,6 +59,6 @@ public class Constants {
 		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(
 			0.02, 0.02, Math.toRadians(1));
 		//TODO: Measure this on the bot
-		public static final Pose3d LL4_OFFSET = new Pose3d(0.096, -0.03, 0.55, new Rotation3d(0, 0, 0));
+		public static final Pose3d LL4_OFFSET = new Pose3d(0.096, -0.03, 0.55, new Rotation3d(0, 0, 270));
 	}
 }
