@@ -47,10 +47,7 @@ import frc.robot.TeleopInput;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
-import limelight.networktables.LimelightSettings.ImuMode;
-import limelight.Limelight;
-import limelight.networktables.AngularVelocity3d;
-import limelight.networktables.Orientation3d;
+
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/* ======================== Constants ======================== */
@@ -273,13 +270,13 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		if (input.increasep()) {
-			Constants.ModuleConstants.DRIVE_P += 1;
-			//Constants.ModuleConstants.STEER_P += 0.1;
+			//Constants.ModuleConstants.DRIVE_P += 1;
+			Constants.ModuleConstants.STEER_P += 1;
 
 			System.out.println("P is now " + Constants.ModuleConstants.DRIVE_P);
 		} else if (input.decreasep()) {
-			Constants.ModuleConstants.DRIVE_P -= 1;
-			//Constants.ModuleConstants.STEER_P -= 0.1;
+			//Constants.ModuleConstants.DRIVE_P -= 1;
+			Constants.ModuleConstants.STEER_P -= 1;
 
 			System.out.println("P is now " + Constants.ModuleConstants.DRIVE_P);
 		}

@@ -16,16 +16,19 @@ import edu.wpi.first.math.numbers.N3;
 
 import frc.robot.Constants.VisionConstants;
 
-import limelight.Limelight;
-import limelight.networktables.AngularVelocity3d;
+// import limelight.Limelight;
+// import limelight.networktables.AngularVelocity3d;
+// import limelight.networktables.LimelightPoseEstimator.BotPose;
+// import limelight.networktables.LimelightSettings.ImuMode;
+// import limelight.networktables.LimelightSettings.LEDMode;
+// import limelight.networktables.Orientation3d;
+// import limelight.networktables.PoseEstimate;
+import frc.robot.limelight.LimelightHelpers;
+import frc.robot.limelight.LimelightHelpers.PoseEstimate;
 import limelight.networktables.LimelightPoseEstimator.BotPose;
-import limelight.networktables.LimelightSettings.ImuMode;
-import limelight.networktables.LimelightSettings.LEDMode;
-import limelight.networktables.Orientation3d;
-import limelight.networktables.PoseEstimate;
 
 public class Vision {
-	private Limelight limelight;
+	private String limelightName;
 	private VisionConsumer visionConsumer;
 	private Supplier<Rotation3d> rotationSupplier;
 
@@ -40,40 +43,35 @@ public class Vision {
 		VisionConsumer consumer, Supplier<Rotation3d> rotSupplier,
 		String limelightName) {
 		rotationSupplier = rotSupplier;
-		limelight = new Limelight(limelightName);
-		limelight.getSettings()
-			.withLimelightLEDMode(LEDMode.PipelineControl)
-			//.withCameraOffset(VisionConstants.LL4_OFFSET)
-			.withImuMode(ImuMode.ExternalImu)
-			.save();
+		this.limelightName = limelightName;
 		visionConsumer = consumer;
+
+		LimelightHelpers.setLEDMode_PipelineControl(limelightName);
+		LimelightHelpers.SetIMUMode(limelightName, 1);
 	}
 
 	/**
 	 * Periodic method for the vision subsystem.
 	 */
 	public void periodic() {
-		limelight.getSettings()
-		.withRobotOrientation(
-			new Orientation3d(
-					rotationSupplier.get(),
-					new AngularVelocity3d(DegreesPerSecond.of(0),
-					DegreesPerSecond.of(0), DegreesPerSecond.of(0))))
-			.save();
+		Rotation3d rotation = rotationSupplier.get();
+		LimelightHelpers.SetRobotOrientation(limelightName, rotation.getZ(), 0, rotation.getY(), 0, rotation.getX(), 0);
 
-		Optional<PoseEstimate> visionEstimate = BotPose.BLUE_MEGATAG2.get(limelight);
-		visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
-			//Logger.recordOutput("Vision/LLRotation", limelight.);
-			Logger.recordOutput("Vision/MT2Pose", poseEstimate.pose.toPose2d());
+		PoseEstimate visionEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
 
-			if (poseEstimate.pose.toPose2d().getX() > 1) {
-				visionConsumer.accept(
-					poseEstimate.pose.toPose2d(),
-					poseEstimate.timestampSeconds,
-					VisionConstants.LL4_STDEVS);
-			}
-		});
-	}
+		if (LimelightHelpers.validPoseEstimate(visionEstimate)) {
+            Pose2d pose = visionEstimate.pose;
+            Logger.recordOutput("Vision/MT2Pose", pose);
+
+            if (pose.getX() > 1) {
+                visionConsumer.accept(
+                    pose,
+                    visionEstimate.timestampSeconds,
+                    VisionConstants.LL4_STDEVS
+                );
+            }
+        }
+    }
 
 
 	@FunctionalInterface
