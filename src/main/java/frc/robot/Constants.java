@@ -126,7 +126,7 @@ public class Constants {
 		public static final double FLYWHEEL_GEAR_RATIO = 3;
 		public static final double FEEDER_GEAR_RATIO = 3;
 
-		public static final double CURRENT_LIMIT = 40;
+		public static final double SHOOTER_CURRENT_LIMIT = 50; //Amps
 
 		public static final double TEMP_FLYSPEED = 20;
 

@@ -1,5 +1,6 @@
 package frc.robot.systems;
 
+import org.littletonrobotics.junction.Logger;
 // Third party Hardware Imports
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
@@ -103,7 +104,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		var limitConfigs = new CurrentLimitsConfigs();
 
 		// enable stator current limit
-		limitConfigs.StatorCurrentLimit = ShooterConstants.CURRENT_LIMIT;
+		limitConfigs.StatorCurrentLimit = ShooterConstants.SHOOTER_CURRENT_LIMIT;
 		limitConfigs.StatorCurrentLimitEnable = true;
 
 		flywheelConfigs = new TalonFXConfiguration();
@@ -212,7 +213,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @return Boolean statement whether or not it is at flywheel speed or not
 	 */
 	public boolean isAtSpeed() {
-		System.out.println("Act Motor Speed" + flywheelSpeed.in(RotationsPerSecond));
+		Logger.recordOutput("Actual Motor Speed", flywheelSpeed.in(RotationsPerSecond));
 		double flyDifference =
 			flywheelTargetSpeed.in(RotationsPerSecond) - flywheelSpeed.in(RotationsPerSecond);
 		return (
@@ -564,6 +565,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	}
 
 	private void updateFlywheel() {
+		Logger.recordOutput("Flywheel Target Speed", flywheelTargetSpeed);
 		flywheelMotor.setControl(flywheelRequest.withVelocity(
 			flywheelTargetSpeed.in(RotationsPerSecond)));
 		double curSpeed = flywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
