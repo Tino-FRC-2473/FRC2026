@@ -14,15 +14,14 @@ import frc.robot.input.InputTypes.ButtonInput;
  * This class is the sole owner of WPILib input objects and is responsible for
  * polling input values. Systems may query TeleopInput via its getter methods
  * for inputs by value, but may not access the internal input objects.
- *
  */
 public final class TeleopInput extends Input {
 
 	public static final int DRIVE_CONTROLLER_PORT = 0;
 	public static final int MECH_CONTROLLER_PORT = 1;
 
-	private PS4Controller driveController;
-	private PS4Controller mechController;
+	private final PS4Controller driveController;
+	private final PS4Controller mechController;
 
 	/**
 	 * Constructs a TeleopInput using the constants defined in this file.
@@ -33,38 +32,45 @@ public final class TeleopInput extends Input {
 	}
 
 	@Override
-	public Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
+	public double getAxisValue(AxialInput key) {
 		return switch (key) {
 
-			// add / remove cases to reflect the InputTypes
-			case RESEED_DRIVETRAIN -> mechController::options;
-			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
-			case CLIMBER_NEXT_STEP -> mechController::square;
-			case CLIMBER_EMERGENCY_ABORT -> mechController::R1;
-			case CLIMBER_DOWN_BUTTON -> mechController::R2;
-			case FOLD_IN_BUTTON -> mechController::circle;
-			case FOLD_OUT_BUTTON -> mechController::cross;
-			case PARTIAL_OUT_BUTTON -> mechController::options;
-			case INTAKE_BUTTON -> mechController::triangle;
-			case OUTTAKE_BUTTON -> mechController::square;
+			// Drivetrain
+			case DRIVETRAIN_DRIVE_Y -> driveController.getLeftX();
+			case DRIVETRAIN_DRIVE_X -> driveController.getLeftY();
+			case DRIVETRAIN_ROTATE -> driveController.getRightX();
 
-			default -> throw new IllegalArgumentException("Unknown button action");
+			// Intake
+
+			// Climber
+			case CLIMBER_MANUAL_CONTROL -> mechController.getLeftX();
+
+			default -> throw new IllegalArgumentException("Unknown axis input");
 		};
 	}
 
 	@Override
-	public double getAxis(AxialInput key) {
+	public Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
 		return switch (key) {
 
-			// add / remove cases to reflect the InputTypes
-			case DRIVE_Y -> driveController.getLeftX();
-			case DRIVE_X -> driveController.getLeftY();
-			case ROTATE -> driveController.getRightX();
-			case CLIMBER_MANUAL_CONTROL -> mechController.getLeftX();
+			// Drivetrain
+			case DRIVETRAIN_RESEED -> mechController::options;
 
-			default -> throw new IllegalArgumentException("Unknown axis action");
+			// Intake
+			case INTAKE_FOLD_IN -> mechController::circle;
+			case INTAKE_FOLD_OUT -> mechController::circle;
+			case INTAKE_PARTIAL_OUT -> mechController::options;
+			case INTAKE_INTAKE -> mechController::triangle;
+			case INTAKE_OUTTAKE -> mechController::square;
+
+			// Climber
+			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
+			case CLIMBER_NEXT_STEP -> mechController::square;
+			case CLIMBER_EMERGENCY_ABORT -> mechController::R1;
+			case CLIMBER_DOWN_BUTTON -> mechController::R2;
+
+			default -> throw new IllegalArgumentException("Unknown button input");
 		};
 	}
-
 
 }

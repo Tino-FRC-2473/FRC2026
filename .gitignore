@@ -193,3 +193,4 @@ vendordeps/Phoenix6-26.1.0.json
 vendordeps/REVLib.json
 vendordeps/WPILibNewCommands.json
 simgui-ds.json
+.vscode/settings.json
