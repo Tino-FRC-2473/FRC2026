@@ -48,7 +48,9 @@ public class Robot extends LoggedRobot {
 		if (HardwareMap.isDrivetrainEnabled()) {
 			drivetrain = new Drivetrain();
 		}
-		climberFSMSystem = new ClimberFSMSystem();
+		if (HardwareMap.isClimberEnabled()) {
+			climberFSMSystem = new ClimberFSMSystem();
+		}
 	}
 
 	@Override
