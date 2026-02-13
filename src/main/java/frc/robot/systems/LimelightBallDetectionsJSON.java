@@ -4,8 +4,19 @@ import limelight.Limelight;
 import limelight.networktables.LimelightResults;
 import limelight.networktables.target.pipeline.NeuralDetector;
 import java.util.Map;
+import java.util.Optional;
+
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.units.measure.Angle;
+
 import java.util.HashMap;
 import java.util.List;
+
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Radians;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Arrays;
@@ -54,7 +65,7 @@ public class LimelightBallDetectionsJSON {
 		Map<Double, NeuralDetector> detectors = new HashMap<Double, NeuralDetector>();
 
 		for (NeuralDetector result : detectorResults) {
-			hypotenuse = Math.sqrt(Math.pow(result.tx_pixels, 2) + Math.pow(result.ty_pixels, 2));
+			hypotenuse = getHypotenuse(result);
 			hypotenuses.add(hypotenuse);
 			detectors.put(hypotenuse, result);
 		}
@@ -99,5 +110,25 @@ public class LimelightBallDetectionsJSON {
 		getLatestResults();
 		fetchNeuralDetectorResults();
 	}
+	public Optional<Angle> getAngleToFuel() {
+		var result = getOptimalFuel();
+		if (result != null) {
+			return Optional.of(Radians.of(result.tx));
+		} else {
+			return Optional.empty();
+		}
+	}
+
+	private double getHypotenuse(NeuralDetector result) {
+		return Math.sqrt(Math.pow(result.tx_pixels, 2) + Math.pow(result.ty_pixels, 2));
+	}
+
+	// public Optional<Double> getDistancefromLimeToOptimalFuel() {
+	// 	NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+	// 	NetworkTableEntry ty = table.getEntry("ty");
+	// 	double targetOffsetAngle_Vertical = ty.getDouble(0.0);
+	// 	double limelightMountAngleDegrees = getAngleToFuel();
+	// }
+
 
 }
