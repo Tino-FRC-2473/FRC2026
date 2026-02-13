@@ -175,7 +175,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@Override
 	public void update(TeleopInput input) {
 		drivetrain.periodic();
-		//updateLimelightYaw();
 		CommandScheduler.getInstance().run();
 
 		Logger.recordOutput("Vision/AlignmentPose", pathfindTarget);

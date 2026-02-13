@@ -37,13 +37,13 @@ public class Vision {
 	 * Construct a vision object.
 	 * @param consumer The consumer to accept vision observations.
 	 * @param rotSupplier The supplier for the robot's rotation.
-	 * @param limelightName The name of the Limelight
+	 * @param limeLightName The name of the Limelight
 	 */
 	public Vision(
 		VisionConsumer consumer, Supplier<Rotation3d> rotSupplier,
-		String limelightName) {
+		String limeLightName) {
 		rotationSupplier = rotSupplier;
-		this.limelightName = limelightName;
+		this.limelightName = limeLightName;
 		visionConsumer = consumer;
 
 		LimelightHelpers.setLEDMode_PipelineControl(limelightName);
