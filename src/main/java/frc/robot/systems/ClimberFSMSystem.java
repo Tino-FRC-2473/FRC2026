@@ -44,7 +44,7 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 
-public class ClimberFSMSystem  {
+public class ClimberFSMSystem {
 	public enum ClimberFSMState {
 		IDLE,
 		MANUAL_DIRECT_CONTROL,
@@ -316,7 +316,6 @@ public class ClimberFSMSystem  {
 	}
 
 	private ClimberFSMState nextState(TeleopInput input) {
-		System.out.println(getCurrentState());
 		if (input == null) {
 			return ClimberFSMState.IDLE;
 		}
@@ -426,7 +425,7 @@ public class ClimberFSMSystem  {
 		climberMotorLeft.setControl(motionRequest.withPosition(
 			ClimberConstants.L1_EXTEND_POS.in(Inches)
 		));
-		System.out.println(motionRequest.getControlInfo());
+		//System.out.println(motionRequest.getControlInfo());
 	}
 
 	private void handleL1RetractState(TeleopInput input) {
