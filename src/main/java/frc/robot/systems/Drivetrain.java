@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
+import java.nio.file.Path;
 import java.util.spi.LocaleServiceProvider;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -16,6 +17,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -94,9 +96,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private Pose2d test = field.getTagPose(8).orElse(null).toPose2d();
 
 	private Transform2d offsetTransform = new Transform2d(
-				1.5, // Back to Front
-				0, // Side to Side
-				Rotation2d.k180deg);
+				0, // Back to Front
+				1.5, // Side to Side
+				Rotation2d.kCW_90deg);
 
 	private Pose2d pathfindTarget = test.transformBy(offsetTransform);
 
@@ -271,13 +273,13 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		if (input.increasep()) {
-			Constants.ModuleConstants.DRIVE_P += 0.1;
-			Constants.ModuleConstants.STEER_P += 0.1;
+			Constants.ModuleConstants.DRIVE_P += 1;
+			//Constants.ModuleConstants.STEER_P += 0.1;
 
 			System.out.println("P is now " + Constants.ModuleConstants.DRIVE_P);
 		} else if (input.decreasep()) {
-			Constants.ModuleConstants.DRIVE_P -= 0.1;
-			Constants.ModuleConstants.STEER_P -= 0.1;
+			Constants.ModuleConstants.DRIVE_P -= 1;
+			//Constants.ModuleConstants.STEER_P -= 0.1;
 
 			System.out.println("P is now " + Constants.ModuleConstants.DRIVE_P);
 		}
@@ -307,7 +309,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	private void startPathfinding() {
 		pathfindCommand = AutoBuilder.pathfindToPose(pathfindTarget,
-					DrivetrainConstants.PATH_CONSTRAINTS);
+					PathConstraints.unlimitedConstraints(12.0));
 		CommandScheduler.getInstance().schedule(pathfindCommand);
 	}
 
@@ -363,7 +365,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			Pose2d visionPoseMeters,
 			double timestampSeconds,
 			Matrix<N3, N1> visionStdDevs) {
-		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(), visionPoseMeters.getY(), visionPoseMeters.getRotation().plus(Rotation2d.kCCW_90deg)), timestampSeconds, visionStdDevs);
+		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(), visionPoseMeters.getY(), visionPoseMeters.getRotation().plus(Rotation2d.k180deg)), timestampSeconds, visionStdDevs);
 		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
 	}
 

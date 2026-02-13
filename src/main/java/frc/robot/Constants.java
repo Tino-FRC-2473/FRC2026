@@ -38,7 +38,7 @@ public class Constants {
 	}
 
 	public static final class ModuleConstants {
-		public static double DRIVE_P = 0.4;
+		public static double DRIVE_P = 25;
 		public static final double DRIVE_I = 0;
 		public static final double DRIVE_D = 0.1;
 		public static final double DRIVE_V = 0.124;
@@ -46,8 +46,8 @@ public class Constants {
 		public static final double DRIVE_CURRENT_LIMIT = 60;
 		public static final double STEER_CURRENT_LIMIT = 60;
 
-		public static double STEER_P = 0.4;
-		public static final double STEER_I = 0;
+		public static double STEER_P = 25;
+		public static final double STEER_I = 0.1;
 		public static final double STEER_D = 0.1;
 		public static final double STEER_V = 0.1;
 		public static final double STEER_S = 0;
