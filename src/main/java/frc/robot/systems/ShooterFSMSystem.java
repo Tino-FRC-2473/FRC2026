@@ -15,6 +15,8 @@ import edu.wpi.first.units.AngularVelocityUnit;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import edu.wpi.first.units.Measure;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Timer;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -38,7 +40,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		IDLE_STATE,
 		SHOOTER_PREP_STATE,
 		PASSER_PREP_STATE,
-		INTAKE_STATE,
+		FEED_STATE,
 		MANUAL_PREP_STATE,
 	}
 	/* ======================== Constants ======================== */
@@ -65,6 +67,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private Drivetrain drivetrain;
 	private MotionMagicVelocityVoltage flywheelRequest;
 	private MotionMagicVelocityVoltage feederRequest;
+	private IntakeFSM intake;
+	private DigitalInput breakBeam;
+	private Timer feedTimer = new Timer();
+	private boolean noFuelStored = false;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -186,6 +192,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// spindexMotor.optimizeBusUtilization();
 		feederMotor.optimizeBusUtilization();
 		flywheelMotor.optimizeBusUtilization();
+
+		breakBeam = new DigitalInput(HardwareMap.STORAGE_BREAK_BEAM_DIO_PORT);
 		reset();
 	}
 	/**
@@ -195,13 +203,15 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * passes in the drivetrain to continuously update poses for shooter_prep
 	 * and passer_prep.
 	 * @param driveSystem The drive system to be used by our bot
+	 * @param intakeSystem The intake system to be used by our bot
 	 */
-	public ShooterFSMSystem(Drivetrain driveSystem) {
+	public ShooterFSMSystem(Drivetrain driveSystem, IntakeFSM intakeSystem) {
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
 		this();
 		// drivetrain = driveSystem;
 		// curPose = drivetrain.getPose();
+		intake = intakeSystem;
 	}
 
 	/* ======================== Public methods ======================== */
@@ -257,8 +267,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 					handlePasserPrepState((TeleopInput) input);
 					break;
 
-				case INTAKE_STATE:
-					handleIntakeState((TeleopInput) input);
+				case FEED_STATE:
+					handleFeedState((TeleopInput) input);
 					break;
 
 				case MANUAL_PREP_STATE:
@@ -330,12 +340,12 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						//need to change colors for if its at speed and at angle so that
 						// they know when to pull triggers
 						pastState = getCurrentState();
-						return ShooterFSMState.INTAKE_STATE;
+						return ShooterFSMState.FEED_STATE;
 					} else {
 						return getCurrentState();
 					}
 
-				case INTAKE_STATE:
+				case FEED_STATE:
 					if (!isAtSpeed() || input == null
 						|| !input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						return pastState;
@@ -378,7 +388,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
 						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						pastState = getCurrentState();
-						return ShooterFSMState.INTAKE_STATE;
+						return ShooterFSMState.FEED_STATE;
 					} else {
 						return getCurrentState();
 					}
@@ -393,7 +403,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
 						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						pastState = getCurrentState();
-						return ShooterFSMState.INTAKE_STATE;
+						return ShooterFSMState.FEED_STATE;
 					} else {
 						return getCurrentState();
 					}
@@ -478,18 +488,50 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	}
 
 	/**
-	 * Handle behavior in INTAKE_STATE.
+	 * Handle behavior in FEED_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.
 	 */
-	private void handleIntakeState(TeleopInput input) {
-		if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
+	private void handleFeedState(TeleopInput input) {
+		if (!noFuelStored && !intake.isIntakeDownRunning()) {
+			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
+				feederMotor.stopMotor();
+				spindexMotor.stopMotor();
+				//pastState should only store shooter_prep, passer_prep, and manual_prep
+			} else {
+				feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
+				spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
+			}
+
+
+			if (feedTimer.isRunning()) {
+				if (!breakBeam.get()) {
+					feedTimer.restart();
+				} else {
+					if (feedTimer.get() >= ShooterConstants.FEED_MAX_TIME) {
+						noFuelStored = true; //we don't have fuel
+					} else {
+						continue;
+					}
+				}
+
+			} else {
+				feedTimer.start();
+			}
+		} else if (intake.isIntakeDownRunning()) {
+			noFuelStored = false;
+			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
+				feederMotor.stopMotor();
+				spindexMotor.stopMotor();
+				//pastState should only store shooter_prep, passer_prep, and manual_prep
+			} else {
+				feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
+				spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
+			}
+		} else {
+			//condition for not having anyting stored
 			feederMotor.stopMotor();
 			spindexMotor.stopMotor();
-			//pastState should only store shooter_prep, passer_prep, and manual_prep
-		} else {
-			feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
-			spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
 		}
 	}
 
