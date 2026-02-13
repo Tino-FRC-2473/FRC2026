@@ -8,6 +8,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Constants.VisionConstants;
 
 // WPILib Imports
@@ -16,6 +17,11 @@ import frc.robot.Constants.VisionConstants;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
 import frc.robot.systems.LimelightVision;
+import frc.robot.systems.Vision;
+import frc.robot.systems.VisionIO;
+import frc.robot.systems.VisionIOPhotonPoseEstimator;
+import frc.robot.systems.VisionIOPhotonPoseEstimatorSim;
+import frc.robot.systems.VisionIOPhotonVision;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -26,7 +32,7 @@ public class Robot extends LoggedRobot {
 
 	// Systems
 	private Drivetrain drivetrain;
-	private LimelightVision vision;
+	private Vision vision;
 	private SwerveDrivePoseEstimator swerveDrivePoseEstimator;
 
 	/**
@@ -45,8 +51,13 @@ public class Robot extends LoggedRobot {
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
 			drivetrain = new Drivetrain();
-			vision = new LimelightVision(drivetrain::addVisionMeasurement,
+			if (RobotBase.isSimulation()){
+				vision = new VisionIOPhotonVision(drivetrain::addVisionMeasurement,
 				() -> drivetrain.getDrivetrainRotation(), VisionConstants.LIMELIGHT_NAME);
+			}else {
+				vision = new LimelightVision(drivetrain::addVisionMeasurement,
+				() -> drivetrain.getDrivetrainRotation(), VisionConstants.LIMELIGHT_NAME);
+			}
 		}
 
 	}
