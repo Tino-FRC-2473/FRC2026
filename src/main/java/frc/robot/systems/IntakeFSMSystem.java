@@ -7,6 +7,7 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
@@ -94,17 +95,21 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		var intakeConfigs = new TalonFXConfiguration();
 
 		pivotMotorLeft.setControl(new Follower(pivotMotorRight.getDeviceID(),
-			MotorAlignmentValue.Opposed));
+			MotorAlignmentValue.Aligned));
 
 		// apply sw limit
-		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
-		swLimitSwitch.ForwardSoftLimitEnable = true; // enable top limit
-		swLimitSwitch.ReverseSoftLimitEnable = true; // enable bottom limit
-		swLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.GROUND_TARGET_ANGLE.in(Radians);
-		swLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.UPPER_TARGET_ANGLE.in(Radians);
+		// var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
+		// swLimitSwitch.ForwardSoftLimitEnable = true; // enable top limit
+		// swLimitSwitch.ReverseSoftLimitEnable = true; // enable bottom limit`q
+		// swLimitSwitch.ForwardSoftLimitThreshold
+		//= IntakeConstants.GROUND_TARGET_ANGLE.in(Radians);
+		// swLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.UPPER_TARGET_ANGLE.in(Radians);
 
 		var pivotConfig = talonFXConfigs.Feedback;
 		pivotConfig.SensorToMechanismRatio = IntakeConstants.INTAKE_PIVOT_GEARING;
+
+		var outputConfigs = talonFXConfigs.MotorOutput;
+		outputConfigs.Inverted = InvertedValue.Clockwise_Positive;
 
 		var slot0Configs = talonFXConfigs.Slot0;
 		slot0Configs.GravityType = GravityTypeValue.Arm_Cosine;
@@ -151,6 +156,20 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		);
 
 		pivotMotorRight.optimizeBusUtilization();
+
+		pivotMotorLeft.getConfigurator().apply(talonFXConfigs);
+
+		BaseStatusSignal.setUpdateFrequencyForAll(
+				IntakeConstants.UPDATE_FREQUENCY,
+				pivotMotorLeft.getPosition(),
+				pivotMotorLeft.getVelocity(),
+				pivotMotorLeft.getAcceleration(),
+				pivotMotorLeft.getMotorVoltage(),
+				pivotMotorLeft.getRotorPosition(),
+				pivotMotorLeft.getRotorVelocity()
+		);
+
+		pivotMotorLeft.optimizeBusUtilization();
 
 		intakeMotor.getConfigurator().apply(intakeConfigs);
 
@@ -203,7 +222,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 * resets the FSM_STATE.
 	 */
 	public void reset() {
-		setCurrentState(IntakeFSMState.IDLE_OUT_STATE);
+		setCurrentState(IntakeFSMState.IDLE_IN_STATE);
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -243,7 +262,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		}
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
-				handleIdleInState(input);
+				handleIdleState(input);
 				break;
 
 			case FOLD_OUT_STATE:
@@ -251,7 +270,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				break;
 
 			case IDLE_OUT_STATE:
-				handleIdleOutState(input);
+				handleIdleState(input);
 				break;
 
 			case INTAKE_STATE:
@@ -364,7 +383,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 
 	protected IntakeFSMState nextState(Input input) {
 		if (input == null) {
-			return IntakeFSMState.IDLE_OUT_STATE;
+			return IntakeFSMState.IDLE_IN_STATE;
 		}
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
@@ -439,11 +458,14 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
-	 * Handle behavior in IDLE_IN_STATE.
+	 * Handle behavior in idle states.
 	 * @param input Global Input if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	private void handleIdleInState(Input input) {
+	private void handleIdleState(Input input) {
+		pivotMotorRight.set(0);
+		intakeMotor.setControl(intakeMotionRequest.
+			withVelocity(0));
 	}
 	/**
 	 * Handle behavior in FOLD_OUT_STATE.
@@ -462,15 +484,6 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	private void handlePartialOutState(Input input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
 			withPosition(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE));
-	}
-	/**
-	 * Handle behavior in IDLE_OUT_STATE.
-	 * @param input Global Input if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	private void handleIdleOutState(Input input) {
-		intakeMotor.setControl(intakeMotionRequest.
-			withVelocity(0));
 	}
 	/**
 	 * Handle behavior in INTAKE_STATE.

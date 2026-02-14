@@ -81,10 +81,16 @@ public class Constants {
 	}
 
 	public static final class IntakeConstants {
+
+		public static final double INTAKE_PIVOT_GEARING = 62.5;
+		public static final double INTAKE_GEARING = 3;
+
 		//Targets for Pivot
-		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(2.09);
+		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(2.09)
+			.times(INTAKE_PIVOT_GEARING);
 		public static final Angle UPPER_TARGET_ANGLE = Units.Radians.of(0);
-		public static final Angle PARTIAL_OUT_TARGET_ANGLE = Units.Radians.of(0.79);
+		public static final Angle PARTIAL_OUT_TARGET_ANGLE =
+			Units.Radians.of(0.79).times(INTAKE_PIVOT_GEARING);
 
 		public static final double PIVOT_MAX_ROTATION = 2.09;
 		public static final double PIVOT_MIN_ROTATION = 0;
@@ -100,29 +106,27 @@ public class Constants {
 		public static final double PIVOT_KS = 0.25;
 		public static final double PIVOT_KV = 0.12;
 		public static final double PIVOT_KA = 0.01;
-		public static final double PIVOT_KP = 5.0;
+		public static final double PIVOT_KP = 0.5;
 		public static final double PIVOT_KI = 0.0;
-		public static final double PIVOT_KD = 0.2;
+		public static final double PIVOT_KD = 0.0;
 
 		//Intake Motor PID
 		public static final double INTAKE_KV = 0.12;
 		public static final double INTAKE_KA = 0.0;
-		public static final double INTAKE_KP = 0.15;
+		public static final double INTAKE_KP = 0.2;
 		public static final double INTAKE_KI = 0.0;
 		public static final double INTAKE_KD = 0.0;
-		public static final double INTAKE_TARGET_VELOCITY = 20;
-		public static final double OUTTAKE_TARGET_VELOCITY = -25.0;
+		public static final double INTAKE_TARGET_VELOCITY = 40;
+		public static final double OUTTAKE_TARGET_VELOCITY = -40.0;
 
 		//Intake Gearing/Velocity Factors
-		public static final double INTAKE_PIVOT_GEARING = 62.5 / (2 * Math.PI);
-		public static final double INTAKE_GEARING = 3 / (2 * Math.PI);
 
-		public static final double PIVOT_CRUISE_VELO = 20;
-		public static final double PIVOT_TARGET_ACCEL = 60;
+		public static final double PIVOT_CRUISE_VELO = 10;
+		public static final double PIVOT_TARGET_ACCEL = 20;
 		public static final double PIVOT_EXPO_KV = 0.35;
 
-		public static final double INTAKE_CRUISE_VELO = 7;
-		public static final double INTAKE_TARGET_ACCEL = 20;
+		public static final double INTAKE_CRUISE_VELO = 20;
+		public static final double INTAKE_TARGET_ACCEL = 40;
 		public static final double INTAKE_EXPO_KV = 0.12;
 
 		//other
