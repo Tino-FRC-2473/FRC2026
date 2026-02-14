@@ -1,8 +1,10 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 
-import java.nio.file.Path;
+
 
 import com.pathplanner.lib.path.PathConstraints;
 
@@ -12,7 +14,12 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.LinearVelocity;
+
+import frc.robot.generated.TunerConstants;
 
 public class Constants {
 	public static final class DrivetrainConstants {
@@ -21,18 +28,35 @@ public class Constants {
 
 		public static final double TRANSLATION_DEADBAND = 0.1;
 		public static final double ROTATION_DEADBAND = 0.1;
-		public static final AngularVelocity MAX_ANGULAR_VELO_RPS = RotationsPerSecond.of(0.75);
+
 
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
 		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speed, and so on
 		public static final double TRANSLATIONAL_DAMP = 1;
 		public static final double ROTATIONAL_DAMP = 1;
 
+		// drive velocity limits
+		// Max linear & angular speeds
+		public static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
+		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(0.75);
+
+		// pathing acceleration limits
+		public static final LinearAcceleration MAX_PATHING_LINEAR_ACCELERATION
+			= MetersPerSecondPerSecond.of(100);
+
+		public static final AngularAcceleration MAX_PATHING_ROTATIONAL_ACCELERATION
+			= RotationsPerSecondPerSecond.of(10);
+
 		public static final int PIGEON2_CAN_ID = 1;
 		public static final String CAN_BUS_NAME = "Drivetrain";
 		//TODO: Get some actual values for this
-		public static final PathConstraints PATH_CONSTRAINTS = PathConstraints.unlimitedConstraints(12);
-		
+		public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
+				MAX_SPEED,
+				MAX_PATHING_LINEAR_ACCELERATION,
+				MAX_ANGULAR_SPEED,
+				MAX_PATHING_ROTATIONAL_ACCELERATION
+			);
+
 		//new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
 
 	}
@@ -59,6 +83,7 @@ public class Constants {
 		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(
 			0.02, 0.02, Math.toRadians(1));
 		//TODO: Measure this on the bot
-		public static final Pose3d LL4_OFFSET = new Pose3d(0.096, -0.03, 0.55, new Rotation3d(0, 0, 270));
+		public static final Pose3d LL4_OFFSET =
+			new Pose3d(0.096, -0.03, 0.55, new Rotation3d(0, 0, 270));
 	}
 }

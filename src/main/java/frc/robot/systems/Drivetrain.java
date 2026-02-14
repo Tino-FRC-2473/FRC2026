@@ -48,6 +48,10 @@ import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
 
+import static frc.robot.Constants.DrivetrainConstants.MAX_ANGULAR_SPEED;
+import static frc.robot.Constants.DrivetrainConstants.MAX_SPEED;
+import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;;
+
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/* ======================== Constants ======================== */
@@ -57,11 +61,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		TELEOP,
 		PATHFIND
 	}
-
-	// Max linear & angular speeds
-	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
-	private static final AngularVelocity MAX_ANGULAR_SPEED =
-		DrivetrainConstants.MAX_ANGULAR_VELO_RPS;
 
 	// Drive swerve requests
 	private final SwerveRequest.FieldCentric driveFieldCentric = new SwerveRequest.FieldCentric()
@@ -305,7 +304,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	private void startPathfinding() {
 		pathfindCommand = AutoBuilder.pathfindToPose(pathfindTarget,
-					PathConstraints.unlimitedConstraints(12.0));
+					PATH_CONSTRAINTS);
 		CommandScheduler.getInstance().schedule(pathfindCommand);
 	}
 
