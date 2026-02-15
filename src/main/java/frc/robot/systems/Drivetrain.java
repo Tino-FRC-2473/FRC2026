@@ -93,7 +93,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	private Transform2d offsetTransform = new Transform2d(
 				0, // Back to Front
-				1.5, // Side to Side
+				2, // Side to Side
 				Rotation2d.kCW_90deg);
 
 	private Pose2d pathfindTarget = test.transformBy(offsetTransform);
@@ -268,13 +268,13 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		if (input.increasep()) {
-			//Constants.ModuleConstants.DRIVE_P += 1;
-			Constants.ModuleConstants.STEER_P += 1;
+			Constants.ModuleConstants.DRIVE_P += 1;
+			//Constants.ModuleConstants.STEER_P += 1;
 
 			System.out.println("P is now " + Constants.ModuleConstants.DRIVE_P);
 		} else if (input.decreasep()) {
-			//Constants.ModuleConstants.DRIVE_P -= 1;
-			Constants.ModuleConstants.STEER_P -= 1;
+			Constants.ModuleConstants.DRIVE_P -= 1;
+			//Constants.ModuleConstants.STEER_P -= 1;
 
 			System.out.println("P is now " + Constants.ModuleConstants.DRIVE_P);
 		}

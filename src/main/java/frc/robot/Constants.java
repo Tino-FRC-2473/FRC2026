@@ -2,10 +2,10 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 
-
-
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.Matrix;
@@ -18,7 +18,7 @@ import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
-
+import edu.wpi.first.units.measure.Voltage;
 import frc.robot.generated.TunerConstants;
 
 public class Constants {
@@ -42,10 +42,10 @@ public class Constants {
 
 		// pathing acceleration limits
 		public static final LinearAcceleration MAX_PATHING_LINEAR_ACCELERATION
-			= MetersPerSecondPerSecond.of(100);
+			= MetersPerSecondPerSecond.of(7);
 
 		public static final AngularAcceleration MAX_PATHING_ROTATIONAL_ACCELERATION
-			= RotationsPerSecondPerSecond.of(10);
+			= RotationsPerSecondPerSecond.of(5);
 
 		public static final int PIGEON2_CAN_ID = 1;
 		public static final String CAN_BUS_NAME = "Drivetrain";
@@ -54,7 +54,8 @@ public class Constants {
 				MAX_SPEED,
 				MAX_PATHING_LINEAR_ACCELERATION,
 				MAX_ANGULAR_SPEED,
-				MAX_PATHING_ROTATIONAL_ACCELERATION
+				MAX_PATHING_ROTATIONAL_ACCELERATION,
+				Voltage.ofBaseUnits(12.5, Volts)
 			);
 
 		//new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
@@ -62,15 +63,15 @@ public class Constants {
 	}
 
 	public static final class ModuleConstants {
-		public static double DRIVE_P = 25;
-		public static final double DRIVE_I = 0;
+		public static double DRIVE_P = 7;
+		public static final double DRIVE_I = 1.5;
 		public static final double DRIVE_D = 0.1;
 		public static final double DRIVE_V = 0.124;
 
 		public static final double DRIVE_CURRENT_LIMIT = 60;
 		public static final double STEER_CURRENT_LIMIT = 60;
 
-		public static double STEER_P = 25;
+		public static double STEER_P = 13;
 		public static final double STEER_I = 0.1;
 		public static final double STEER_D = 0.1;
 		public static final double STEER_V = 0.1;

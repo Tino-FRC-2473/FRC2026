@@ -47,7 +47,8 @@ public class Vision {
 		visionConsumer = consumer;
 
 		LimelightHelpers.setLEDMode_PipelineControl(limelightName);
-		LimelightHelpers.SetIMUMode(limelightName, 1);
+		LimelightHelpers.SetIMUAssistAlpha(limeLightName, 0.01);
+		LimelightHelpers.SetIMUMode(limelightName, 3);
 	}
 
 	/**
