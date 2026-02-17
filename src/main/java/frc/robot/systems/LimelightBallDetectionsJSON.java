@@ -5,18 +5,13 @@ import limelight.networktables.LimelightResults;
 import limelight.networktables.target.pipeline.NeuralDetector;
 import java.util.Map;
 import java.util.Optional;
-
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.measure.Angle;
+import frc.robot.Constants;
 
 import java.util.HashMap;
 import java.util.List;
-
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
-
+import edu.wpi.first.units.Units;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Arrays;
@@ -109,13 +104,39 @@ public class LimelightBallDetectionsJSON {
 	public void update() {
 		getLatestResults();
 		fetchNeuralDetectorResults();
+		printDistanceToFuel();
 	}
+
+	/**
+	 * Gets the angle to the fuel.
+	 * @return optional of the angle
+	 */
 	public Optional<Angle> getAngleToFuel() {
 		var result = getOptimalFuel();
 		if (result != null) {
 			return Optional.of(Radians.of(result.tx));
 		} else {
 			return Optional.empty();
+		}
+	}
+
+	private Optional<Double> getDistanceToFuel(double degrees) {
+		try {
+			double distanceFloor =
+				Constants.LimelightConstants.LIMELIGHT_DISTANCE_OFF_FLOOR.in(Units.Centimeters);
+			double distanceToFuel = distanceFloor * Math.tan(degrees);
+			return Optional.of(distanceToFuel);
+		} catch (Exception e) {
+			System.out.println(e);
+			return Optional.empty();
+		}
+	}
+
+	public void printDistanceToFuel() {
+		if (checkValid()) {
+			for (NeuralDetector result : detectorResults) {
+				System.out.println(getDistanceToFuel(result.ty));
+			}
 		}
 	}
 

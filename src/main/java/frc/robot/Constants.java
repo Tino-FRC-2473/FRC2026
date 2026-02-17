@@ -11,6 +11,7 @@ import edu.wpi.first.units.measure.Frequency;
 public class Constants {
 	public static final class LimelightConstants {
 		public static final long AUTO_UPDATE_INTERVAL_MS = 20L;
+		public static final Distance LIMELIGHT_DISTANCE_OFF_FLOOR = Units.Inches.of(18.624);
 	}
 
 	public static final class DrivetrainConstants {
