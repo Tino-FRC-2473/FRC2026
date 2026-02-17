@@ -464,12 +464,11 @@ public class IntakeFSM extends FSMSystem<IntakeFSM.IntakeState> {
 	}
 
 	/**
-	 * Checks if the intake is down and in a running state.
+	 * Checks if the intake is down and intaking. Used for the storage break beam timer.
 	 * @return Boolean statement whether or not the intake is down and running
 	 */
 	public boolean isIntakeDownRunning() {
-		if (getCurrentState() == IntakeState.INTAKING
-			|| getCurrentState() == IntakeState.OUTTAKING) {
+		if (getCurrentState() == IntakeState.INTAKING) {
 			return true;
 		}
 		return false;

@@ -209,8 +209,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
 		this();
-		// drivetrain = driveSystem;
-		// curPose = drivetrain.getPose();
+		drivetrain = driveSystem;
+		curPose = drivetrain.getPose();
 		intake = intakeSystem;
 	}
 
@@ -282,7 +282,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 					+ getCurrentState().toString());
 			}
 		}
-		System.out.println("Update Cur State" + getCurrentState());
+		Logger.recordOutput("Current State", getCurrentState());
 		setCurrentState(nextState(input));
 	}
 
@@ -341,7 +341,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						//need to change colors for if its at speed and at angle so that
 						// they know when to pull triggers
+						feedTimer.reset();
+						feedTimer.stop();
 						pastState = getCurrentState();
+						noFuelStored = false;
 						return ShooterFSMState.FEED_STATE;
 					} else {
 						return getCurrentState();
@@ -390,6 +393,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
 						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						pastState = getCurrentState();
+						feedTimer.reset();
+						feedTimer.stop();
+						noFuelStored = false;
 						return ShooterFSMState.FEED_STATE;
 					} else {
 						return getCurrentState();
@@ -405,6 +411,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
 						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						pastState = getCurrentState();
+						feedTimer.reset();
+						feedTimer.stop();
+						noFuelStored = false;
 						return ShooterFSMState.FEED_STATE;
 					} else {
 						return getCurrentState();
@@ -451,7 +460,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		} else {
 			correctTarget = outpostPose;
 		}
-
+		drivetrain.targetPassZone(correctTarget);
 		//feeder 0 is flywheel velocity, feeder 1 is hood angle
 		double flyspeed = calculateTargetFlyspeed(correctTarget);
 		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
@@ -485,7 +494,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private void handleShooterPrepState(TeleopInput input) {
 		double flyspeed = calculateTargetFlyspeed(hubPose);
 		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
-		//drivetrain.targetHub();
+		drivetrain.targetHub();
 
 		updateFlywheel();
 		//TBD: code to find the distance vector from where we are to hub center (3d vector)
@@ -497,10 +506,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleFeedState(TeleopInput input) {
-		//if (!noFuelStored && !intake.isIntakeDownRunning()) {
 		Logger.recordOutput("noFuelStored", noFuelStored);
 		Logger.recordOutput("isIntakeDown", modelIntake(input));
-		if (!noFuelStored && !modelIntake(input)) {
+		if (!noFuelStored && !intake.isIntakeDownRunning()) {
+		//if (!noFuelStored && !modelIntake(input)) {
 			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
 				feederMotor.stopMotor();
 				spindexMotor.stopMotor();
@@ -524,8 +533,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			}
 
 
-		//} else if (intake.isIntakeDownRunning()) {
-		} else if (modelIntake(input)) {
+		} else if (intake.isIntakeDownRunning()) {
+		//} else if (modelIntake(input)) {
 			feedTimer.reset();
 			noFuelStored = false;
 			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
@@ -557,18 +566,20 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// with triggering Shooter Prep.
 		//how much the hood angle increases/decreases each click
 
-		//shooter_prep_toggle will be for hood movement
+		//shooter_prep_toggle will be for set manual points we can go to in comp
 		// passer_prep_toggle will be the deincrementer
 		// manual_shoot_toggle will be the flywheel control
-		// double hoodIncrement = ShooterConstants.HOOD_INCREMENTER.in(Degrees);
+
 		// for checkstyles
 		//if hood is changing
 		// boolean hoodSet = input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE);
-		//if we are deincrementing
+
+		//Deincrementing:
 		boolean incrementSet = input.getButtonValue(ButtonInput.PASSER_PREP_TOGGLE);
-		//if flywheel is changing
+		//Flywheel Speed Change:
 		boolean flywheelSet = input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE);
 
+		//Code for variable hood:
 		// if (hoodSet && incrementSet) {
 		// 	double hoodChangeMinus = hoodTargetAngle.in(Degrees) - hoodIncrement;
 		// 	if (hoodChangeMinus >= ShooterConstants.HOOD_MIN_ANGLE.in(Degrees)) {

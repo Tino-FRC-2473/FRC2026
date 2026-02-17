@@ -18,15 +18,15 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_PIVOT_RIGHT = 7;
 	public static final int CAN_ID_SPARK_INTAKE = 8;
 
-	//temp values for us to not have errors, need to be changed
-	public static final int CAN_ID_FLYWHEEL = 5;
-	public static final int CAN_ID_FEEDER = 12;
-	public static final int CAN_ID_SPINDEXER = 24;
-	public static final int STORAGE_BREAK_BEAM_DIO_PORT = 1;
+	//values TBD
+	public static final int CAN_ID_FLYWHEEL = 9;
+	public static final int CAN_ID_FEEDER = 10;
+	public static final int CAN_ID_SPINDEXER = 11;
 
 	//rio - dio ports
 	public static final int INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT = 0;
 	public static final int INTAKE_TOP_LIMIT_SWITCH_DIO_PORT = 1;
+	public static final int STORAGE_BREAK_BEAM_DIO_PORT = 2; //receiver of breakbeam
 
 	// Pneumatics channel numbers
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_FORWARD = 1;
