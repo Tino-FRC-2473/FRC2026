@@ -16,6 +16,9 @@ import static edu.wpi.first.units.Units.Seconds;
 
 
 public class Constants {
+	public static final class LimelightConstants {
+		public static final long AUTO_UPDATE_INTERVAL_MS = 20L;
+	}
 
 	public static final class DrivetrainConstants {
 		// Speed controls
@@ -31,51 +34,6 @@ public class Constants {
 		// Drivetrain deadbands
 		public static final double TRANSLATIONAL_DEADBAND = 0.1;
 		public static final double ROTATIONAL_DEADBAND = 0.1;
-	}
-
-	public class IntakeConstants {
-		// Target angles
-		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(2.09);
-		public static final Angle UPPER_TARGET_ANGLE = Units.Radians.of(0);
-		public static final Angle PARTIAL_OUT_TARGET_ANGLE = Units.Radians.of(0.79);
-
-		// Target velocities
-		public static final AngularVelocity INTAKE_TARGET_VELOCITY = Units.RotationsPerSecond
-				.of(20);
-		public static final AngularVelocity OUTTAKE_TARGET_VELOCITY = Units.RotationsPerSecond
-				.of(-25.0);
-
-		// Gearing ratios
-		public static final double PIVOT_GEARING = 62.5 / (2 * Math.PI);
-		public static final double INTAKE_GEARING = 3.0 / (2 * Math.PI);
-
-		// Motion magic constants
-		public static final double PIVOT_CRUISE_VELOCITY = 20;
-		public static final double PIVOT_ACCELERATION = 60;
-		public static final double PIVOT_EXPO_KV = 0.35;
-
-		public static final double INTAKE_CRUISE_VELOCITY = 7;
-		public static final double INTAKE_ACCELERATION = 20;
-		public static final double INTAKE_EXPO_KV = 0.12;
-
-		// PID values
-		public static final double PIVOT_G = 0.35;
-		public static final double PIVOT_S = 0.25;
-		public static final double PIVOT_V = 0.12;
-		public static final double PIVOT_A = 0.01;
-		public static final double PIVOT_P = 5.0;
-		public static final double PIVOT_I = 0.0;
-		public static final double PIVOT_D = 0.2;
-		public static final double INTAKE_G = 0.0;
-		public static final double INTAKE_S = 0.20;
-		public static final double INTAKE_V = 0.12;
-		public static final double INTAKE_A = 0.0;
-		public static final double INTAKE_P = 0.15;
-		public static final double INTAKE_I = 0.0;
-		public static final double INTAKE_D = 0.0;
-
-		// Update frequency
-		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
 	}
 
 	public static final class ModuleConstants {
@@ -104,18 +62,30 @@ public class Constants {
 		public static final double KD = 0.0;
 		public static final Distance UPPER_THRESHOLD = Units
 			.Inches.of(100.0);
-		public static final double CRUISE_VELO = 0;
-		public static final double TARGET_ACCEL = 0;
+		public static final double CRUISE_VELO = 5;
+		public static final double TARGET_ACCEL = 5;
 		public static final double EXPO_KV = 0;
 		public static final double ROTS_TO_INCHES = 0;
 		public static final Distance POSITION_TOLERANCE_L1 = Units.Inches.of(0.5);
 		public static final Distance POSITION_TOLERANCE_L2_L3 = Units.Inches.of(0.5);
-		public static final double JOYSTICK_DEADBAND = 0;
-		public static final double MANUAL_SCALE = 0;
+		public static final double JOYSTICK_DEADBAND = 0.1;
+		public static final double MANUAL_SCALE = 0.5;
 		public static final Distance L1_EXTEND_POS = Units.Inches.of(20.0);
 		public static final Distance L1_RETRACT_POS = Units.Inches.of(5.0);
-		public static final Distance GROUND = Units.Inches.of(0.0);
+		public static final Distance GROUND = Units.Inches.of(-1.0);
 		public static final int CONTROL_REQUEST_SUBSTRING_START_INDEX = 9;
+
+		public static final double CLIMBER_ANGLE_RAD = Math.toRadians(48.0);
+		public static final double CLIMBER_GEAR_RATIO = 9.0;
+		public static final double CLIMBER_WEIGHT_LBS = 15.0;
+		public static final double UPDATE_RATE = 0.02;
+		public static final double LIMIT_SWITCH_HEIGHT = 0.01;
+		public static final double EFFECTIVE_WEIGHT = edu.wpi.first.math.util.Units.lbsToKilograms(
+			ClimberConstants.CLIMBER_WEIGHT_LBS)
+			* Math.sin(ClimberConstants.CLIMBER_ANGLE_RAD
+			);
+		public static final double DRUM_CIRCUMFERENCE_METERS = edu.wpi.first.math.util.Units
+			.inchesToMeters(1.0) * 2 * Math.PI;
 	}
 	public static final class ShooterConstants {
 		public static final Pose2d OUTPOST_POSE = new Pose2d();
@@ -181,5 +151,55 @@ public class Constants {
 		public static final double SPINDEX_CONSTANT_VOLTAGE = 1;
 
 		public static final double FEED_MAX_TIME = 2; //2s
+	}
+	public static final class IntakeConstants {
+		//Targets for Pivot
+		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(2.09);
+		public static final Angle UPPER_TARGET_ANGLE = Units.Radians.of(0);
+		public static final Angle PARTIAL_OUT_TARGET_ANGLE = Units.Radians.of(0.79);
+
+		public static final double PIVOT_MAX_ROTATION = 2.09;
+		public static final double PIVOT_MIN_ROTATION = 0;
+
+		//Arm length in meters
+		public static final double PIVOT_ARM_LENGTH = 0.5;
+
+		//The moment of inertia of the arm in kg-m²; can be calculated from CAD software.
+		public static final double J = 0.1;
+
+		//Pivot PID
+		public static final double PIVOT_KG = 0.35;
+		public static final double PIVOT_KS = 0.25;
+		public static final double PIVOT_KV = 0.12;
+		public static final double PIVOT_KA = 0.01;
+		public static final double PIVOT_KP = 5.0;
+		public static final double PIVOT_KI = 0.0;
+		public static final double PIVOT_KD = 0.2;
+
+		//Intake Motor PID
+		public static final double INTAKE_KV = 0.12;
+		public static final double INTAKE_KA = 0.0;
+		public static final double INTAKE_KP = 0.15;
+		public static final double INTAKE_KI = 0.0;
+		public static final double INTAKE_KD = 0.0;
+		public static final double INTAKE_TARGET_VELOCITY = 20;
+		public static final double OUTTAKE_TARGET_VELOCITY = -25.0;
+
+		//Intake Gearing/Velocity Factors
+		public static final double INTAKE_PIVOT_GEARING = 62.5 / (2 * Math.PI);
+		public static final double INTAKE_GEARING = 3 / (2 * Math.PI);
+
+		public static final double PIVOT_CRUISE_VELO = 20;
+		public static final double PIVOT_TARGET_ACCEL = 60;
+		public static final double PIVOT_EXPO_KV = 0.35;
+
+		public static final double INTAKE_CRUISE_VELO = 7;
+		public static final double INTAKE_TARGET_ACCEL = 20;
+		public static final double INTAKE_EXPO_KV = 0.12;
+
+		//other
+		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
+		public static final double SIM_UPDATE_SECONDS = 0.02;
+		public static final Angle SIM_LIMIT_SWITCH_BUFFER = Units.Radians.of(0.01);
 	}
 }

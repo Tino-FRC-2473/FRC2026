@@ -1,3 +1,11 @@
 {
+<<<<<<< HEAD
     "java.checkstyle.configuration": "${workspaceFolder}\\checks.xml"
+=======
+<<<<<<< HEAD
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable",
+=======
+>>>>>>> main
+    "java.checkstyle.configuration": "${workspaceFolder}/checks.xml"
+>>>>>>> 886d5c510449bb8a8fd8a45608e16ce6dda3d670
 }

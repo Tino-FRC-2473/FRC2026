@@ -67,7 +67,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private Drivetrain drivetrain;
 	private MotionMagicVelocityVoltage flywheelRequest;
 	private MotionMagicVelocityVoltage feederRequest;
-	private IntakeFSM intake;
+	private IntakeFSMSystem intake;
 	private DigitalInput breakBeam;
 	private Timer feedTimer = new Timer();
 	private boolean noFuelStored = false;
@@ -205,7 +205,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @param driveSystem The drive system to be used by our bot
 	 * @param intakeSystem The intake system to be used by our bot
 	 */
-	public ShooterFSMSystem(Drivetrain driveSystem, IntakeFSM intakeSystem) {
+	public ShooterFSMSystem(Drivetrain driveSystem, IntakeFSMSystem intakeSystem) {
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
 		this();

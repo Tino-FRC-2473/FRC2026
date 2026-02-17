@@ -54,20 +54,27 @@ public final class TeleopInput extends Input {
 		return switch (key) {
 
 			// Drivetrain
-			case DRIVETRAIN_RESEED -> mechController::options;
+			case DRIVETRAIN_RESEED -> driveController::options;
 
 			// Intake
-			case INTAKE_FOLD_IN -> mechController::circle;
-			case INTAKE_FOLD_OUT -> mechController::circle;
-			case INTAKE_PARTIAL_OUT -> mechController::options;
-			case INTAKE_INTAKE -> mechController::triangle;
-			case INTAKE_OUTTAKE -> mechController::square;
+
+			//Button layout to be fixed, one idea is to make PARTIAL_OUT_BUTTON,
+			//FOLD_IN_BUTTON, and FOLD_OUT_BUTTON one button that toggles between states.
+
+
+			case PARTIAL_OUT_BUTTON -> mechController::share;
+			case INTAKE_BUTTON -> mechController::circle;
+			case OUTTAKE_BUTTON -> mechController::cross;
+			case FOLD_IN_BUTTON -> mechController::L1;
+			case FOLD_OUT_BUTTON -> mechController::L2;
 
 			// Climber
 			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
 			case CLIMBER_NEXT_STEP -> mechController::square;
 			case CLIMBER_EMERGENCY_ABORT -> mechController::cross;
 			case CLIMBER_DOWN_BUTTON -> mechController::circle;
+
+
 			case PASSER_PREP_TOGGLE -> mechController::R1;
 			case SHOOTER_PREP_TOGGLE -> mechController::L1;
 			case MANUAL_SHOOT_TOGGLE -> mechController::L2;
