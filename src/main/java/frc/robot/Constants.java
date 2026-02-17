@@ -42,7 +42,7 @@ public class Constants {
 
 		// pathing acceleration limits
 		public static final LinearAcceleration MAX_PATHING_LINEAR_ACCELERATION
-			= MetersPerSecondPerSecond.of(7);
+			= MetersPerSecondPerSecond.of(5);
 
 		public static final AngularAcceleration MAX_PATHING_ROTATIONAL_ACCELERATION
 			= RotationsPerSecondPerSecond.of(5);
@@ -55,7 +55,7 @@ public class Constants {
 				MAX_PATHING_LINEAR_ACCELERATION,
 				MAX_ANGULAR_SPEED,
 				MAX_PATHING_ROTATIONAL_ACCELERATION,
-				Voltage.ofBaseUnits(12.5, Volts)
+				Voltage.ofBaseUnits(12, Volts)
 			);
 
 		//new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
@@ -64,11 +64,11 @@ public class Constants {
 
 	public static final class ModuleConstants {
 		public static double DRIVE_P = 7;
-		public static final double DRIVE_I = 1.5;
+		public static final double DRIVE_I = 1.75;
 		public static final double DRIVE_D = 0.1;
 		public static final double DRIVE_V = 0.124;
 
-		public static final double DRIVE_CURRENT_LIMIT = 60;
+		public static final double DRIVE_CURRENT_LIMIT = 80;
 		public static final double STEER_CURRENT_LIMIT = 60;
 
 		public static double STEER_P = 13;
