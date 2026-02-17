@@ -493,7 +493,15 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleFeedState(TeleopInput input) {
-		if (!noFuelStored && !intake.isIntakeDownRunning()) {
+		//if (!noFuelStored && !intake.isIntakeDownRunning()) {
+		Logger.recordOutput("noFuelStored", noFuelStored);
+		Logger.recordOutput("isIntakeDown", modelIntake(input));
+		if (!noFuelStored && !modelIntake(input)) {
+			boolean reach3 = false;
+			boolean reach1 = false;
+			boolean reach2 = false;
+			boolean reach5 = false;
+			boolean reach4 = false;
 			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
 				feederMotor.stopMotor();
 				spindexMotor.stopMotor();
@@ -503,22 +511,36 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
 			}
 
+			reach1 = true;
 
 			if (feedTimer.isRunning()) {
+				reach2 = true;
+				System.out.println("Reached #2");
 				if (!breakBeam.get()) {
+					reach3 = true;
+					System.out.println("Reached #3");
 					feedTimer.restart();
 				} else {
 					if (feedTimer.get() >= ShooterConstants.FEED_MAX_TIME) {
+						reach4 = true;
 						noFuelStored = true; //we don't have fuel
-					} else {
-						continue;
 					}
 				}
 
 			} else {
+				reach5 = true;
 				feedTimer.start();
 			}
-		} else if (intake.isIntakeDownRunning()) {
+			Logger.recordOutput("Reached #3", reach3);
+			Logger.recordOutput("Reached #1", reach1);
+			Logger.recordOutput("Reached #2", reach2);
+			Logger.recordOutput("Reached #4", reach4);
+			Logger.recordOutput("Reached #5", reach5);
+
+
+		//} else if (intake.isIntakeDownRunning()) {
+		} else if (modelIntake(input)) {
+			feedTimer.reset();
 			noFuelStored = false;
 			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
 				feederMotor.stopMotor();
@@ -612,6 +634,14 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			flywheelTargetSpeed.in(RotationsPerSecond)));
 		double curSpeed = flywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
 		flywheelSpeed = RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
+	}
+
+
+	private boolean modelIntake(TeleopInput input) {
+		if (input.getButtonValue(ButtonInput.SHOOTER_PREP_TOGGLE)) {
+			return true;
+		}
+		return false;
 	}
 
 	// private void updateHood() {

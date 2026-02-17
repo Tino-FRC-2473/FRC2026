@@ -179,5 +179,7 @@ public class Constants {
 
 		public static final double SPINDEX_CONSTANT_SPEED = 0.1; //ranges from -1 to 1
 		public static final double SPINDEX_CONSTANT_VOLTAGE = 1;
+
+		public static final double FEED_MAX_TIME = 10; //2s
 	}
 }

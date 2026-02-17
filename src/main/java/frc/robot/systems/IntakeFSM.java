@@ -469,7 +469,7 @@ public class IntakeFSM extends FSMSystem<IntakeFSM.IntakeState> {
 	 */
 	public boolean isIntakeDownRunning() {
 		if (getCurrentState() == IntakeState.INTAKING
-			|| getCurrentState() == IntakeState.OUTTAKING){
+			|| getCurrentState() == IntakeState.OUTTAKING) {
 			return true;
 		}
 		return false;

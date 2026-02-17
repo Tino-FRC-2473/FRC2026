@@ -22,6 +22,7 @@ public final class HardwareMap {
 	public static final int CAN_ID_FLYWHEEL = 5;
 	public static final int CAN_ID_FEEDER = 12;
 	public static final int CAN_ID_SPINDEXER = 24;
+	public static final int STORAGE_BREAK_BEAM_DIO_PORT = 1;
 
 	//rio - dio ports
 	public static final int INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT = 0;
