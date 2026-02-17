@@ -244,6 +244,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	@Override
 	public void reset() {
+		feedTimer.reset();
+		feedTimer.stop();
 		setCurrentState(ShooterFSMState.IDLE_STATE);
 
 		// Call one tick of update to ensure outputs reflect start state
@@ -427,6 +429,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		updateFlywheel();
 		//updateHood();
 		feederMotor.set(0);
+		feedTimer.stop();
+		feedTimer.reset();
 		//set hoodMotor to 20 degrees/base angle?
 		//hood remains at current angle.
 	}
@@ -497,11 +501,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		Logger.recordOutput("noFuelStored", noFuelStored);
 		Logger.recordOutput("isIntakeDown", modelIntake(input));
 		if (!noFuelStored && !modelIntake(input)) {
-			boolean reach3 = false;
-			boolean reach1 = false;
-			boolean reach2 = false;
-			boolean reach5 = false;
-			boolean reach4 = false;
 			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
 				feederMotor.stopMotor();
 				spindexMotor.stopMotor();
@@ -511,31 +510,18 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
 			}
 
-			reach1 = true;
-
 			if (feedTimer.isRunning()) {
-				reach2 = true;
-				System.out.println("Reached #2");
 				if (!breakBeam.get()) {
-					reach3 = true;
-					System.out.println("Reached #3");
 					feedTimer.restart();
 				} else {
 					if (feedTimer.get() >= ShooterConstants.FEED_MAX_TIME) {
-						reach4 = true;
 						noFuelStored = true; //we don't have fuel
 					}
 				}
 
 			} else {
-				reach5 = true;
 				feedTimer.start();
 			}
-			Logger.recordOutput("Reached #3", reach3);
-			Logger.recordOutput("Reached #1", reach1);
-			Logger.recordOutput("Reached #2", reach2);
-			Logger.recordOutput("Reached #4", reach4);
-			Logger.recordOutput("Reached #5", reach5);
 
 
 		//} else if (intake.isIntakeDownRunning()) {
@@ -555,6 +541,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			feederMotor.stopMotor();
 			spindexMotor.stopMotor();
 		}
+		Logger.recordOutput("BreakBeam Timer: ", feedTimer.get());
 	}
 
 	/**
