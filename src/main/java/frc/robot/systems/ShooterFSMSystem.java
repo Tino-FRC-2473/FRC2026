@@ -341,10 +341,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						//need to change colors for if its at speed and at angle so that
 						// they know when to pull triggers
-						feedTimer.reset();
-						feedTimer.stop();
 						pastState = getCurrentState();
-						noFuelStored = false;
+						resetStorage();
 						return ShooterFSMState.FEED_STATE;
 					} else {
 						return getCurrentState();
@@ -393,9 +391,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
 						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						pastState = getCurrentState();
-						feedTimer.reset();
-						feedTimer.stop();
-						noFuelStored = false;
+						resetStorage();
 						return ShooterFSMState.FEED_STATE;
 					} else {
 						return getCurrentState();
@@ -411,9 +407,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
 						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						pastState = getCurrentState();
-						feedTimer.reset();
-						feedTimer.stop();
-						noFuelStored = false;
+						resetStorage();
 						return ShooterFSMState.FEED_STATE;
 					} else {
 						return getCurrentState();
@@ -425,6 +419,12 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			}
 		}
 		throw new IllegalStateException("No current state");
+	}
+
+	private void resetStorage() {
+		feedTimer.reset();
+		feedTimer.stop();
+		noFuelStored = false;
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
