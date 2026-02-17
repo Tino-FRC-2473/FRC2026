@@ -109,7 +109,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		pivotConfig.SensorToMechanismRatio = IntakeConstants.INTAKE_PIVOT_GEARING;
 
 		var outputConfigs = talonFXConfigs.MotorOutput;
-		outputConfigs.Inverted = InvertedValue.Clockwise_Positive;
+		outputConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
 
 		var slot0Configs = talonFXConfigs.Slot0;
 		slot0Configs.GravityType = GravityTypeValue.Arm_Cosine;
@@ -151,8 +151,8 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				pivotMotorRight.getVelocity(),
 				pivotMotorRight.getAcceleration(),
 				pivotMotorRight.getMotorVoltage(),
-				pivotMotorRight.getRotorPosition(),
-				pivotMotorRight.getRotorVelocity()
+				pivotMotorRight.getPosition(),
+				pivotMotorRight.getVelocity()
 		);
 
 		pivotMotorRight.optimizeBusUtilization();
@@ -165,8 +165,8 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				pivotMotorLeft.getVelocity(),
 				pivotMotorLeft.getAcceleration(),
 				pivotMotorLeft.getMotorVoltage(),
-				pivotMotorLeft.getRotorPosition(),
-				pivotMotorLeft.getRotorVelocity()
+				pivotMotorLeft.getPosition(),
+				pivotMotorLeft.getVelocity()
 		);
 
 		pivotMotorLeft.optimizeBusUtilization();
@@ -178,9 +178,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				intakeMotor.getPosition(),
 				intakeMotor.getVelocity(),
 				intakeMotor.getAcceleration(),
-				intakeMotor.getMotorVoltage(),
-				intakeMotor.getRotorPosition(),
-				intakeMotor.getRotorVelocity()
+				intakeMotor.getMotorVoltage()
 		);
 
 		intakeMotor.optimizeBusUtilization();
@@ -191,8 +189,8 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		topLimitSwitch = new DigitalInput(HardwareMap.INTAKE_TOP_LIMIT_SWITCH_DIO_PORT);
 
 		// Set motor positions
-		pivotMotorLeft.setPosition(0);
-		pivotMotorRight.setPosition(0);
+		pivotMotorLeft.setPosition(IntakeConstants.UPPER_TARGET_ANGLE);
+		pivotMotorRight.setPosition(IntakeConstants.UPPER_TARGET_ANGLE);
 		intakeMotor.setPosition(0);
 
 		if (RobotBase.isSimulation()) {
@@ -311,7 +309,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	@AutoLogOutput(key = "Intake/Intake Motor Vel", unit = "rps")
 	public double getIntakeMotorVelocity() {
-		return intakeMotor.getRotorVelocity().getValueAsDouble();
+		return intakeMotor.getVelocity().getValueAsDouble();
 	}
 
 	/**
@@ -320,7 +318,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	@AutoLogOutput(key = "Intake/Pivot Motor Vel", unit = "rps")
 	public double getPivotMotorVelocity() {
-		return pivotMotorRight.getRotorVelocity().getValueAsDouble();
+		return pivotMotorRight.getVelocity().getValueAsDouble();
 	}
 
 	/**
@@ -329,7 +327,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	@AutoLogOutput(key = "Intake/Pivot Motor Pos", unit = "radians")
 	public double getPivotMotorPos() {
-		return pivotMotorRight.getRotorPosition().getValueAsDouble();
+		return pivotMotorRight.getPosition().getValueAsDouble();
 	}
 
 	/**
@@ -522,7 +520,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	private boolean isBottomLimitReached() {
 		if (RobotBase.isSimulation()) {
-			return pivotMotorRight.getRotorPosition().getValueAsDouble()
+			return pivotMotorRight.getPosition().getValueAsDouble()
 				<= IntakeConstants.GROUND_TARGET_ANGLE.in(Radians);
 		}
 		return groundLimitSwitch.get(); // switch is normally open
@@ -534,7 +532,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	private boolean isTopLimitReached() {
 		if (RobotBase.isSimulation()) {
-			return pivotMotorRight.getRotorPosition().getValueAsDouble()
+			return pivotMotorRight.getPosition().getValueAsDouble()
 				>= IntakeConstants.UPPER_TARGET_ANGLE.in(Radians);
 		}
 		return topLimitSwitch.get(); // switch is normally open
