@@ -47,10 +47,10 @@ public class Robot extends LoggedRobot {
 		Logger.start();
 
 		// Instantiate all systems here
-		//if (HardwareMap.isDrivetrainEnabled()) {
-		//	drivetrain = new Drivetrain();
-		//}
-		//climberFSMSystem = new ClimberFSMSystem();
+		if (HardwareMap.isDrivetrainEnabled()) {
+			drivetrain = new Drivetrain();
+		}
+		climberFSMSystem = new ClimberFSMSystem();
 		intakeFSMSystem = new IntakeFSMSystem();
 	}
 
@@ -66,7 +66,7 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void autonomousPeriodic() {
-		//drivetrain.update(input);
+		drivetrain.update(input);
 		input.update();
 		CommandScheduler.getInstance().run();
 
@@ -80,16 +80,16 @@ public class Robot extends LoggedRobot {
 		input = new TeleopInput();
 		input.reset();
 		CommandScheduler.getInstance().cancelAll();
-		//drivetrain.reset();
-		//climberFSMSystem.reset();
+		drivetrain.reset();
+		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		//drivetrain.update(input);
+		drivetrain.update(input);
 		input.update();
-		//climberFSMSystem.update((TeleopInput) input);
+		climberFSMSystem.update((TeleopInput) input);
 		intakeFSMSystem.update((TeleopInput) input);
 
 		// logs motor values

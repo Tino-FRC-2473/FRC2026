@@ -100,13 +100,13 @@ public class Constants {
 		public static final double J = 0.1;
 
 		//Pivot PID
-		public static final double PIVOT_KG = 0.2;
-		public static final double PIVOT_KS = 0.08;
+		public static final double PIVOT_KG = 5.904;
+		public static final double PIVOT_KS = 0.0;
 		public static final double PIVOT_KV = 0;
 		public static final double PIVOT_KA = 0;
-		public static final double PIVOT_KP = 4;
-		public static final double PIVOT_KI = 0.5;
-		public static final double PIVOT_KD = 0.0;
+		public static final double PIVOT_KP = 14;
+		public static final double PIVOT_KI = 0.0;
+		public static final double PIVOT_KD = 1;
 
 		//Intake Motor PID
 		public static final double INTAKE_KV = 0.12;
