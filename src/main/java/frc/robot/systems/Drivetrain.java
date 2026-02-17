@@ -42,11 +42,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ModuleConstants;
-import frc.robot.Constants;
-import frc.robot.TeleopInput;
+
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
-import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
+import frc.robot.input.Input;
+import frc.robot.input.InputTypes.ButtonInput;
+import frc.robot.input.InputTypes.AxialInput;
 
 import static frc.robot.Constants.DrivetrainConstants.MAX_ANGULAR_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.MAX_SPEED;
@@ -62,12 +63,17 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		PATHFIND
 	}
 
+	// Max linear & angular speeds
+	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
+	private static final AngularVelocity MAX_ANGULAR_SPEED =
+		DrivetrainConstants.MAX_ANGULAR_VELOCITY;
+
 	// Drive swerve requests
 	private final SwerveRequest.FieldCentric driveFieldCentric = new SwerveRequest.FieldCentric()
 			.withDeadband(MAX_SPEED.in(MetersPerSecond)
-					* DrivetrainConstants.TRANSLATION_DEADBAND)
+					* DrivetrainConstants.TRANSLATIONAL_DEADBAND)
 			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
-					* DrivetrainConstants.ROTATION_DEADBAND)
+					* DrivetrainConstants.ROTATIONAL_DEADBAND)
 			// Use open-loop for drive motors
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
@@ -172,7 +178,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	@Override
-	public void update(TeleopInput input) {
+	public void update(Input input) {
 		drivetrain.periodic();
 		CommandScheduler.getInstance().run();
 
@@ -187,16 +193,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				break;
 			default:
 				throw new IllegalStateException(
-					"[DRIVETRAIN] Invalid Current State: " + currentState.toString()
+					"[DRIVETRAIN] Cannot update an invalid current state: "
+					+ currentState.toString()
 				);
 		}
 
 		currentState = nextState(input);
-	}
-
-	@Override
-	public boolean updateAutonomous(AutoFSMState autoState) {
-		return false;
 	}
 
 	/**
@@ -262,33 +264,21 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/* ======================== Private methods ======================== */
 
 	@Override
-	protected DrivetrainState nextState(TeleopInput input) {
+	protected DrivetrainState nextState(Input input) {
 		if (input == null) {
 			return DrivetrainState.TELEOP;
 		}
 
-		if (input.increasep()) {
-			Constants.ModuleConstants.DRIVE_P += 1;
-			//Constants.ModuleConstants.STEER_P += 1;
-
-			System.out.println("P is now " + Constants.ModuleConstants.DRIVE_P);
-		} else if (input.decreasep()) {
-			Constants.ModuleConstants.DRIVE_P -= 1;
-			//Constants.ModuleConstants.STEER_P -= 1;
-
-			System.out.println("P is now " + Constants.ModuleConstants.DRIVE_P);
-		}
-
 		switch (currentState) {
 			case TELEOP:
-				if (input.isPathfindButtonPressed()) {
+				if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
 					startPathfinding();
 					return DrivetrainState.PATHFIND;
 				} else {
 					return DrivetrainState.TELEOP;
 				}
 			case PATHFIND:
-				if (input.isPathfindButtonPressed()) {
+				if (input.getButtonValue(ButtonInput.DRIVETRAIN_PATHFIND)) {
 					return DrivetrainState.PATHFIND;
 				} else {
 					pathfindCommand.cancel();
@@ -308,22 +298,22 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		CommandScheduler.getInstance().schedule(pathfindCommand);
 	}
 
-	private void handleTeleopState(TeleopInput input) {
+	private void handleTeleopState(Input input) {
 		if (input == null) {
 			return;
 		}
 
 		double xSpeed = -MathUtil.applyDeadband(
-				input.getDriverLeftY(),
+				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double ySpeed = -MathUtil.applyDeadband(
-				input.getDriverLeftX(),
+				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
-				-input.getDriverRightX(),
-				DrivetrainConstants.ROTATION_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+				-input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
+				DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
 
 		drivetrain.setControl(
 			driveFieldCentric
@@ -332,7 +322,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
 		);
 
-		if (input.isDriverReseedButtonPressed()) {
+		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
 			drivetrain.seedFieldCentric();
 		}
 	}
