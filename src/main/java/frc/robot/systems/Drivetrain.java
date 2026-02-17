@@ -1,12 +1,10 @@
 package frc.robot.systems;
 
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
+
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
-import java.nio.file.Path;
-import java.util.spi.LocaleServiceProvider;
+
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -17,8 +15,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.path.PathPlannerPath;
+
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -34,7 +31,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Distance;
+
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -49,8 +46,7 @@ import frc.robot.input.Input;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.input.InputTypes.AxialInput;
 
-import static frc.robot.Constants.DrivetrainConstants.MAX_ANGULAR_SPEED;
-import static frc.robot.Constants.DrivetrainConstants.MAX_SPEED;
+
 import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;;
 
 
@@ -91,7 +87,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private Command pathfindCommand = null;
 
 	//TODO: Need to clean this stuff up and put it in constants
-	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method instead of the drivetrain's periodic?
+	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method
+	//instead of the drivetrain's periodic?
 	//Pathfind targeting stuff
 	private AprilTagFieldLayout field = AprilTagFieldLayout
 		.loadField(AprilTagFields.k2026RebuiltWelded);
@@ -350,7 +347,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			Pose2d visionPoseMeters,
 			double timestampSeconds,
 			Matrix<N3, N1> visionStdDevs) {
-		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(), visionPoseMeters.getY(), visionPoseMeters.getRotation().plus(Rotation2d.k180deg)), timestampSeconds, visionStdDevs);
+		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(),
+			visionPoseMeters.getY(),
+			visionPoseMeters.getRotation().plus(Rotation2d.k180deg)),
+			timestampSeconds, visionStdDevs);
 		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
 	}
 
