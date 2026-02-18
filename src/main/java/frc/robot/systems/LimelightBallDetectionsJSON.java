@@ -10,7 +10,11 @@ import frc.robot.Constants;
 
 import java.util.HashMap;
 import java.util.List;
+
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Radians;
+
+import edu.wpi.first.units.DistanceUnit;
 import edu.wpi.first.units.Units;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -120,22 +124,27 @@ public class LimelightBallDetectionsJSON {
 		}
 	}
 
-	private Optional<Double> getDistanceToFuel(double degrees) {
-		try {
-			double distanceFloor =
-				Constants.LimelightConstants.LIMELIGHT_DISTANCE_OFF_FLOOR.in(Units.Centimeters);
-			double distanceToFuel = distanceFloor * Math.tan(degrees);
-			return Optional.of(distanceToFuel);
-		} catch (Exception e) {
-			System.out.println(e);
-			return Optional.empty();
-		}
+	/**
+	 * Returns distance to fuel in inches.
+	 * @param degreesX the degrees away from the crosshair on the x-axis
+	 * @param degreesY the degrees away from the crosshair on the y-axis
+	 * @return returns the distance to fuel in inches
+	 */
+	private Double getDistanceToFuel(double degreesX, double degreesY) {
+		double multiplier = 1 / ((8100 - Math.pow(degreesX, 2)) / 90);
+		double distanceX =
+			Constants.LimelightConstants.LIMELIGHT_HEIGHT.in(Inches) * Math.tan(degreesX);
+		double distance = multiplier * distanceX;
+		return distance;
 	}
 
+	/**
+	 * Prints the distance to the fuel.
+	 */
 	public void printDistanceToFuel() {
 		if (checkValid()) {
 			for (NeuralDetector result : detectorResults) {
-				System.out.println(getDistanceToFuel(result.ty));
+				System.out.println(getDistanceToFuel(result.tx, result.ty));
 			}
 		}
 	}
