@@ -1,5 +1,7 @@
 package frc.robot.systems;
 
+import edu.wpi.first.wpilibj.DriverStation;
+
 import org.littletonrobotics.junction.Logger;
 // Third party Hardware Imports
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -20,8 +22,6 @@ import edu.wpi.first.wpilibj.Timer;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-
-
 
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.HardwareMap;
@@ -80,11 +80,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 */
 	public ShooterFSMSystem() {
 		curPose = new Pose2d();
-		outpostPose = ShooterConstants.OUTPOST_POSE;
-		target3Pose = ShooterConstants.TARGET3_POSE;
-		hubPose = ShooterConstants.HUB_POSE;
-		hoodAngle = ShooterConstants.HOOD_ANGLE;
-
 		flywheelRequest = new MotionMagicVelocityVoltage(0);
 		feederRequest = new MotionMagicVelocityVoltage(0);
 		flywheelMotor = new TalonFXWrapper(
@@ -211,7 +206,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		this();
 		// drivetrain = driveSystem;
 		// curPose = drivetrain.getPose();
-		intake = intakeSystem;
+		this.intake = intakeSystem;
+		this.drivetrain = driveSystem;
 	}
 
 	/* ======================== Public methods ======================== */
@@ -252,6 +248,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	@Override
 	public void update(Input input) {
+		if (drivetrain != null) {
+			curPose = drivetrain.getPose();
+		}
 		//curPose = drivetrain.getPose();
 		if (getCurrentState() != null) {
 			switch (getCurrentState()) {
@@ -282,6 +281,47 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		}
 		System.out.println("Update Cur State" + getCurrentState());
 		setCurrentState(nextState(input));
+	}
+
+
+	/**
+	 * Finds the field pose that the robot should align with based on its current state.
+	 * @return The pose of the target if it is in preperation state,
+	 * null if the bot is in either Idle, Feed, or Manual states
+	 */
+	// Fix the distance calculation logic here
+	public Pose2d getAutoTargetPose() {
+		ShooterFSMState state = getCurrentState();
+		if (state != ShooterFSMState.SHOOTER_PREP_STATE
+			&& state != ShooterFSMState.PASSER_PREP_STATE) {
+			return null;
+		}
+
+		// Safety check: ensure we have odometry data
+		if (curPose == null) {
+			return null;
+		}
+
+		var alliance = DriverStation.getAlliance();
+		boolean isRed = alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red;
+
+		if (state == ShooterFSMState.SHOOTER_PREP_STATE) {
+			return isRed ? mirrorPose(hubPose) : hubPose;
+		} else {
+			double outpostDistance =
+				curPose.getTranslation().getDistance(outpostPose.getTranslation());
+			double target3Distance =
+				curPose.getTranslation().getDistance(target3Pose.getTranslation());
+
+			Pose2d target = (outpostDistance < target3Distance) ? target3Pose : outpostPose;
+			return isRed ? mirrorPose(target) : target;
+		}
+	}
+
+	private Pose2d mirrorPose(Pose2d pose) {
+		double fieldLengthMeters =
+			edu.wpi.first.math.util.Units.inchesToMeters(ShooterConstants.FIELD_LENGTH);
+		return new Pose2d(fieldLengthMeters - pose.getX(), pose.getY(), pose.getRotation());
 	}
 
 	// @Override
@@ -510,8 +550,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				} else {
 					if (feedTimer.get() >= ShooterConstants.FEED_MAX_TIME) {
 						noFuelStored = true; //we don't have fuel
-					} else {
-						continue;
 					}
 				}
 

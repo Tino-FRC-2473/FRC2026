@@ -15,6 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
@@ -139,6 +140,72 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	/* ======================== Private methods ======================== */
+	private ShooterFSMSystem shooter;
+
+	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle =
+		new SwerveRequest.FieldCentricFacingAngle()
+		.withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
+		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+
+	/**
+     * Assigns the shooter FSM instance to the drivetrain to enable state-aware.
+     * features like auto-alignment.
+     * * @param shooter The ShooterFSMSystem instance to be referenced.
+     */
+	public void setShooter(ShooterFSMSystem shooter) {
+		this.shooter = shooter;
+	}
+
+	/**
+     * Handles manual robot movement during the teleop period, including logic
+	 * for field-centric driving and automatic heading alignment based on.
+     * current shooter states.
+     * * @param input The teleop input containing axis and button data.
+     */
+	private void handleTeleopState(Input input) {
+		if (input == null) {
+			return;
+		}
+
+		double xSpeed = MathUtil.applyDeadband(
+			-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
+			DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+
+		double ySpeed = MathUtil.applyDeadband(
+			-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
+			DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+
+		Pose2d target = (shooter != null) ? shooter.getAutoTargetPose() : null;
+
+		if (target != null && DriverStation.getAlliance().isPresent()) {
+			double angle = Math.atan2(
+				target.getY() - getPose().getY(),
+				target.getX() - getPose().getX()
+			);
+
+			drivetrain.setControl(
+				driveFacingAngle
+					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
+			);
+		} else {
+			double thetaSpeed = MathUtil.applyDeadband(
+					-input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
+				DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+
+			drivetrain.setControl(
+				driveFieldCentric
+					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
+			);
+		}
+
+		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
+			drivetrain.seedFieldCentric();
+		}
+	}
 
 	@Override
 	protected DrivetrainState nextState(Input input) {
@@ -152,37 +219,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			default:
 				throw new IllegalStateException(
 					"[DRIVETRAIN] Cannot get next state of an invalid current state: "
-					+ currentState.toString()
+				+ currentState.toString()
 				);
-		}
-	}
-
-	private void handleTeleopState(Input input) {
-		if (input == null) {
-			return;
-		}
-
-		double xSpeed = MathUtil.applyDeadband(
-				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
-				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
-
-		double ySpeed = MathUtil.applyDeadband(
-				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
-				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
-
-		double thetaSpeed = MathUtil.applyDeadband(
-				-input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
-				DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
-
-		drivetrain.setControl(
-			driveFieldCentric
-				.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-				.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-				.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
-		);
-
-		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
-			drivetrain.seedFieldCentric();
 		}
 	}
 
