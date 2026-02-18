@@ -2,7 +2,8 @@ package frc.robot.systems;
 
 import limelight.Limelight;
 import limelight.networktables.LimelightResults;
-import limelight.networktables.target.pipeline.NeuralDetector;
+import limelight.networktables.target.RetroreflectiveTape;
+import limelight.networktables.target.pipeline.RetroreflectiveTape;
 import java.util.Map;
 import java.util.Optional;
 import edu.wpi.first.units.measure.Angle;
@@ -25,8 +26,8 @@ public class LimelightBallDetectionsJSON {
 
 	private Limelight limelight;
 	private LimelightResults limelightResults;
-	private NeuralDetector[] detectorResults;
-	private NeuralDetector[] sortedDetectorResults;
+	private RetroreflectiveTape[] retroReflectives;
+	private RetroreflectiveTape[] sortedRetroReflectives;
 
 	/**
 	 * Constructor for LimelightBallDetectionJSON.
@@ -45,31 +46,31 @@ public class LimelightBallDetectionsJSON {
 		return limelightResults != null && limelightResults.valid;
 	}
 
-	private void fetchNeuralDetectorResults() {
+	private void fetchNeuralretroReflectives() {
 		if (checkValid() && limelightResults.targets_Detector != null) {
-			detectorResults = limelightResults.targets_Detector;
+			retroReflectives = limelightResults.targets_Retro;
 		} else {
-			detectorResults = new NeuralDetector[0];
+			retroReflectives = new RetroreflectiveTape[0];
 		}
 	}
 
-	private void sortDetectorResults() {
-		if (detectorResults == null || detectorResults.length == 0) {
-			sortedDetectorResults = new NeuralDetector[0];
+	private void sortretroReflectives() {
+		if (retroReflectives == null || retroReflectives.length == 0) {
+			sortedRetroReflectives = new RetroreflectiveTape[0];
 			return;
 		}
 
 		double hypotenuse;
 		List<Double> hypotenuses = new ArrayList<Double>();
-		Map<Double, NeuralDetector> detectors = new HashMap<Double, NeuralDetector>();
+		Map<Double, RetroreflectiveTape> detectors = new HashMap<Double, RetroreflectiveTape>();
 
-		for (NeuralDetector result : detectorResults) {
+		for (RetroreflectiveTape result : retroReflectives) {
 			hypotenuse = getHypotenuse(result);
 			hypotenuses.add(hypotenuse);
 			detectors.put(hypotenuse, result);
 		}
 
-		NeuralDetector[] sortedDetectors = new NeuralDetector[hypotenuses.size()];
+		RetroreflectiveTape[] sortedDetectors = new RetroreflectiveTape[hypotenuses.size()];
 		Collections.sort(hypotenuses);
 		int index = 0;
 
@@ -78,28 +79,28 @@ public class LimelightBallDetectionsJSON {
 			index++;
 		}
 
-		sortedDetectorResults = sortedDetectors;
+		sortedRetroReflectives = sortedDetectors;
 	}
 
 	/**
 	 * Calculates which fuel is the most optimal to pick up.
-	 * @return the NeuralDetector array of the best fuel. Will return null if no targets.
+	 * @return the RetroreflectiveTape array of the best fuel. Will return null if no targets.
 	 */
-	public NeuralDetector getOptimalFuel() {
-		sortDetectorResults();
-		if (sortedDetectorResults.length == 0) {
+	public RetroreflectiveTape getOptimalFuel() {
+		sortretroReflectives();
+		if (sortedRetroReflectives.length == 0) {
 			return null;
 		}
-		return sortedDetectorResults[0];
+		return sortedRetroReflectives[0];
 	}
 
 	/**
 	 * Returns all detected targets sorted by proximity to center.
 	 * @return sorted detector array, possibly empty.
 	 */
-	public NeuralDetector[] getSortedDetections() {
-		sortDetectorResults();
-		return Arrays.copyOf(sortedDetectorResults, sortedDetectorResults.length);
+	public RetroreflectiveTape[] getSortedDetections() {
+		sortretroReflectives();
+		return Arrays.copyOf(sortedRetroReflectives, sortedRetroReflectives.length);
 	}
 
 	/**
@@ -107,7 +108,7 @@ public class LimelightBallDetectionsJSON {
 	 */
 	public void update() {
 		getLatestResults();
-		fetchNeuralDetectorResults();
+		fetchNeuralretroReflectives();
 		printDistanceToFuel();
 	}
 
@@ -143,13 +144,13 @@ public class LimelightBallDetectionsJSON {
 	 */
 	public void printDistanceToFuel() {
 		if (checkValid()) {
-			for (NeuralDetector result : detectorResults) {
+			for (RetroreflectiveTape result : retroReflectives) {
 				System.out.println(getDistanceToFuel(result.tx, result.ty));
 			}
 		}
 	}
 
-	private double getHypotenuse(NeuralDetector result) {
+	private double getHypotenuse(RetroreflectiveTape result) {
 		return Math.sqrt(Math.pow(result.tx_pixels, 2) + Math.pow(result.ty_pixels, 2));
 	}
 

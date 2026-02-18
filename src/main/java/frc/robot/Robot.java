@@ -78,17 +78,17 @@ public class Robot extends LoggedRobot {
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
 		input = new TeleopInput();
-		input.reset();
+		//input.reset();
 		CommandScheduler.getInstance().cancelAll();
-		drivetrain.reset();
-		climberFSMSystem.reset();
+		//drivetrain.reset();
+		//climberFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		drivetrain.update(input);
-		input.update();
-		climberFSMSystem.update((TeleopInput) input);
+		//drivetrain.update(input);
+		//input.update();
+		//climberFSMSystem.update((TeleopInput) input);
 		limelightBallDetection.update();
 
 		// logs motor values
