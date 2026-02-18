@@ -3,7 +3,6 @@ package frc.robot.systems;
 import limelight.Limelight;
 import limelight.networktables.LimelightResults;
 import limelight.networktables.target.RetroreflectiveTape;
-import limelight.networktables.target.pipeline.RetroreflectiveTape;
 import java.util.Map;
 import java.util.Optional;
 import edu.wpi.first.units.measure.Angle;
