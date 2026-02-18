@@ -16,7 +16,9 @@ import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
+import frc.robot.systems.FSMSystem;
 import frc.robot.systems.IntakeFSMSystem;
+import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.systems.ClimberFSMSystem;
 
 /**
@@ -29,9 +31,9 @@ public class Robot extends LoggedRobot {
 	private Input input;
 
 	// Systems
-	private Drivetrain drivetrain;
-	private ClimberFSMSystem climberFSMSystem;
-	private IntakeFSMSystem intakeFSMSystem;
+	private FSMSystem<Drivetrain.DrivetrainState> drivetrain;
+	private FSMSystem<ClimberFSMSystem.ClimberFSMState> climberFSMSystem;
+	private FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem;
 
 
 	/**
@@ -47,11 +49,17 @@ public class Robot extends LoggedRobot {
 		Logger.start();
 
 		// Instantiate all systems here
-		if (HardwareMap.isDrivetrainEnabled()) {
-			drivetrain = new Drivetrain();
-		}
-		climberFSMSystem = new ClimberFSMSystem();
-		intakeFSMSystem = new IntakeFSMSystem();
+		drivetrain = HardwareMap.isDrivetrainEnabled()
+			? new Drivetrain()
+			: new PlaceholderFSMSystem<>();
+
+		climberFSMSystem = HardwareMap.isClimberEnabled()
+			? new ClimberFSMSystem()
+			: new PlaceholderFSMSystem<>();
+
+		intakeFSMSystem = HardwareMap.isIntakeEnabled()
+			? new IntakeFSMSystem()
+			: new PlaceholderFSMSystem<>();
 	}
 
 	@Override
