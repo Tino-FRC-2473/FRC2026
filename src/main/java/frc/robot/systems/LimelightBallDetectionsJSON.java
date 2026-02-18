@@ -46,7 +46,7 @@ public class LimelightBallDetectionsJSON {
 		return limelightResults != null && limelightResults.valid;
 	}
 
-	private void fetchNeuralretroReflectives() {
+	private void fetchRetroReflectives() {
 		if (checkValid() && limelightResults.targets_Detector != null) {
 			retroReflectives = limelightResults.targets_Retro;
 		} else {
@@ -54,7 +54,7 @@ public class LimelightBallDetectionsJSON {
 		}
 	}
 
-	private void sortretroReflectives() {
+	private void sortRetroReflectives() {
 		if (retroReflectives == null || retroReflectives.length == 0) {
 			sortedRetroReflectives = new RetroreflectiveTape[0];
 			return;
@@ -87,7 +87,7 @@ public class LimelightBallDetectionsJSON {
 	 * @return the RetroreflectiveTape array of the best fuel. Will return null if no targets.
 	 */
 	public RetroreflectiveTape getOptimalFuel() {
-		sortretroReflectives();
+		sortRetroReflectives();
 		if (sortedRetroReflectives.length == 0) {
 			return null;
 		}
@@ -99,7 +99,7 @@ public class LimelightBallDetectionsJSON {
 	 * @return sorted detector array, possibly empty.
 	 */
 	public RetroreflectiveTape[] getSortedDetections() {
-		sortretroReflectives();
+		sortRetroReflectives();
 		return Arrays.copyOf(sortedRetroReflectives, sortedRetroReflectives.length);
 	}
 
@@ -108,7 +108,7 @@ public class LimelightBallDetectionsJSON {
 	 */
 	public void update() {
 		getLatestResults();
-		fetchNeuralretroReflectives();
+		fetchRetroReflectives();
 		printDistanceToFuel();
 	}
 
