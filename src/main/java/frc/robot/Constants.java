@@ -31,6 +31,9 @@ public class Constants {
 		public static final int SWERVE_MODULE_COUNT = 4;
 		public static final double SYS_ID_VOLT_DAMP = 6;
 
+		//pid for the alignment to ball
+		public static final double BALL_ALIGN_kP = 0.2;
+
 		// Drivetrain deadbands
 		public static final double TRANSLATIONAL_DEADBAND = 0.1;
 		public static final double ROTATIONAL_DEADBAND = 0.1;

@@ -22,14 +22,24 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.input.Input;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.input.InputTypes.AxialInput;
+import limelight.Limelight;
+import limelight.networktables.LimelightResults;
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/* ======================== Constants ======================== */
 
 	// FSM states enum
 	public enum DrivetrainState {
-		TELEOP
+		TELEOP,
+		BALL_ALIGN
 	}
+
+	//Limelight
+	private Limelight limelightTable = new Limelight("limelight");
+	private LimelightResults limelightResults;
+
+	//Ball align
+	private double ballAlignAngle;
 
 	// Max linear & angular speeds
 	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
@@ -77,6 +87,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		switch (currentState) {
 			case TELEOP:
 				handleTeleopState(input);
+				break;
+			case BALL_ALIGN:
+				handleBallAlignState(input);
 				break;
 			default:
 				throw new IllegalStateException(
@@ -148,7 +161,17 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		switch (currentState) {
 			case TELEOP:
-				return DrivetrainState.TELEOP;
+				if (input.getButtonPressed(ButtonInput.ALIGN_TO_BALL)) {
+					return DrivetrainState.BALL_ALIGN;
+				} else {
+					return DrivetrainState.TELEOP;
+				}
+			case BALL_ALIGN:
+				if (input.getButtonPressed(ButtonInput.ALIGN_TO_BALL)) {
+					return DrivetrainState.BALL_ALIGN;
+				} else {
+					return DrivetrainState.TELEOP;
+				}
 			default:
 				throw new IllegalStateException(
 					"[DRIVETRAIN] Cannot get next state of an invalid current state: "
@@ -184,6 +207,47 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
 			drivetrain.seedFieldCentric();
 		}
+	}
+
+	private void handleBallAlignState(Input input) {
+
+		limelightResults = limelightTable.getLatestResults().orElse(null);
+
+		if (limelightResults == null
+				|| limelightResults.targets_Retro.length == 0) {
+
+			// No target detected — stop rotating
+			drivetrain.setControl(
+				driveFieldCentric
+					.withVelocityX(0)
+					.withVelocityY(0)
+					.withRotationalRate(0)
+			);
+			return;
+		}
+
+		// Limelight horizontal error (degrees)
+		ballAlignAngle = limelightResults.targets_Retro[0].tx;
+
+		// Proportional constant (tune this)
+
+		// Convert degrees error → radians/sec command
+		double rotationVelocity = -ballAlignAngle * DrivetrainConstants.BALL_ALIGN_kP;
+
+		// Clamp to max angular speed
+		rotationVelocity = MathUtil.clamp(
+			rotationVelocity,
+			-MAX_ANGULAR_SPEED.in(RadiansPerSecond),
+			MAX_ANGULAR_SPEED.in(RadiansPerSecond)
+		);
+
+		// Rotate in place only
+		drivetrain.setControl(
+			driveFieldCentric
+				.withVelocityX(0)
+				.withVelocityY(0)
+				.withRotationalRate(rotationVelocity)
+		);
 	}
 
 	/**
