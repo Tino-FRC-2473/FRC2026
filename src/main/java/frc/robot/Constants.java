@@ -86,9 +86,9 @@ public class Constants {
 		public static final double INTAKE_GEARING = 3;
 
 		//Targets for Pivot
-		public static final Angle UPPER_TARGET_ANGLE = Units.Radians.of(7.5);
+		public static final Angle UPPER_TARGET_ANGLE = Units.Radians.of(2.2);
 		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(0);
-		public static final Angle PARTIAL_OUT_TARGET_ANGLE = Units.Radians.of(6.7);
+		public static final Angle PARTIAL_OUT_TARGET_ANGLE = Units.Radians.of(1.5);
 
 		public static final double PIVOT_MAX_ROTATION = 2.09;
 		public static final double PIVOT_MIN_ROTATION = 0;
@@ -100,13 +100,13 @@ public class Constants {
 		public static final double J = 0.1;
 
 		//Pivot PID
-		public static final double PIVOT_KG = 5.904;
-		public static final double PIVOT_KS = 0.0;
-		public static final double PIVOT_KV = 0;
-		public static final double PIVOT_KA = 0;
-		public static final double PIVOT_KP = 14;
+		public static final double PIVOT_KG = 0.2;
+		public static final double PIVOT_KS = 0.2;  //0.5
+		public static final double PIVOT_KV = 0.06;
+		public static final double PIVOT_KA = 0.03;
+		public static final double PIVOT_KP = 25;  //0.1
 		public static final double PIVOT_KI = 0.0;
-		public static final double PIVOT_KD = 1;
+		public static final double PIVOT_KD = 0.2;
 
 		//Intake Motor PID
 		public static final double INTAKE_KV = 0.12;
@@ -118,16 +118,17 @@ public class Constants {
 		public static final double OUTTAKE_TARGET_VELOCITY = -40.0;
 
 		//Intake Gearing/Velocity Factors
-
-		public static final double PIVOT_CRUISE_VELO = 10;
-		public static final double PIVOT_TARGET_ACCEL = 20;
-		public static final double PIVOT_EXPO_KV = 0.35;
+		public static final double PVIOT_BUFFER = 0.01;
+		public static final double PIVOT_CRUISE_VELO = 15;
+		public static final double PIVOT_TARGET_ACCEL = 30;
+		public static final double PIVOT_EXPO_KV = 0.12;
 
 		public static final double INTAKE_CRUISE_VELO = 20;
 		public static final double INTAKE_TARGET_ACCEL = 40;
 		public static final double INTAKE_EXPO_KV = 0.12;
 
 		//other
+		public static final double PIVOT_CURRENT_LIMIT = 10; //in amps
 		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
 		public static final double SIM_UPDATE_SECONDS = 0.02;
 		public static final Angle SIM_LIMIT_SWITCH_BUFFER = Units.Radians.of(0.01);

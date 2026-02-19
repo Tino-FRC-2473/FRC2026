@@ -2,6 +2,7 @@ package frc.robot.systems;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
@@ -23,6 +24,7 @@ import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Rotations;
 
 import frc.robot.input.Input;
 // Robot Imports
@@ -107,6 +109,10 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 
 		var pivotConfig = talonFXConfigs.Feedback;
 		pivotConfig.SensorToMechanismRatio = IntakeConstants.INTAKE_PIVOT_GEARING;
+
+		var limitConfig = talonFXConfigs.CurrentLimits;
+		limitConfig.StatorCurrentLimit = IntakeConstants.PIVOT_CURRENT_LIMIT;
+		limitConfig.StatorCurrentLimitEnable = true;
 
 		var outputConfigs = talonFXConfigs.MotorOutput;
 		outputConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
@@ -358,6 +364,15 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	}
 
 	/**
+	 * Getter for pivot motor right current.
+	 * @return pivot motor right current as a double
+	 */
+	@AutoLogOutput(key = "Intake/Pivot Motor Right Current", unit = "amps")
+	public double getPivotMotorRightCurrent() {
+		return pivotMotorRight.getStatorCurrent().getValueAsDouble();
+	}
+
+	/**
 	 * Getter for intake motor voltage.
 	 * @return intake motor voltage as a double
 	 */
@@ -396,6 +411,10 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 			case FOLD_OUT_STATE:
 				if (isBottomLimitReached()) {
 					return IntakeFSMState.IDLE_OUT_STATE;
+				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)){
+					return IntakeFSMState.FOLD_IN_STATE;
+				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)){
+					return IntakeFSMState.PARTIAL_OUT_STATE;
 				} else {
 					return IntakeFSMState.FOLD_OUT_STATE;
 				}
@@ -445,7 +464,11 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 			case FOLD_IN_STATE:
 				if (isTopLimitReached()) {
 					return IntakeFSMState.IDLE_IN_STATE;
-				} else {
+				} else if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)){
+					return IntakeFSMState.FOLD_OUT_STATE;
+				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)){
+					return IntakeFSMState.PARTIAL_OUT_STATE;
+				}  else {
 					return IntakeFSMState.FOLD_IN_STATE;
 				}
 
@@ -480,8 +503,12 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handlePartialOutState(Input input) {
-		pivotMotorRight.setControl(pivotMotionRequest.
-			withPosition(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE));
+		if (Math.abs(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE.in(Rotations) - pivotMotorRight.getPosition().getValueAsDouble()) >= IntakeConstants.PVIOT_BUFFER) {
+			pivotMotorRight.setControl(pivotMotionRequest.
+				withPosition(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE));
+		}else {
+			pivotMotorRight.set(0);
+		}
 	}
 	/**
 	 * Handle behavior in INTAKE_STATE.
