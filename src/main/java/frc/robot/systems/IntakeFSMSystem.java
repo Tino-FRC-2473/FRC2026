@@ -527,4 +527,15 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		return topLimitSwitch.get(); // switch is normally open
 	}
 
+	/**
+	 * Checks if the intake is down and intaking. Used for the storage break beam timer.
+	 * @return Boolean statement whether or not the intake is down and running
+	 */
+	public boolean isIntakeDownRunning() {
+		if (getCurrentState() == IntakeFSMState.INTAKE_STATE) {
+			return true;
+		}
+		return false;
+	}
+
 }
