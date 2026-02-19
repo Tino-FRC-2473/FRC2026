@@ -11,6 +11,7 @@ import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.AngularVelocityUnit;
 
@@ -71,6 +72,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private DigitalInput breakBeam;
 	private Timer feedTimer = new Timer();
 	private boolean noFuelStored = false;
+	private double hubDistance;
+	private double outpostDistance;
+	private double target3Distance;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -120,6 +124,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		flywheel0Config.kI = ShooterConstants.FLYWHEEL_MM_CONSTANT_I;
 		//account for velocity error of 1rps
 		flywheel0Config.kD = ShooterConstants.FLYWHEEL_MM_CONSTANT_D;
+
+		outpostPose = ShooterConstants.OUTPOST_POSE;
+		hubPose = ShooterConstants.HUB_POSE;
+		target3Pose = ShooterConstants.TARGET3_POSE;
+		hoodAngle = ShooterConstants.HOOD_ANGLE;
 
 		var flywheelMotionMagicConfigs = flywheelConfigs.MotionMagic;
 		//160 rps/s
@@ -305,23 +314,29 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		var alliance = DriverStation.getAlliance();
 		boolean isRed = alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red;
 
-		if (state == ShooterFSMState.SHOOTER_PREP_STATE) {
-			return isRed ? mirrorPose(hubPose) : hubPose;
-		} else {
-			double outpostDistance =
-				curPose.getTranslation().getDistance(outpostPose.getTranslation());
-			double target3Distance =
-				curPose.getTranslation().getDistance(target3Pose.getTranslation());
+		Pose2d activeHub = isRed ? mirrorPose(hubPose) : hubPose;
+		Pose2d activeOutpost = isRed ? mirrorPose(outpostPose) : outpostPose;
+		Pose2d activeTarget3 = isRed ? mirrorPose(target3Pose) : target3Pose;
 
-			Pose2d target = (outpostDistance < target3Distance) ? target3Pose : outpostPose;
-			return isRed ? mirrorPose(target) : target;
+		hubDistance = curPose.getTranslation().getDistance(activeHub.getTranslation());
+		outpostDistance = curPose.getTranslation().getDistance(activeOutpost.getTranslation());
+		target3Distance = curPose.getTranslation().getDistance(activeTarget3.getTranslation());
+
+		if (getCurrentState() == ShooterFSMState.SHOOTER_PREP_STATE) {
+			return activeHub;
+		} else {
+			// Now distance check is accurate for both alliances
+			return (outpostDistance < target3Distance) ? activeOutpost : activeTarget3;
 		}
 	}
 
 	private Pose2d mirrorPose(Pose2d pose) {
-		double fieldLengthMeters =
-			edu.wpi.first.math.util.Units.inchesToMeters(ShooterConstants.FIELD_LENGTH);
-		return new Pose2d(fieldLengthMeters - pose.getX(), pose.getY(), pose.getRotation());
+		double fieldLength = ShooterConstants.FIELD_LENGTH;
+		return new Pose2d(
+			fieldLength - pose.getX(), 
+			pose.getY(), 
+			pose.getRotation().plus(Rotation2d.fromDegrees(180))
+		);
 	}
 
 	// @Override
@@ -478,9 +493,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private void handlePasserPrepState(TeleopInput input) {
 		Pose2d correctTarget = new Pose2d();
 
-		double outpostDistance = (double) curPose.getTranslation()
+		outpostDistance = (double) curPose.getTranslation()
 				.getDistance(outpostPose.getTranslation());
-		double target3Distance = (double) curPose.getTranslation()
+		target3Distance = (double) curPose.getTranslation()
 				.getDistance(target3Pose.getTranslation());
 		if (outpostDistance < target3Distance) {
 			correctTarget = target3Pose;
