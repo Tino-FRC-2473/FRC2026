@@ -2,7 +2,6 @@ package frc.robot.systems;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
@@ -102,7 +101,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		// apply sw limit
 		// var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
 		// swLimitSwitch.ForwardSoftLimitEnable = true; // enable top limit
-		// swLimitSwitch.ReverseSoftLimitEnable = true; // enable bottom limit`q
+		// swLimitSwitch.ReverseSoftLimitEnable = true; // enable bottom limit
 		// swLimitSwitch.ForwardSoftLimitThreshold
 		//= IntakeConstants.GROUND_TARGET_ANGLE.in(Radians);
 		// swLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.UPPER_TARGET_ANGLE.in(Radians);
@@ -411,9 +410,9 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 			case FOLD_OUT_STATE:
 				if (isBottomLimitReached()) {
 					return IntakeFSMState.IDLE_OUT_STATE;
-				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)){
+				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
 					return IntakeFSMState.FOLD_IN_STATE;
-				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)){
+				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
 					return IntakeFSMState.PARTIAL_OUT_STATE;
 				} else {
 					return IntakeFSMState.FOLD_OUT_STATE;
@@ -464,9 +463,9 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 			case FOLD_IN_STATE:
 				if (isTopLimitReached()) {
 					return IntakeFSMState.IDLE_IN_STATE;
-				} else if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)){
+				} else if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
 					return IntakeFSMState.FOLD_OUT_STATE;
-				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)){
+				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
 					return IntakeFSMState.PARTIAL_OUT_STATE;
 				}  else {
 					return IntakeFSMState.FOLD_IN_STATE;
@@ -503,10 +502,11 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handlePartialOutState(Input input) {
-		if (Math.abs(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE.in(Rotations) - pivotMotorRight.getPosition().getValueAsDouble()) >= IntakeConstants.PVIOT_BUFFER) {
+		if (Math.abs(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE.in(Rotations)
+			- pivotMotorRight.getPosition().getValueAsDouble()) >= IntakeConstants.PVIOT_BUFFER) {
 			pivotMotorRight.setControl(pivotMotionRequest.
 				withPosition(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE));
-		}else {
+		} else {
 			pivotMotorRight.set(0);
 		}
 	}
