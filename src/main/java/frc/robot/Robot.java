@@ -28,7 +28,7 @@ public class Robot extends LoggedRobot {
 	private Input input;
 
 	// Systems
-	private Drivetrain drivetrain;
+	// private Drivetrain drivetrain;
 	private ClimberFSMSystem climberFSMSystem;
 
 
@@ -45,9 +45,9 @@ public class Robot extends LoggedRobot {
 		Logger.start();
 
 		// Instantiate all systems here
-		if (HardwareMap.isDrivetrainEnabled()) {
-			drivetrain = new Drivetrain();
-		}
+		// if (HardwareMap.isDrivetrainEnabled()) {
+		// 	drivetrain = new Drivetrain();
+		// }
 		if (HardwareMap.isClimberEnabled()) {
 			climberFSMSystem = new ClimberFSMSystem();
 		}
@@ -60,12 +60,12 @@ public class Robot extends LoggedRobot {
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
 		input.reset();
-		CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
+		// CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-		drivetrain.update(input);
+		//drivetrain.update(input);
 		input.update();
 		CommandScheduler.getInstance().run();
 
@@ -79,13 +79,13 @@ public class Robot extends LoggedRobot {
 		input = new TeleopInput();
 		input.reset();
 		CommandScheduler.getInstance().cancelAll();
-		drivetrain.reset();
+		//drivetrain.reset();
 		climberFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		drivetrain.update(input);
+		//drivetrain.update(input);
 		input.update();
 		climberFSMSystem.update((TeleopInput) input);
 

@@ -12,15 +12,15 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_DRIVE_BACK_RIGHT = 2;
 	public static final int CAN_ID_SPARK_DRIVE_FRONT_LEFT = 3;
 	public static final int CAN_ID_SPARK_DRIVE_BACK_LEFT = 4;
-	public static final int CAN_ID_CLIMBER_LEFT = 12;
-	public static final int CAN_ID_CLIMBER_RIGHT = 11;
+	public static final int CAN_ID_CLIMBER_LEFT = 20;
+	public static final int CAN_ID_CLIMBER_RIGHT = 8;
 	public static final int CAN_ID_SPARK_PIVOT_LEFT = 6;
 	public static final int CAN_ID_SPARK_PIVOT_RIGHT = 7;
-	public static final int CAN_ID_SPARK_INTAKE = 8;
+	public static final int CAN_ID_SPARK_INTAKE = 12;
 
 	//rio - dio ports
-	public static final int INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT = 0;
-	public static final int INTAKE_TOP_LIMIT_SWITCH_DIO_PORT = 1;
+	public static final int INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT = 2;
+	public static final int INTAKE_TOP_LIMIT_SWITCH_DIO_PORT = 3;
 
 	// Pneumatics channel numbers
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_FORWARD = 1;

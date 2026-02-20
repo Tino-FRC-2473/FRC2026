@@ -51,6 +51,7 @@ public final class TeleopInput extends Input {
 
 	@Override
 	public Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
+
 		return switch (key) {
 
 			// Drivetrain
@@ -60,8 +61,8 @@ public final class TeleopInput extends Input {
 			case INTAKE_FOLD_IN -> mechController::circle;
 			case INTAKE_FOLD_OUT -> mechController::circle;
 			case INTAKE_PARTIAL_OUT -> mechController::options;
-			case INTAKE_INTAKE -> mechController::triangle;
-			case INTAKE_OUTTAKE -> mechController::square;
+			case INTAKE_INTAKE -> mechController::circle;
+			case INTAKE_OUTTAKE -> mechController::circle;
 
 			// Climber
 			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
