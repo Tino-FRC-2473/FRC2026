@@ -198,7 +198,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		pivotMotorRight.setPosition(IntakeConstants.UPPER_TARGET_ANGLE);
 		intakeMotor.setPosition(0);
 
-		/* 
+		/*
 		if (RobotBase.isSimulation()) {
 			intakeSim = new SingleJointedArmSim(DCMotor.getKrakenX60(2),
 				IntakeConstants.INTAKE_PIVOT_GEARING,

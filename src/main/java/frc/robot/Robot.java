@@ -83,7 +83,7 @@ public class Robot extends LoggedRobot {
 		drivetrain.reset();
 		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
-		}
+	}
 
 	@Override
 	public void teleopPeriodic() {
