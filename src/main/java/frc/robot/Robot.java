@@ -16,7 +16,7 @@ import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
-import frc.robot.systems.LimelightBallDetectionsJSON;
+import frc.robot.systems.ObjectDetection;
 import frc.robot.systems.ClimberFSMSystem;
 
 /**
@@ -31,7 +31,7 @@ public class Robot extends LoggedRobot {
 	// Systems
 	private Drivetrain drivetrain;
 	private ClimberFSMSystem climberFSMSystem;
-	private LimelightBallDetectionsJSON limelightBallDetection;
+	private ObjectDetection limelightBallDetection;
 
 
 	/**
@@ -51,7 +51,7 @@ public class Robot extends LoggedRobot {
 			drivetrain = new Drivetrain();
 		}
 		climberFSMSystem = new ClimberFSMSystem();
-		limelightBallDetection = new LimelightBallDetectionsJSON();
+		limelightBallDetection = new ObjectDetection();
 	}
 
 	@Override
