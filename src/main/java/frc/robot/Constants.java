@@ -1,12 +1,30 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.pathplanner.lib.path.PathConstraints;
+
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Frequency;
+import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Voltage;
+import frc.robot.generated.TunerConstants;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -21,11 +39,43 @@ public class Constants {
 	}
 
 	public static final class DrivetrainConstants {
-		// Speed controls
-		// Decimal value corresponding to a percentage of max speed
-		// 1.0 = 100% speed, 0.5 = 50% speed, etc.
+		public static final int NUM_MODULES = 4;
+		public static final double SYS_ID_VOLT_DAMP = 6;
+
+		public static final double TRANSLATION_DEADBAND = 0.1;
+		public static final double ROTATION_DEADBAND = 0.1;
+
+
+		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
+		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speed, and so on
 		public static final double TRANSLATIONAL_DAMP = 1;
 		public static final double ROTATIONAL_DAMP = 1;
+
+		// drive velocity limits
+		// Max linear & angular speeds
+		public static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
+		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(0.75);
+
+		// pathing acceleration limits
+		public static final LinearAcceleration MAX_PATHING_LINEAR_ACCELERATION
+			= MetersPerSecondPerSecond.of(5);
+
+		public static final AngularAcceleration MAX_PATHING_ROTATIONAL_ACCELERATION
+			= RotationsPerSecondPerSecond.of(5);
+
+		public static final int PIGEON2_CAN_ID = 1;
+		public static final String CAN_BUS_NAME = "Drivetrain";
+		//TODO: Get some actual values for this
+		public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
+				MAX_SPEED,
+				MAX_PATHING_LINEAR_ACCELERATION,
+				MAX_ANGULAR_SPEED,
+				MAX_PATHING_ROTATIONAL_ACCELERATION,
+				Voltage.ofBaseUnits(12, Volts)
+			);
+
+		//new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
+
 
 		public static final AngularVelocity MAX_ANGULAR_VELOCITY = RotationsPerSecond.of(0.75);
 		public static final int SWERVE_MODULE_COUNT = 4;
@@ -40,17 +90,17 @@ public class Constants {
 	}
 
 	public static final class ModuleConstants {
-		public static final double DRIVE_P = 0.1;
-		public static final double DRIVE_I = 0;
-		public static final double DRIVE_D = 0;
+		public static double DRIVE_P = 7;
+		public static final double DRIVE_I = 1.75;
+		public static final double DRIVE_D = 0.1;
 		public static final double DRIVE_V = 0.124;
 
-		public static final double DRIVE_CURRENT_LIMIT = 60;
+		public static final double DRIVE_CURRENT_LIMIT = 80;
 		public static final double STEER_CURRENT_LIMIT = 60;
 
-		public static final double STEER_P = 100;
-		public static final double STEER_I = 0;
-		public static final double STEER_D = 0.5;
+		public static double STEER_P = 13;
+		public static final double STEER_I = 0.1;
+		public static final double STEER_D = 0.1;
 		public static final double STEER_V = 0.1;
 		public static final double STEER_S = 0;
 	}
@@ -204,5 +254,15 @@ public class Constants {
 		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
 		public static final double SIM_UPDATE_SECONDS = 0.02;
 		public static final Angle SIM_LIMIT_SWITCH_BUFFER = Units.Radians.of(0.01);
+	}
+
+	public static final class VisionConstants {
+		public static final String LIMELIGHT_NAME = "limelight-four";
+		//TODO: Find some actual values for this.
+		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(
+			0.02, 0.02, Math.toRadians(1));
+		//TODO: Measure this on the bot
+		public static final Pose3d LL4_OFFSET =
+			new Pose3d(0.096, -0.03, 0.55, new Rotation3d(0, 0, 270));
 	}
 }

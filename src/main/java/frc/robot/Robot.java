@@ -7,6 +7,15 @@ import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import frc.robot.Constants.VisionConstants;
+
+// WPILib Imports
+
+// Systems
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import frc.robot.Constants.VisionConstants;
+
 
 
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -16,6 +25,7 @@ import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
+import frc.robot.systems.Vision;
 import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
@@ -35,6 +45,7 @@ public class Robot extends LoggedRobot {
 	private IntakeFSMSystem intakeFSMSystem;
 	private ShooterFSMSystem shooterFSMSystem;
 
+	private Vision vision;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -51,7 +62,9 @@ public class Robot extends LoggedRobot {
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
 			drivetrain = new Drivetrain();
+			vision = new Vision(drivetrain::addVisionMeasurement, () -> drivetrain.getDrivetrainRotation(), VisionConstants.LIMELIGHT_NAME);
 		}
+
 		climberFSMSystem = new ClimberFSMSystem();
 		intakeFSMSystem = new IntakeFSMSystem();
 		shooterFSMSystem = new ShooterFSMSystem();
@@ -134,5 +147,7 @@ public class Robot extends LoggedRobot {
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
-	public void robotPeriodic() { }
+	public void robotPeriodic() { 
+		vision.periodic();
+	}
 }

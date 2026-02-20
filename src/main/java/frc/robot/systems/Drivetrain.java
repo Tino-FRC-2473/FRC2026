@@ -1,22 +1,46 @@
 package frc.robot.systems;
 
+
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
+
+
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
+
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
+
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Constants.ModuleConstants;
+
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.input.Input;
@@ -25,12 +49,17 @@ import frc.robot.input.InputTypes.AxialInput;
 import limelight.Limelight;
 import limelight.networktables.LimelightResults;
 
+
+import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;;
+
+
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/* ======================== Constants ======================== */
 
 	// FSM states enum
 	public enum DrivetrainState {
 		TELEOP,
+		PATHFIND,
 		BALL_ALIGN
 	}
 
@@ -55,18 +84,94 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			// Use open-loop for drive motors
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
+	private final SwerveRequest.ApplyRobotSpeeds
+			applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
+		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+
 	/* ======================== Private variables ======================== */
 
 	// Current FSM state
 	private DrivetrainState currentState;
 	// Drivetrain subsystem instance
 	private CommandSwerveDrivetrain drivetrain;
+	//Pathfind command
+	private Command pathfindCommand = null;
+
+	//TODO: Need to clean this stuff up and put it in constants
+	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method
+	//instead of the drivetrain's periodic?
+	//Pathfind targeting stuff
+	private AprilTagFieldLayout field = AprilTagFieldLayout
+		.loadField(AprilTagFields.k2026RebuiltWelded);
+	private Pose2d test = field.getTagPose(8).orElse(null).toPose2d();
+
+	private Transform2d offsetTransform = new Transform2d(
+				-0.5, // Back to Front
+				1.5, // Side to Side
+				Rotation2d.kCW_90deg);
+
+	private Pose2d pathfindTarget = test.transformBy(offsetTransform);
 
 	/**
 	 * Constructs the drivetrain subsystem.
 	 */
 	public Drivetrain() {
 		drivetrain = TunerConstants.createDrivetrain();
+		//updateLimelightYaw();
+
+		SmartDashboard.putData(CommandScheduler.getInstance());
+
+		RobotConfig config;
+		try {
+			config = RobotConfig.fromGUISettings();
+		} catch (Exception e) {
+			// Handle exception as needed
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+
+		// Configure AutoBuilder last
+		AutoBuilder.configure(
+				this::getPose, // Robot pose supplier
+				drivetrain::resetPose, /*Method to reset odometry
+				(will be called if your auto has a starting pose) */
+				() -> {
+					return drivetrain.getState().Speeds;
+				}, /*ChassisSpeeds supplier. MUST BE ROBOT RELATIVE */
+				(speeds, feedforwards) -> {
+					drivetrain.setControl(
+						applyRobotSpeeds
+							.withSpeeds(speeds)
+							.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+							.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
+					);
+
+				}, /* Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
+				optionally outputs individual module feedforwards*/
+				new PPHolonomicDriveController(/*PPHolonomicController is the built in path
+						following controller for holonomic drive trains */
+						// Translation PID constants
+						new PIDConstants(ModuleConstants.DRIVE_P,
+							ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D),
+						// Rotation PID constants
+						new PIDConstants(ModuleConstants.STEER_P,
+							ModuleConstants.STEER_I, ModuleConstants.STEER_D)
+				),
+				config, // The robot configuration
+				() -> {
+				/* Boolean supplier that controls when the
+				path will be mirrored for the red alliance*/
+				// This will flip the path being followed to the red side of the field.
+				// THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+				var alliance = DriverStation.getAlliance();
+				if (alliance.isPresent()) {
+					return alliance.get() == DriverStation.Alliance.Red;
+				}
+				return false;
+				},
+				drivetrain // Reference to the subsystem to set requirements
+		);
 
 		reset();
 	}
@@ -83,10 +188,16 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@Override
 	public void update(Input input) {
 		drivetrain.periodic();
+		CommandScheduler.getInstance().run();
+
+		Logger.recordOutput("Vision/AlignmentPose", pathfindTarget);
 
 		switch (currentState) {
 			case TELEOP:
 				handleTeleopState(input);
+				break;
+			case PATHFIND:
+				//No need to do anything? You only start/stop pathfinding
 				break;
 			case BALL_ALIGN:
 				handleBallAlignState(input);
@@ -151,6 +262,16 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return drivetrain.getState().ModulePositions;
 	}
 
+	/**
+	 * Get the drivetrain's rotation.
+	 *
+	 * @return The drivetrain's rotation as a Pose2D
+	 */
+	@AutoLogOutput(key = "Drivetrain/Rotation")
+	public Rotation3d getDrivetrainRotation() {
+		return drivetrain.getPigeon2().getRotation3d();
+	}
+
 	/* ======================== Private methods ======================== */
 
 	@Override
@@ -161,7 +282,18 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		switch (currentState) {
 			case TELEOP:
-				if (input.getButtonPressed(ButtonInput.ALIGN_TO_BALL)) {
+				if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
+					startPathfinding();
+					return DrivetrainState.PATHFIND;
+				} else {
+					return DrivetrainState.TELEOP;
+				}
+			case PATHFIND:
+				if (input.getButtonValue(ButtonInput.DRIVETRAIN_PATHFIND)) {
+					return DrivetrainState.PATHFIND;
+				} else {
+					pathfindCommand.cancel();
+					if (input.getButtonPressed(ButtonInput.ALIGN_TO_BALL)) {
 					return DrivetrainState.BALL_ALIGN;
 				} else {
 					return DrivetrainState.TELEOP;
@@ -172,6 +304,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				} else {
 					return DrivetrainState.TELEOP;
 				}
+				}
 			default:
 				throw new IllegalStateException(
 					"[DRIVETRAIN] Cannot get next state of an invalid current state: "
@@ -180,18 +313,24 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 	}
 
+	private void startPathfinding() {
+		pathfindCommand = AutoBuilder.pathfindToPose(pathfindTarget,
+					PATH_CONSTRAINTS);
+		CommandScheduler.getInstance().schedule(pathfindCommand);
+	}
+
 	private void handleTeleopState(Input input) {
 		if (input == null) {
 			return;
 		}
 
-		double xSpeed = MathUtil.applyDeadband(
-				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
-				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+		double xSpeed = -MathUtil.applyDeadband(
+				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
+				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-		double ySpeed = MathUtil.applyDeadband(
-				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
-				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+		double ySpeed = -MathUtil.applyDeadband(
+				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
+				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
 				-input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
@@ -255,9 +394,29 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 *
 	 * @return current state of the drivetrain
 	 */
-	@AutoLogOutput(key = "Drivetrain/Current State")
+	//@AutoLogOutput(key = "Drivetrain/Current State")
 	public DrivetrainState getCurrentState() {
 		return currentState;
+	}
+
+	/**
+	 * Adds a new timestamped vision measurement.
+	 *
+	 * @param visionPoseMeters The pose of the robot in the camera's coordinate
+	 *                         frame
+	 * @param timestampSeconds The timestamp of the measurement
+	 * @param visionStdDevs    The standard deviations of the measurement in the x,
+	 *                         y, and theta directions
+	 */
+	public void addVisionMeasurement(
+			Pose2d visionPoseMeters,
+			double timestampSeconds,
+			Matrix<N3, N1> visionStdDevs) {
+		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(),
+			visionPoseMeters.getY(),
+			visionPoseMeters.getRotation().plus(Rotation2d.k180deg)),
+			timestampSeconds, visionStdDevs);
+		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
 	}
 
 	/**
