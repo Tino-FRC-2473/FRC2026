@@ -75,14 +75,12 @@ public class Constants {
 		public static final double ROTS_TO_INCHES = 16 / 105.5;
 		public static final Distance POSITION_TOLERANCE_L1 = Units.Inches.of(0.4);
 		public static final Distance DOWN_POSITION_TOLERANCE_L1 = Units.Inches.of(0.05);
-		public static final Distance POSITION_TOLERANCE_L2_L3 = Units.Inches.of(0.5);
 		public static final double JOYSTICK_DEADBAND = 0.1;
 		public static final double MANUAL_SCALE = 1;
 		public static final Distance L1_EXTEND_POS = Units.Inches.of(10.0);
 		public static final Distance L1_RETRACT_POS = Units.Inches.of(5.0);
-		public static final Distance GROUND = Units.Inches.of(-1.0);
+		public static final Distance GROUND = Units.Inches.of(0.0);
 		public static final int CONTROL_REQUEST_SUBSTRING_START_INDEX = 9;
-
 		public static final double CLIMBER_ANGLE_RAD = Math.toRadians(48.0);
 		public static final double CLIMBER_GEAR_RATIO = 7.2;
 		public static final double CLIMBER_WEIGHT_KGS = 1.36078;

@@ -30,7 +30,7 @@ public class Robot extends LoggedRobot {
 	private Input input;
 
 	// Systems
-	// private Drivetrain drivetrain;
+	private Drivetrain drivetrain;
 	private ClimberFSMSystem climberFSMSystem;
 	private IntakeFSMSystem intakeFSMSystem;
 	private ShooterFSMSystem shooterFSMSystem;
@@ -48,15 +48,18 @@ public class Robot extends LoggedRobot {
 		Logger.addDataReceiver(new NT4Publisher());
 		Logger.start();
 
-		// Instantiate all systems here
-		// if (HardwareMap.isDrivetrainEnabled()) {
-		// 	drivetrain = new Drivetrain();
-		// }
+
+		if (HardwareMap.isDrivetrainEnabled()) {
+			drivetrain = new Drivetrain();
+		}
 		if (HardwareMap.isClimberEnabled()) {
 			climberFSMSystem = new ClimberFSMSystem();
 		}
-		intakeFSMSystem = new IntakeFSMSystem();
-		shooterFSMSystem = new ShooterFSMSystem();
+		if (HardwareMap.isIntakeEnabled()) {
+			intakeFSMSystem = new IntakeFSMSystem();
+		}
+		if (HardwareMap.isShooterEnabled()) {
+			shooterFSMSystem = new ShooterFSMSystem();
 		}
 	}
 

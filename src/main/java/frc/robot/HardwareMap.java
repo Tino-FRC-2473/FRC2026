@@ -61,4 +61,20 @@ public final class HardwareMap {
 	public static boolean isClimberEnabled() {
 		return false;
 	}
+
+	/**
+	 * Hardware map entry for the intake subsystem.
+	 * @return if the hardware for the intake is present
+	 */	
+	public static boolean isIntakeEnabled() {
+		return false;
+	}
+
+	/**
+	 * Hardware map entry for the shooter subsystem.
+	 * @return if the hardware for the shooter is present
+	 */
+	public static boolean isShooterEnabled() {
+		return false;
+	}
 }

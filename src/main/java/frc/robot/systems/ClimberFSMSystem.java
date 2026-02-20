@@ -33,7 +33,6 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 
-
 public class ClimberFSMSystem  {
 	public enum ClimberFSMState {
 		IDLE,
@@ -128,7 +127,7 @@ public class ClimberFSMSystem  {
 		swLimitSwitch.ReverseSoftLimitThreshold = Inches.of(-40).in(Inches);
 
 		var sensorConfig = talonFXConfigs.Feedback;
-		sensorConfig.SensorToMechanismRatio = 1/ClimberConstants.ROTS_TO_INCHES;
+		sensorConfig.SensorToMechanismRatio = 1 / ClimberConstants.ROTS_TO_INCHES;
 
 		var slot0 = talonFXConfigs.Slot0;
 		slot0.GravityType = GravityTypeValue.Elevator_Static;
@@ -244,7 +243,7 @@ public class ClimberFSMSystem  {
 		Logger.recordOutput("Climber/Control Request",
 			climberMotorLeft.getAppliedControl().toString().
 				substring(ClimberConstants.CONTROL_REQUEST_SUBSTRING_START_INDEX));
-	
+
 		Logger.recordOutput("Climber/Expected Position", motionRequest.getPositionMeasure());
 	}
 
