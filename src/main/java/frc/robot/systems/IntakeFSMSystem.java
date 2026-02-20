@@ -198,6 +198,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		pivotMotorRight.setPosition(IntakeConstants.UPPER_TARGET_ANGLE);
 		intakeMotor.setPosition(0);
 
+		/* 
 		if (RobotBase.isSimulation()) {
 			intakeSim = new SingleJointedArmSim(DCMotor.getKrakenX60(2),
 				IntakeConstants.INTAKE_PIVOT_GEARING,
@@ -209,7 +210,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				0);
 			simGroundLimitSwitch = new DIOSim(groundLimitSwitch);
 			simTopLimitSwitch = new DIOSim(topLimitSwitch);
-		}
+		}*/
 
 		// Reset state machine
 		reset();
@@ -503,7 +504,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	private void handlePartialOutState(Input input) {
 		if (Math.abs(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE.in(Rotations)
-			- pivotMotorRight.getPosition().getValueAsDouble()) >= IntakeConstants.PVIOT_BUFFER) {
+			- pivotMotorRight.getPosition().getValueAsDouble()) >= IntakeConstants.PIVOT_BUFFER) {
 			pivotMotorRight.setControl(pivotMotionRequest.
 				withPosition(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE));
 		} else {

@@ -120,7 +120,7 @@ public class Constants {
 		public static final double OUTTAKE_TARGET_VELOCITY = -40.0;
 
 		//Intake Gearing/Velocity Factors
-		public static final double PVIOT_BUFFER = 0.01;
+		public static final double PIVOT_BUFFER = 0.01;
 		public static final double PIVOT_CRUISE_VELO = 15;
 		public static final double PIVOT_TARGET_ACCEL = 30;
 		public static final double PIVOT_EXPO_KV = 0.12;
