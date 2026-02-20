@@ -1,14 +1,21 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Frequency;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
+
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Hertz;
+import static edu.wpi.first.units.Units.Seconds;
+
 
 public class Constants {
 	public static final class LimelightConstants {
@@ -69,6 +76,7 @@ public class Constants {
 		public static final Distance L1_RETRACT_POS = Units.Inches.of(5.0);
 		public static final Distance GROUND = Units.Inches.of(-1.0);
 		public static final int CONTROL_REQUEST_SUBSTRING_START_INDEX = 9;
+
 		public static final double CLIMBER_ANGLE_RAD = Math.toRadians(48.0);
 		public static final double CLIMBER_GEAR_RATIO = 9.0;
 		public static final double CLIMBER_WEIGHT_LBS = 15.0;
@@ -81,7 +89,15 @@ public class Constants {
 		public static final double DRUM_CIRCUMFERENCE_METERS = edu.wpi.first.math.util.Units
 			.inchesToMeters(1.0) * 2 * Math.PI;
 	}
-
+	public static final class ShooterConstants {
+		public static final Pose2d OUTPOST_POSE = new Pose2d();
+		public static final Pose2d TARGET3_POSE = new Pose2d();
+		public static final Pose2d HUB_POSE = new Pose2d();
+		//public static final double HOOD_GEAR_RATIO = 4;
+		public static final double SPINDEX_GEAR_RATIO = 3;
+		public static final double FLYWHEEL_GEAR_RATIO = 3;
+		public static final double FEEDER_GEAR_RATIO = 3;
+	}
 	public static final class IntakeConstants {
 
 		public static final double INTAKE_PIVOT_GEARING = 62.5;

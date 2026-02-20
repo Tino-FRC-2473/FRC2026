@@ -54,7 +54,7 @@ public final class TeleopInput extends Input {
 		return switch (key) {
 
 			// Drivetrain
-			case DRIVETRAIN_RESEED -> mechController::options;
+			case DRIVETRAIN_RESEED -> driveController::options;
 
 			// Intake
 			case PARTIAL_OUT_BUTTON -> mechController::share;
@@ -66,8 +66,15 @@ public final class TeleopInput extends Input {
 			// Climber
 			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
 			case CLIMBER_NEXT_STEP -> mechController::square;
-			case CLIMBER_EMERGENCY_ABORT -> mechController::R1;
-			case CLIMBER_DOWN_BUTTON -> mechController::R2;
+			case CLIMBER_EMERGENCY_ABORT -> mechController::cross;
+			case CLIMBER_DOWN_BUTTON -> mechController::circle;
+
+
+			case PASSER_PREP_TOGGLE -> mechController::R1;
+			case SHOOTER_PREP_TOGGLE -> mechController::L1;
+			case MANUAL_SHOOT_TOGGLE -> mechController::L2;
+			case REV_FEEDER -> mechController::R2;
+			case IDLE_SHOOTER_TOGGLE -> mechController::touchpad;
 
 			default -> throw new IllegalArgumentException("Unknown button input");
 		};
