@@ -33,6 +33,7 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 
+
 public class ClimberFSMSystem  {
 	public enum ClimberFSMState {
 		IDLE,
