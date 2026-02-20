@@ -7,6 +7,8 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Frequency;
+import edu.wpi.first.units.measure.MomentOfInertia;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
 
 public class Constants {
 	public static final class LimelightConstants {
@@ -97,7 +99,7 @@ public class Constants {
 		public static final double PIVOT_ARM_LENGTH = 0.5;
 
 		//The moment of inertia of the arm in kg-m²; can be calculated from CAD software.
-		public static final double J = 0.1;
+		public static final MomentOfInertia J = KilogramSquareMeters.of(0.1);
 
 		//Pivot PID
 		public static final double PIVOT_KG = 0.2;
