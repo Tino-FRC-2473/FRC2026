@@ -10,6 +10,7 @@ import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.numbers.N1;
@@ -40,7 +41,6 @@ public class Constants {
 
 	public static final class DrivetrainConstants {
 		public static final int NUM_MODULES = 4;
-		public static final double SYS_ID_VOLT_DAMP = 6;
 
 		public static final double TRANSLATION_DEADBAND = 0.1;
 		public static final double ROTATION_DEADBAND = 0.1;
@@ -258,6 +258,7 @@ public class Constants {
 
 	public static final class VisionConstants {
 		public static final String LIMELIGHT_NAME = "limelight-four";
+		public static final Distance LIMELIGHT_HEIGHT = Units.Inches.of(18.624);
 		//TODO: Find some actual values for this.
 		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(
 			0.02, 0.02, Math.toRadians(1));

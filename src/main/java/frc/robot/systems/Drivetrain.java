@@ -1,6 +1,7 @@
 package frc.robot.systems;
 
 
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -25,6 +26,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -39,6 +41,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.ModuleConstants;
 
 import frc.robot.generated.CommandSwerveDrivetrain;
@@ -49,7 +52,7 @@ import frc.robot.input.InputTypes.AxialInput;
 import limelight.Limelight;
 import limelight.networktables.LimelightResults;
 
-
+import static frc.robot.Constants.DrivetrainConstants.BALL_ALIGN_kP;
 import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;;
 
 
@@ -68,7 +71,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private LimelightResults limelightResults;
 
 	//Ball align
-	private double ballAlignAngle;
+	private double ballHorizontalOffsetAngle;
+	private double ballVerticalOffsetAngle;
 
 	// Max linear & angular speeds
 	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
@@ -285,17 +289,18 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
 					startPathfinding();
 					return DrivetrainState.PATHFIND;
+				} else if (input.getButtonPressed(ButtonInput.ALIGN_TO_BALL)) {
+					return DrivetrainState.BALL_ALIGN;
 				} else {
 					return DrivetrainState.TELEOP;
 				}
 			case PATHFIND:
 				if (input.getButtonValue(ButtonInput.DRIVETRAIN_PATHFIND)) {
 					return DrivetrainState.PATHFIND;
-				} else {
-					pathfindCommand.cancel();
-					if (input.getButtonPressed(ButtonInput.ALIGN_TO_BALL)) {
+				} else if (input.getButtonPressed(ButtonInput.ALIGN_TO_BALL)) {
 					return DrivetrainState.BALL_ALIGN;
 				} else {
+					pathfindCommand.cancel();
 					return DrivetrainState.TELEOP;
 				}
 			case BALL_ALIGN:
@@ -303,7 +308,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					return DrivetrainState.BALL_ALIGN;
 				} else {
 					return DrivetrainState.TELEOP;
-				}
 				}
 			default:
 				throw new IllegalStateException(
@@ -348,6 +352,29 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 	}
 
+	/**
+	 * Calculates the forward distance (Y) from the robot to the fuel.
+	 */
+	private double getFuelDistanceY(double degreesY) {
+		double radY = Math.toRadians(degreesY);
+		
+		// Y = Height * tan(Vertical Angle)
+		return VisionConstants.LIMELIGHT_HEIGHT.in(Inches) * Math.tan(radY);
+	}
+
+	/**
+	 * Calculates the side-to-side distance (X) from the robot center to the fuel.
+	 */
+	private double getFuelDistanceX(double degreesX, double degreesY) {
+		double radX = Math.toRadians(degreesX);
+		
+		// Get the forward distance first to use as the adjacent side of the horizontal triangle
+		double distanceY = getFuelDistanceY(degreesY);
+		
+		// X = Forward Distance * tan(Horizontal Angle)
+		return distanceY * Math.tan(radX);
+	}
+
 	private void handleBallAlignState(Input input) {
 
 		limelightResults = limelightTable.getLatestResults().orElse(null);
@@ -366,28 +393,36 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		// Limelight horizontal error (degrees)
-		ballAlignAngle = limelightResults.targets_Retro[0].tx;
+		ballHorizontalOffsetAngle = limelightResults.targets_Retro[0].tx;
+		ballVerticalOffsetAngle = limelightResults.targets_Retro[0].ty;
 
-		// Proportional constant (tune this)
+		// 2. Get relative coordinates from Limelight
+		double mapX = getFuelDistanceX(ballHorizontalOffsetAngle, ballVerticalOffsetAngle);
+		double mapY = getFuelDistanceY(ballVerticalOffsetAngle);
 
-		// Convert degrees error → radians/sec command
-		double rotationVelocity = -ballAlignAngle * DrivetrainConstants.BALL_ALIGN_kP;
+		// 3. SEPARATE POSES: Create Global Target Pose
+		Pose2d robotPose = drivetrain.getState().Pose; // Using 'drivetrain' variable
 
-		// Clamp to max angular speed
-		rotationVelocity = MathUtil.clamp(
-			rotationVelocity,
-			-MAX_ANGULAR_SPEED.in(RadiansPerSecond),
-			MAX_ANGULAR_SPEED.in(RadiansPerSecond)
+		// WPILib: X is forward, Y is left. Limelight: +tx is usually right.
+		Translation2d relativeTranslation = new Translation2d(mapY, -mapX);
+
+		// The "Goal" on the field
+		Pose2d ballFieldPose = new Pose2d(
+			robotPose.getTranslation().plus(relativeTranslation.rotateBy(robotPose.getRotation())),
+			relativeTranslation.getAngle().plus(robotPose.getRotation())
 		);
 
-		// Rotate in place only
-		drivetrain.setControl(
-			driveFieldCentric
-				.withVelocityX(0)
-				.withVelocityY(0)
-				.withRotationalRate(rotationVelocity)
-		);
-	}
+		// 4. Pathfind to the ball
+		// Note: In an FSM, you usually want to schedule this once or update the target
+		if (pathfindCommand == null || !pathfindCommand.isScheduled()) {
+			pathfindCommand = AutoBuilder.pathfindToPose(
+				ballFieldPose, 
+				DrivetrainConstants.PATH_CONSTRAINTS
+			);
+			pathfindCommand.schedule();
+		}
+}
+	
 
 	/**
 	 * Get the current state of the Drivetrain subsystem.
