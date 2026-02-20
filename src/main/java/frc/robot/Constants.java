@@ -15,6 +15,7 @@ import static edu.wpi.first.units.Units.Hertz;
 import static edu.wpi.first.units.Units.Seconds;
 
 
+
 public class Constants {
 	public static final class LimelightConstants {
 		public static final long AUTO_UPDATE_INTERVAL_MS = 20L;
@@ -80,6 +81,7 @@ public class Constants {
 		public static final Distance L1_EXTEND_POS = Units.Inches.of(10.0);
 		public static final Distance L1_RETRACT_POS = Units.Inches.of(5.0);
 		public static final Distance GROUND = Units.Inches.of(0.0);
+		public static final Distance REVERSE_LIMIT_SWITCH_POS = Units.Inches.of(-20.0);
 		public static final int CONTROL_REQUEST_SUBSTRING_START_INDEX = 9;
 		public static final double CLIMBER_ANGLE_RAD = Math.toRadians(48.0);
 		public static final double CLIMBER_GEAR_RATIO = 7.2;

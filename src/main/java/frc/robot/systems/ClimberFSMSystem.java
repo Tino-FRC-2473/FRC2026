@@ -124,7 +124,8 @@ public class ClimberFSMSystem  {
 		swLimitSwitch.ForwardSoftLimitEnable = true;
 		swLimitSwitch.ReverseSoftLimitEnable = true;
 		swLimitSwitch.ForwardSoftLimitThreshold = ClimberConstants.UPPER_THRESHOLD.in(Inches);
-		swLimitSwitch.ReverseSoftLimitThreshold = Inches.of(-40).in(Inches);
+		swLimitSwitch.ReverseSoftLimitThreshold = ClimberConstants.
+			REVERSE_LIMIT_SWITCH_POS.in(Inches);
 
 		var sensorConfig = talonFXConfigs.Feedback;
 		sensorConfig.SensorToMechanismRatio = 1 / ClimberConstants.ROTS_TO_INCHES;

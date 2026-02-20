@@ -10,7 +10,6 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.auto.AutoPaths;
 import frc.robot.input.AutoInput;
 import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;

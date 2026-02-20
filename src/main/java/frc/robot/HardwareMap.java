@@ -65,7 +65,7 @@ public final class HardwareMap {
 	/**
 	 * Hardware map entry for the intake subsystem.
 	 * @return if the hardware for the intake is present
-	 */	
+	 */
 	public static boolean isIntakeEnabled() {
 		return false;
 	}
