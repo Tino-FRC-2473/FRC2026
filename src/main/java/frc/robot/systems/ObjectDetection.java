@@ -56,14 +56,17 @@ public class ObjectDetection {
 	 */
 	@AutoLogOutput(key = "Object Detection Raw Distances")
 	public double[] getRawDistances() {
-		double radX = Math.abs(Math.toRadians(retroReflectives[0].tx));
-		double radY = Math.toRadians(retroReflectives[0].ty);
-		double distanceY =
-			Constants.LimelightConstants.LIMELIGHT_HEIGHT.in(Inches) / Math.tan(radY);
-		double distanceX = distanceY * Math.tan(radX);
-		double[] distances = {distanceX, distanceY};
-		return distances;
-
+		if (checkValid()) {
+			double radX = Math.abs(Math.toRadians(retroReflectives[0].tx));
+			double radY = Math.toRadians(retroReflectives[0].ty);
+			double distanceY =
+				Constants.LimelightConstants.LIMELIGHT_HEIGHT.in(Inches) / Math.tan(radY);
+			double distanceX = distanceY * Math.tan(radX);
+			double[] distances = {distanceX, distanceY};
+			return distances;
+		} else {
+			return new double[0];
+		}
 	}
 
 	/**
@@ -71,14 +74,17 @@ public class ObjectDetection {
 	 * @return returns the distance to fuel in inches
 	 */
 	public Double getDistanceToFuel() {
-
-		double radX = Math.abs(Math.toRadians(retroReflectives[0].tx));
-		double radY = Math.toRadians(retroReflectives[0].ty);
-		double multiplier = 1 / Math.cos(radX);
-		double distanceY =
-			Constants.LimelightConstants.LIMELIGHT_HEIGHT.in(Inches) / Math.tan(radY);
-		double distance = multiplier * distanceY;
-		return distance;
+		if (checkValid()) {
+			double radX = Math.abs(Math.toRadians(retroReflectives[0].tx));
+			double radY = Math.toRadians(retroReflectives[0].ty);
+			double multiplier = 1 / Math.cos(radX);
+			double distanceY =
+				Constants.LimelightConstants.LIMELIGHT_HEIGHT.in(Inches) / Math.tan(radY);
+			double distance = multiplier * distanceY;
+			return distance;
+		} else {
+			return null;
+		}
 	}
 
 	/**
