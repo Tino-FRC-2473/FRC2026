@@ -4,6 +4,7 @@ import limelight.Limelight;
 import limelight.networktables.LimelightResults;
 import limelight.networktables.target.RetroreflectiveTape;
 import frc.robot.Constants;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 import static edu.wpi.first.units.Units.Inches;
 
@@ -50,17 +51,32 @@ public class ObjectDetection {
 	}
 
 	/**
+	 * Returns raw distances (x and y).
+	 * @return double list of distances.
+	 */
+	@AutoLogOutput(key = "Object Detection Raw Distances")
+	public double[] getRawDistances() {
+		double radX = Math.abs(Math.toRadians(retroReflectives[0].tx));
+		double radY = Math.toRadians(retroReflectives[0].ty);
+		double distanceY =
+			Constants.LimelightConstants.LIMELIGHT_HEIGHT.in(Inches) / Math.tan(radY);
+		double distanceX = distanceY * Math.tan(radX);
+		double[] distances = {distanceX, distanceY};
+		return distances;
+
+	}
+
+	/**
 	 * Returns distance to fuel in inches.
-	 * @param degreesX the degrees away from the crosshair on the x-axis
-	 * @param degreesY the degrees away from the crosshair on the y-axis
 	 * @return returns the distance to fuel in inches
 	 */
-	private Double getDistanceToFuel(double degreesX, double degreesY) {
-		double radX = Math.abs(Math.toRadians(degreesX));
-		double radY = Math.toRadians(degreesY);
+	public Double getDistanceToFuel() {
+
+		double radX = Math.abs(Math.toRadians(retroReflectives[0].tx));
+		double radY = Math.toRadians(retroReflectives[0].ty);
 		double multiplier = 1 / Math.cos(radX);
 		double distanceY =
-			Constants.LimelightConstants.LIMELIGHT_HEIGHT.in(Inches) * Math.tan(radY);
+			Constants.LimelightConstants.LIMELIGHT_HEIGHT.in(Inches) / Math.tan(radY);
 		double distance = multiplier * distanceY;
 		return distance;
 	}
@@ -69,10 +85,7 @@ public class ObjectDetection {
 	 * Prints the distance to the fuel.
 	 */
 	public void printDistanceToFuel() {
-		if (checkValid()) {
-			for (RetroreflectiveTape result : retroReflectives) {
-				System.out.println(getDistanceToFuel(result.tx, result.ty));
-			}
-		}
+		System.out.println(getRawDistances());
+		System.out.println(getDistanceToFuel());
 	}
 }
