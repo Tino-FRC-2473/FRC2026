@@ -10,6 +10,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
 import frc.robot.input.AutoInput;
 import frc.robot.input.Input;
@@ -18,6 +19,7 @@ import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
 import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
+import frc.robot.systems.Vision;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -29,9 +31,10 @@ public class Robot extends LoggedRobot {
 	private Input input;
 
 	// Systems
-	//private Drivetrain drivetrain;
+	private Drivetrain drivetrain;
 	//private ClimberFSMSystem climberFSMSystem;
 	private ShooterFSMSystem shooterFSMSystem;
+	private Vision vision;
 
 
 	/**
@@ -47,9 +50,11 @@ public class Robot extends LoggedRobot {
 		Logger.start();
 
 		// Instantiate all systems here
-		// if (HardwareMap.isDrivetrainEnabled()) {
-		// 	drivetrain = new Drivetrain();
-		// }
+		if (HardwareMap.isDrivetrainEnabled()) {
+			drivetrain = new Drivetrain();
+			vision = new Vision(drivetrain::addVisionMeasurement, () -> drivetrain.getDrivetrainRotation(), VisionConstants.LIMELIGHT_NAME);
+
+		}
 		// climberFSMSystem = new ClimberFSMSystem();
 		shooterFSMSystem = new ShooterFSMSystem();
 	}
@@ -66,7 +71,7 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void autonomousPeriodic() {
-		//drivetrain.update(input);
+		drivetrain.update(input);
 		input.update();
 		//CommandScheduler.getInstance().run();
 		//shooterFSMSystem.update((TeleopInput) input);
@@ -81,14 +86,14 @@ public class Robot extends LoggedRobot {
 		input = new TeleopInput();
 		input.reset();
 		//CommandScheduler.getInstance().cancelAll();
-		// drivetrain.reset();
+		drivetrain.reset();
 		// climberFSMSystem.reset();
 		shooterFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		//drivetrain.update(input);
+		drivetrain.update(input);
 		input.update();
 		//climberFSMSystem.update((TeleopInput) input);
 		shooterFSMSystem.update((TeleopInput) input);
@@ -130,5 +135,7 @@ public class Robot extends LoggedRobot {
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
-	public void robotPeriodic() { }
+	public void robotPeriodic() {
+		vision.periodic();
+	}
 }

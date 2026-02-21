@@ -84,16 +84,16 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 */
 	public ShooterFSMSystem() {
 		curPose = new Pose2d();
-		flywheelRequest = new MotionMagicVelocityVoltage(0);
-		feederRequest = new MotionMagicVelocityVoltage(0);
-		flywheelMotor = new TalonFXWrapper(
-			HardwareMap.CAN_ID_FLYWHEEL
-		);
-		feederMotor = new TalonFXWrapper(
-			HardwareMap.CAN_ID_FEEDER
-		);
-		spindexMotor = new SparkMax(HardwareMap.CAN_ID_SPINDEXER,
-			MotorType.kBrushless);
+		// flywheelRequest = new MotionMagicVelocityVoltage(0);
+		// feederRequest = new MotionMagicVelocityVoltage(0);
+		// flywheelMotor = new TalonFXWrapper(
+		// 	HardwareMap.CAN_ID_FLYWHEEL
+		// );
+		// feederMotor = new TalonFXWrapper(
+		// 	HardwareMap.CAN_ID_FEEDER
+		// );
+		// spindexMotor = new SparkMax(HardwareMap.CAN_ID_SPINDEXER,
+		// 	MotorType.kBrushless);
 
 
 		// spindexMotor = new TalonFXWrapper(HardwareMap.CAN_ID_SPINDEXER);
@@ -106,98 +106,98 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// //set to 2 (divided by 360 to get in terms of degrees)
 
 		// spindexMotor.getConfigurator().apply(spindexConfigs);
-		var limitConfigs = new CurrentLimitsConfigs();
+		// var limitConfigs = new CurrentLimitsConfigs();
 
-		// enable stator current limit
-		limitConfigs.StatorCurrentLimit = ShooterConstants.SHOOTER_CURRENT_LIMIT;
-		limitConfigs.StatorCurrentLimitEnable = true;
+		// // enable stator current limit
+		// limitConfigs.StatorCurrentLimit = ShooterConstants.SHOOTER_CURRENT_LIMIT;
+		// limitConfigs.StatorCurrentLimitEnable = true;
 
-		flywheelConfigs = new TalonFXConfiguration();
-		var flywheel0Config = flywheelConfigs.Slot0;
-		//voltage output to overcome static friction
-		flywheel0Config.kS = ShooterConstants.FLYWHEEL_MM_CONSTANT_S;
-		//voltage for 1 rps in the motor, 0.11
-		flywheel0Config.kV = ShooterConstants.MM_CONSTANT_V;
-		//account for position error of 1 rotation
-		flywheel0Config.kP = ShooterConstants.FLYWHEEL_MM_CONSTANT_P;
-		//output for integrated error
-		flywheel0Config.kI = ShooterConstants.FLYWHEEL_MM_CONSTANT_I;
-		//account for velocity error of 1rps
-		flywheel0Config.kD = ShooterConstants.FLYWHEEL_MM_CONSTANT_D;
+		// flywheelConfigs = new TalonFXConfiguration();
+		// var flywheel0Config = flywheelConfigs.Slot0;
+		// //voltage output to overcome static friction
+		// flywheel0Config.kS = ShooterConstants.FLYWHEEL_MM_CONSTANT_S;
+		// //voltage for 1 rps in the motor, 0.11
+		// flywheel0Config.kV = ShooterConstants.MM_CONSTANT_V;
+		// //account for position error of 1 rotation
+		// flywheel0Config.kP = ShooterConstants.FLYWHEEL_MM_CONSTANT_P;
+		// //output for integrated error
+		// flywheel0Config.kI = ShooterConstants.FLYWHEEL_MM_CONSTANT_I;
+		// //account for velocity error of 1rps
+		// flywheel0Config.kD = ShooterConstants.FLYWHEEL_MM_CONSTANT_D;
 
 		outpostPose = ShooterConstants.OUTPOST_POSE;
 		hubPose = ShooterConstants.HUB_POSE;
 		target3Pose = ShooterConstants.TARGET3_POSE;
 		hoodAngle = ShooterConstants.HOOD_ANGLE;
 
-		var flywheelMotionMagicConfigs = flywheelConfigs.MotionMagic;
-		//160 rps/s
-		flywheelMotionMagicConfigs.MotionMagicAcceleration =
-			ShooterConstants.MAGIC_ACCELERATION.in(RotationsPerSecondPerSecond);
-		//1600 rps/s/s, 10* acceleration
-		flywheelMotionMagicConfigs.MotionMagicJerk = ShooterConstants.MAGIC_JERK;
+		// var flywheelMotionMagicConfigs = flywheelConfigs.MotionMagic;
+		// //160 rps/s
+		// flywheelMotionMagicConfigs.MotionMagicAcceleration =
+		// 	ShooterConstants.MAGIC_ACCELERATION.in(RotationsPerSecondPerSecond);
+		// //1600 rps/s/s, 10* acceleration
+		// flywheelMotionMagicConfigs.MotionMagicJerk = ShooterConstants.MAGIC_JERK;
 
-		var flywheelFeedbackConfigs = flywheelConfigs.Feedback;
-		//set to 3
-		flywheelFeedbackConfigs.SensorToMechanismRatio = ShooterConstants.FLYWHEEL_GEAR_RATIO;
+		// var flywheelFeedbackConfigs = flywheelConfigs.Feedback;
+		// //set to 3
+		// flywheelFeedbackConfigs.SensorToMechanismRatio = ShooterConstants.FLYWHEEL_GEAR_RATIO;
 
-		flywheelMotor.getConfigurator().apply(flywheelConfigs);
-		flywheelMotor.getConfigurator().apply(limitConfigs);
+		// flywheelMotor.getConfigurator().apply(flywheelConfigs);
+		// flywheelMotor.getConfigurator().apply(limitConfigs);
 
-		feederConfigs = new TalonFXConfiguration();
-		var feeder0Config = feederConfigs.Slot0;
-		feeder0Config.kS = ShooterConstants.FEEDER_MM_CONSTANT_S;
-		feeder0Config.kV = ShooterConstants.MM_CONSTANT_V;
-		feeder0Config.kP = ShooterConstants.FEEDER_MM_CONSTANT_P;
-		feeder0Config.kI = ShooterConstants.FEEDER_MM_CONSTANT_I;
-		feeder0Config.kD = ShooterConstants.FEEDER_MM_CONSTANT_D;
+		// feederConfigs = new TalonFXConfiguration();
+		// var feeder0Config = feederConfigs.Slot0;
+		// feeder0Config.kS = ShooterConstants.FEEDER_MM_CONSTANT_S;
+		// feeder0Config.kV = ShooterConstants.MM_CONSTANT_V;
+		// feeder0Config.kP = ShooterConstants.FEEDER_MM_CONSTANT_P;
+		// feeder0Config.kI = ShooterConstants.FEEDER_MM_CONSTANT_I;
+		// feeder0Config.kD = ShooterConstants.FEEDER_MM_CONSTANT_D;
 
-		var feederMotionMagicConfigs = feederConfigs.MotionMagic;
-		feederMotionMagicConfigs.MotionMagicAcceleration =
-			ShooterConstants.MAGIC_ACCELERATION.in(RotationsPerSecondPerSecond);
-		feederMotionMagicConfigs.MotionMagicJerk = ShooterConstants.MAGIC_JERK;
-		var feederFeedbackConfigs = feederConfigs.Feedback;
-		//set to 3
-		feederFeedbackConfigs.SensorToMechanismRatio = ShooterConstants.FEEDER_GEAR_RATIO;
+		// var feederMotionMagicConfigs = feederConfigs.MotionMagic;
+		// feederMotionMagicConfigs.MotionMagicAcceleration =
+		// 	ShooterConstants.MAGIC_ACCELERATION.in(RotationsPerSecondPerSecond);
+		// feederMotionMagicConfigs.MotionMagicJerk = ShooterConstants.MAGIC_JERK;
+		// var feederFeedbackConfigs = feederConfigs.Feedback;
+		// //set to 3
+		// feederFeedbackConfigs.SensorToMechanismRatio = ShooterConstants.FEEDER_GEAR_RATIO;
 
-		feederMotor.getConfigurator().apply(feederConfigs);
-		feederMotor.getConfigurator().apply(limitConfigs);
+		// feederMotor.getConfigurator().apply(feederConfigs);
+		// feederMotor.getConfigurator().apply(limitConfigs);
+
+		// // BaseStatusSignal.setUpdateFrequencyForAll(
+		// // 		ShooterConstants.UPDATE_FREQUENCY_HZ,
+		// // 		spindexMotor.getPosition(),
+		// // 		spindexMotor.getVelocity(),
+		// // 		spindexMotor.getAcceleration(),
+		// // 		spindexMotor.getMotorVoltage(),
+		// // 		spindexMotor.getRotorPosition(),
+		// // 		spindexMotor.getRotorVelocity()
+		// // );
 
 		// BaseStatusSignal.setUpdateFrequencyForAll(
 		// 		ShooterConstants.UPDATE_FREQUENCY_HZ,
-		// 		spindexMotor.getPosition(),
-		// 		spindexMotor.getVelocity(),
-		// 		spindexMotor.getAcceleration(),
-		// 		spindexMotor.getMotorVoltage(),
-		// 		spindexMotor.getRotorPosition(),
-		// 		spindexMotor.getRotorVelocity()
+		// 		feederMotor.getPosition(),
+		// 		feederMotor.getVelocity(),
+		// 		feederMotor.getAcceleration(),
+		// 		feederMotor.getMotorVoltage(),
+		// 		feederMotor.getRotorPosition(),
+		// 		feederMotor.getRotorVelocity()
 		// );
 
-		BaseStatusSignal.setUpdateFrequencyForAll(
-				ShooterConstants.UPDATE_FREQUENCY_HZ,
-				feederMotor.getPosition(),
-				feederMotor.getVelocity(),
-				feederMotor.getAcceleration(),
-				feederMotor.getMotorVoltage(),
-				feederMotor.getRotorPosition(),
-				feederMotor.getRotorVelocity()
-		);
+		// BaseStatusSignal.setUpdateFrequencyForAll(
+		// 		ShooterConstants.UPDATE_FREQUENCY_HZ,
+		// 		flywheelMotor.getPosition(),
+		// 		flywheelMotor.getVelocity(),
+		// 		flywheelMotor.getAcceleration(),
+		// 		flywheelMotor.getMotorVoltage(),
+		// 		flywheelMotor.getRotorPosition(),
+		// 		flywheelMotor.getRotorVelocity()
+		// );
 
-		BaseStatusSignal.setUpdateFrequencyForAll(
-				ShooterConstants.UPDATE_FREQUENCY_HZ,
-				flywheelMotor.getPosition(),
-				flywheelMotor.getVelocity(),
-				flywheelMotor.getAcceleration(),
-				flywheelMotor.getMotorVoltage(),
-				flywheelMotor.getRotorPosition(),
-				flywheelMotor.getRotorVelocity()
-		);
+		// // spindexMotor.optimizeBusUtilization();
+		// feederMotor.optimizeBusUtilization();
+		// flywheelMotor.optimizeBusUtilization();
 
-		// spindexMotor.optimizeBusUtilization();
-		feederMotor.optimizeBusUtilization();
-		flywheelMotor.optimizeBusUtilization();
-
-		breakBeam = new DigitalInput(HardwareMap.STORAGE_BREAK_BEAM_DIO_PORT);
+		// breakBeam = new DigitalInput(HardwareMap.STORAGE_BREAK_BEAM_DIO_PORT);
 		reset();
 	}
 	/**
@@ -249,7 +249,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	@Override
 	public void reset() {
-		setCurrentState(ShooterFSMState.IDLE_STATE);
+		setCurrentState(ShooterFSMState.SHOOTER_PREP_STATE);
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -288,7 +288,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 					+ getCurrentState().toString());
 			}
 		}
-		System.out.println("Update Cur State" + getCurrentState());
+		//System.out.println("Update Cur State" + getCurrentState());
 		setCurrentState(nextState(input));
 	}
 
@@ -300,9 +300,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 */
 	// Fix the distance calculation logic here
 	public Pose2d getAutoTargetPose() {
+		System.out.println("1");
 		ShooterFSMState state = getCurrentState();
 		if (state != ShooterFSMState.SHOOTER_PREP_STATE
 			&& state != ShooterFSMState.PASSER_PREP_STATE) {
+			System.out.println("2");
 			return null;
 		}
 
@@ -333,8 +335,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private Pose2d mirrorPose(Pose2d pose) {
 		double fieldLength = ShooterConstants.FIELD_LENGTH;
 		return new Pose2d(
-			fieldLength - pose.getX(), 
-			pose.getY(), 
+			fieldLength - pose.getX(),
+			pose.getY(),
 			pose.getRotation().plus(Rotation2d.fromDegrees(180))
 		);
 	}
@@ -357,118 +359,119 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	@Override
 	protected ShooterFSMState nextState(Input input) {
-		if (getCurrentState() != null) {
-			switch (getCurrentState()) {
-				case IDLE_STATE:
-					if (input != null && input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.PASSER_PREP_STATE;
-					} else if (input != null
-						&& input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.SHOOTER_PREP_STATE;
-					} else if (input != null
-						&& input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.MANUAL_PREP_STATE;
-					} else {
-						return getCurrentState();
-					}
+		return getCurrentState();
+		// if (getCurrentState() != null) {
+		// 	switch (getCurrentState()) {
+		// 		case IDLE_STATE:
+		// 			if (input != null && input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.PASSER_PREP_STATE;
+		// 			} else if (input != null
+		// 				&& input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.SHOOTER_PREP_STATE;
+		// 			} else if (input != null
+		// 				&& input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.MANUAL_PREP_STATE;
+		// 			} else {
+		// 				return getCurrentState();
+		// 			}
 
-				case PASSER_PREP_STATE:
-					if (input != null && input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.IDLE_STATE;
-					} else if (input != null
-						&& input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
-						stopFlywheel();
-						pastState = getCurrentState();
-						return ShooterFSMState.SHOOTER_PREP_STATE;
-					} else if (input != null
-						&& input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
-						stopFlywheel();
-						pastState = getCurrentState();
-						return ShooterFSMState.MANUAL_PREP_STATE;
-					} else if (input != null
-						&& isAtSpeed() && flywheelTargetSpeed.in(RotationsPerSecond) != 0
-						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
-						//need to change colors for if its at speed and at angle so that
-						// they know when to pull triggers
-						pastState = getCurrentState();
-						return ShooterFSMState.FEED_STATE;
-					} else {
-						return getCurrentState();
-					}
+		// 		case PASSER_PREP_STATE:
+		// 			if (input != null && input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.IDLE_STATE;
+		// 			} else if (input != null
+		// 				&& input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
+		// 				stopFlywheel();
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.SHOOTER_PREP_STATE;
+		// 			} else if (input != null
+		// 				&& input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
+		// 				stopFlywheel();
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.MANUAL_PREP_STATE;
+		// 			} else if (input != null
+		// 				&& isAtSpeed() && flywheelTargetSpeed.in(RotationsPerSecond) != 0
+		// 				&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
+		// 				//need to change colors for if its at speed and at angle so that
+		// 				// they know when to pull triggers
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.FEED_STATE;
+		// 			} else {
+		// 				return getCurrentState();
+		// 			}
 
-				case FEED_STATE:
-					if (!isAtSpeed() || input == null
-						|| !input.getButtonValue(ButtonInput.REV_FEEDER)) {
-						return pastState;
-						//pastState should only store shooter_prep, passer_prep, and manual_prep
-					} else if (input != null
-						&& input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.IDLE_STATE;
-					} else if (input != null
-						&& input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.PASSER_PREP_STATE;
-					} else if (input != null
-						&& input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.SHOOTER_PREP_STATE;
-					} else if (input != null
-						&& input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.MANUAL_PREP_STATE;
-					} else {
-						return getCurrentState();
-					}
+		// 		case FEED_STATE:
+		// 			if (!isAtSpeed() || input == null
+		// 				|| !input.getButtonValue(ButtonInput.REV_FEEDER)) {
+		// 				return pastState;
+		// 				//pastState should only store shooter_prep, passer_prep, and manual_prep
+		// 			} else if (input != null
+		// 				&& input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.IDLE_STATE;
+		// 			} else if (input != null
+		// 				&& input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.PASSER_PREP_STATE;
+		// 			} else if (input != null
+		// 				&& input.getButtonPressed(ButtonInput.SHOOTER_PREP_TOGGLE)) {
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.SHOOTER_PREP_STATE;
+		// 			} else if (input != null
+		// 				&& input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.MANUAL_PREP_STATE;
+		// 			} else {
+		// 				return getCurrentState();
+		// 			}
 
-				case SHOOTER_PREP_STATE:
-					if (input != null && input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.IDLE_STATE;
-					} else if (input != null
-						&& input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
-						stopFlywheel();
-						pastState = getCurrentState();
-						return ShooterFSMState.PASSER_PREP_STATE;
-					} else if (input != null
-						&& input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
-						stopFlywheel();
-						pastState = getCurrentState();
-						return ShooterFSMState.MANUAL_PREP_STATE;
-					} else if (input != null && isAtSpeed()
-						&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
-						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.FEED_STATE;
-					} else {
-						return getCurrentState();
-					}
+		// 		case SHOOTER_PREP_STATE:
+		// 			if (input != null && input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.IDLE_STATE;
+		// 			} else if (input != null
+		// 				&& input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
+		// 				stopFlywheel();
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.PASSER_PREP_STATE;
+		// 			} else if (input != null
+		// 				&& input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
+		// 				stopFlywheel();
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.MANUAL_PREP_STATE;
+		// 			} else if (input != null && isAtSpeed()
+		// 				&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
+		// 				&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.FEED_STATE;
+		// 			} else {
+		// 				return getCurrentState();
+		// 			}
 
-				case MANUAL_PREP_STATE:
-					// Manual can only go to idle (we need the button inputs for right and left
-					// bumper to adjust manually)
-					if (input != null && input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.IDLE_STATE;
-					} else if (input != null && isAtSpeed()
-						&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
-						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.FEED_STATE;
-					} else {
-						return getCurrentState();
-					}
+		// 		case MANUAL_PREP_STATE:
+		// 			// Manual can only go to idle (we need the button inputs for right and left
+		// 			// bumper to adjust manually)
+		// 			if (input != null && input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.IDLE_STATE;
+		// 			} else if (input != null && isAtSpeed()
+		// 				&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
+		// 				&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
+		// 				pastState = getCurrentState();
+		// 				return ShooterFSMState.FEED_STATE;
+		// 			} else {
+		// 				return getCurrentState();
+		// 			}
 
-				default:
-					throw new IllegalStateException("Invalid state: "
-					+ getCurrentState().toString());
-			}
-		}
-		throw new IllegalStateException("No current state");
+		// 		default:
+		// 			throw new IllegalStateException("Invalid state: "
+		// 			+ getCurrentState().toString());
+		// 	}
+		// }
+		// throw new IllegalStateException("No current state");
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
@@ -478,10 +481,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleIdleState(TeleopInput input) {
-		flywheelTargetSpeed = RotationsPerSecond.of(0);
-		updateFlywheel();
+		// flywheelTargetSpeed = RotationsPerSecond.of(0);
+		// updateFlywheel();
 		//updateHood();
-		feederMotor.set(0);
+		// feederMotor.set(0);
 		//set hoodMotor to 20 degrees/base angle?
 		//hood remains at current angle.
 	}
@@ -534,11 +537,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleShooterPrepState(TeleopInput input) {
-		double flyspeed = calculateTargetFlyspeed(hubPose);
-		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
+		// double flyspeed = calculateTargetFlyspeed(hubPose);
+		// flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
 		//drivetrain.targetHub();
 
-		updateFlywheel();
+		// updateFlywheel();
 		//TBD: code to find the distance vector from where we are to hub center (3d vector)
 	}
 

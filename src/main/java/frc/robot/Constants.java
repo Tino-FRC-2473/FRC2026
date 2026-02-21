@@ -1,6 +1,13 @@
 package frc.robot;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -84,8 +91,8 @@ public class Constants {
 		public static final double DRIVE_D = 0;
 		public static final double DRIVE_V = 0.124;
 
-		public static final double DRIVE_CURRENT_LIMIT = 60;
-		public static final double STEER_CURRENT_LIMIT = 60;
+		public static final double DRIVE_CURRENT_LIMIT = 40;
+		public static final double STEER_CURRENT_LIMIT = 40;
 
 		public static final double STEER_P = 100;
 		public static final double STEER_I = 0;
@@ -118,7 +125,7 @@ public class Constants {
 		public static final int CONTROL_REQUEST_SUBSTRING_START_INDEX = 9;
 	}
 	public static final class ShooterConstants {
-		public static final Pose2d OUTPOST_POSE = new Pose2d();
+		public static final Pose2d OUTPOST_POSE = new Pose2d(4.625594, 4.034663, new Rotation2d());
 		public static final Pose2d TARGET3_POSE = new Pose2d();
 		public static final Pose2d HUB_POSE = new Pose2d();
 		//public static final double HOOD_GEAR_RATIO = 4;
@@ -179,5 +186,17 @@ public class Constants {
 
 		public static final double SPINDEX_CONSTANT_SPEED = 0.1; //ranges from -1 to 1
 		public static final double SPINDEX_CONSTANT_VOLTAGE = 1;
+		public static final double FIELD_LENGTH = 16.540988;
+		public static final double FEED_MAX_TIME = 2;
+	}
+
+	public static final class VisionConstants {
+		public static final String LIMELIGHT_NAME = "limelight-four";
+		//TODO: Find some actual values for this.
+		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(
+			0.02, 0.02, Math.toRadians(1));
+		//TODO: Measure this on the bot
+		public static final Pose3d LL4_OFFSET =
+			new Pose3d(0.096, -0.03, 0.55, new Rotation3d(0, 0, 270));
 	}
 }

@@ -4,18 +4,28 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.apriltag.AprilTag;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
+import frc.robot.Constants;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
@@ -36,6 +46,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
 	private static final AngularVelocity MAX_ANGULAR_SPEED =
 		DrivetrainConstants.MAX_ANGULAR_VELOCITY;
+
+	private final AprilTagFieldLayout TAG_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
 
 	// Drive swerve requests
 	private final SwerveRequest.FieldCentric driveFieldCentric = new SwerveRequest.FieldCentric()
@@ -74,6 +86,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@Override
 	public void update(Input input) {
 		drivetrain.periodic();
+		Logger.recordOutput("Target Pose", TAG_LAYOUT.getTagPose(10).get().toPose2d());
 
 		switch (currentState) {
 			case TELEOP:
@@ -139,6 +152,16 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return drivetrain.getState().ModulePositions;
 	}
 
+	/**
+	 * Get the drivetrain's rotation.
+	 * 
+	 * @return The drivetrain's rotation as a Pose2D
+	 */
+	@AutoLogOutput(key = "Drivetrain/Rotation")
+	public Rotation3d getDrivetrainRotation() {
+		return drivetrain.getPigeon2().getRotation3d();
+	}
+
 	/* ======================== Private methods ======================== */
 	private ShooterFSMSystem shooter;
 
@@ -150,7 +173,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/**
      * Assigns the shooter FSM instance to the drivetrain to enable state-aware.
      * features like auto-alignment.
-     * * @param shooter The ShooterFSMSystem instance to be referenced.
+     * @param shooter The ShooterFSMSystem instance to be referenced.
      */
 	public void setShooter(ShooterFSMSystem shooter) {
 		this.shooter = shooter;
@@ -160,7 +183,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
      * Handles manual robot movement during the teleop period, including logic
 	 * for field-centric driving and automatic heading alignment based on.
      * current shooter states.
-     * * @param input The teleop input containing axis and button data.
+     * @param input The teleop input containing axis and button data.
      */
 	private void handleTeleopState(Input input) {
 		if (input == null) {
@@ -168,14 +191,17 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		double xSpeed = MathUtil.applyDeadband(
-			-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
+			input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
 			DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double ySpeed = MathUtil.applyDeadband(
 			-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 			DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-		Pose2d target = (shooter != null) ? shooter.getAutoTargetPose() : null;
+		Pose2d target = null; //(shooter != null) ? shooter.getAutoTargetPose() : null;
+
+		target = TAG_LAYOUT.getTagPose(10).get().toPose2d();
+
 
 		if (target != null && DriverStation.getAlliance().isPresent()) {
 			double angle = Math.atan2(
@@ -188,6 +214,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
+					.withHeadingPID(7, 0, 0)
 			);
 		} else {
 			double thetaSpeed = MathUtil.applyDeadband(
@@ -196,10 +223,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 			drivetrain.setControl(
 				driveFieldCentric
-					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityX(-
+					xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 					.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
 			);
+			System.out.println("Hi");
 		}
 
 		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
@@ -241,4 +270,24 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public void targetHub() {
 		Pose2d transformPose = getPose().relativeTo(ShooterConstants.HUB_POSE);
 	}
+
+	    /**
+     * Adds a new timestamped vision measurement.
+     *
+     * @param visionPoseMeters The pose of the robot in the camera's coordinate
+     *                         frame
+     * @param timestampSeconds The timestamp of the measurement
+     * @param visionStdDevs    The standard deviations of the measurement in the x,
+     *                         y, and theta directions
+     */
+    public void addVisionMeasurement(
+            Pose2d visionPoseMeters,
+            double timestampSeconds,
+            Matrix<N3, N1> visionStdDevs) {
+        drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(),
+            visionPoseMeters.getY(),
+            visionPoseMeters.getRotation()),
+            timestampSeconds, visionStdDevs);
+        //drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
+    }
 }
