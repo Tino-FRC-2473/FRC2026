@@ -30,9 +30,9 @@ public class Robot extends LoggedRobot {
 	private Input input;
 
 	// Systems
-	private Drivetrain drivetrain;
-	private ClimberFSMSystem climberFSMSystem;
-	private IntakeFSMSystem intakeFSMSystem;
+	// private Drivetrain drivetrain;
+	// private ClimberFSMSystem climberFSMSystem;
+	// private IntakeFSMSystem intakeFSMSystem;
 	private ShooterFSMSystem shooterFSMSystem;
 
 
@@ -49,11 +49,11 @@ public class Robot extends LoggedRobot {
 		Logger.start();
 
 		// Instantiate all systems here
-		if (HardwareMap.isDrivetrainEnabled()) {
-			drivetrain = new Drivetrain();
-		}
-		climberFSMSystem = new ClimberFSMSystem();
-		intakeFSMSystem = new IntakeFSMSystem();
+		// if (HardwareMap.isDrivetrainEnabled()) {
+		// 	drivetrain = new Drivetrain();
+		// }
+		// climberFSMSystem = new ClimberFSMSystem();
+		// intakeFSMSystem = new IntakeFSMSystem();
 		shooterFSMSystem = new ShooterFSMSystem();
 	}
 
@@ -64,12 +64,12 @@ public class Robot extends LoggedRobot {
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
 		input.reset();
-		CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
+		//CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-		drivetrain.update(input);
+		// drivetrain.update(input);
 		input.update();
 		CommandScheduler.getInstance().run();
 
@@ -83,18 +83,18 @@ public class Robot extends LoggedRobot {
 		input = new TeleopInput();
 		input.reset();
 		CommandScheduler.getInstance().cancelAll();
-		drivetrain.reset();
-		climberFSMSystem.reset();
-		intakeFSMSystem.reset();
+		// drivetrain.reset();
+		// climberFSMSystem.reset();
+		// intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		drivetrain.update(input);
+		// drivetrain.update(input);
 		input.update();
-		climberFSMSystem.update((TeleopInput) input);
-		intakeFSMSystem.update((TeleopInput) input);
+		// climberFSMSystem.update((TeleopInput) input);
+		// intakeFSMSystem.update((TeleopInput) input);
 		shooterFSMSystem.update((TeleopInput) input);
 
 		// logs motor values

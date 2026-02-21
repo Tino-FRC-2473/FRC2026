@@ -93,12 +93,12 @@ public class Constants {
 		public static final Pose2d HUB_POSE = new Pose2d();
 		//public static final double HOOD_GEAR_RATIO = 4;
 		public static final double SPINDEX_GEAR_RATIO = 3;
-		public static final double FLYWHEEL_GEAR_RATIO = 3;
+		public static final double FLYWHEEL_GEAR_RATIO = 1;
 		public static final double FEEDER_GEAR_RATIO = 3;
 
-		public static final double SHOOTER_CURRENT_LIMIT = 50; //Amps
+		public static final double SHOOTER_CURRENT_LIMIT = 40; //Amps
 
-		public static final double TEMP_FLYSPEED = 20;
+		public static final double TEMP_FLYSPEED = 2;
 
 		private static final double JERK_MULT_CONSTANT = 10;
 		//constant to change the magnitude of jerk from acceleration
@@ -128,19 +128,21 @@ public class Constants {
 		// public static final Angle HOOD_MAX_ANGLE = Degrees.of(45);
 		// public static final Angle HOOD_MIN_ANGLE = Degrees.of(20);
 		// public static final Angle HOOD_INCREMENTER = Degrees.of(5);
-		public static final Angle HOOD_ANGLE = Degrees.of(45);
-		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(10);
+		public static final Angle HOOD_ANGLE = Degrees.of(30);//
+
+		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(5);
 		public static final Angle FLYWHEEL_MAX_DEGREES = Degrees.of(360);
 
 		public static final double FEEDER_MM_CONSTANT_S = 0.1;
-		public static final double FEEDER_MM_CONSTANT_P = 0.1;
+		public static final double FEEDER_MM_CONSTANT_P = 0;
 		public static final double FEEDER_MM_CONSTANT_I = 0;
 		public static final double FEEDER_MM_CONSTANT_D = 0;
+		public static final double FEEDER_CONSTANT_SPEED = 20;
 
 		//All of these are placeholder values, all need to be changed
-		public static final double FLYWHEEL_MM_CONSTANT_P = 0;
+		public static final double FLYWHEEL_MM_CONSTANT_P = 0.2;
 		public static final double FLYWHEEL_MM_CONSTANT_I = 0;
-		public static final double FLYWHEEL_MM_CONSTANT_D = 0;
+		public static final double FLYWHEEL_MM_CONSTANT_D = 0.02;
 		// public static final double HOOD_MM_CONSTANT_P = 0;
 		// public static final double HOOD_MM_CONSTANT_I = 0;
 		// public static final double HOOD_MM_CONSTANT_D = 0;
