@@ -51,6 +51,7 @@ public final class TeleopInput extends Input {
 
 	@Override
 	public Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
+
 		return switch (key) {
 
 			// Drivetrain
