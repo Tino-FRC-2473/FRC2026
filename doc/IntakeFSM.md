@@ -15,11 +15,7 @@ stateDiagram-v2
   state "Folding In: PID to IN target" as FOLD_IN_STATE
 
   [*] --> IDLE_OUT_STATE 
-<<<<<<< HEAD
   IDLE_IN_STATE --> FOLD_OUT_STATE: Only L2 button pressed
-=======
-  IDLE_IN_STATE --> FOLD_OUT_STATE: Only Circle button pressed
->>>>>>> main
   FOLD_OUT_STATE --> IDLE_OUT_STATE: Folding Out Complete 
   IDLE_OUT_STATE --> INTAKE_STATE: Only Circle Button pressed
   IDLE_OUT_STATE --> OUTTAKE_STATE: Only Cross Button pressed

@@ -97,14 +97,6 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		pivotMotorLeft.setControl(new Follower(pivotMotorRight.getDeviceID(),
 			MotorAlignmentValue.Aligned));
 
-		// apply sw limit
-		// var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
-		// swLimitSwitch.ForwardSoftLimitEnable = true; // enable top limit
-		// swLimitSwitch.ReverseSoftLimitEnable = true; // enable bottom limit
-		// swLimitSwitch.ForwardSoftLimitThreshold
-		//= IntakeConstants.GROUND_TARGET_ANGLE.in(Radians);
-		// swLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.UPPER_TARGET_ANGLE.in(Radians);
-
 		var pivotConfig = talonFXConfigs.Feedback;
 		pivotConfig.SensorToMechanismRatio = IntakeConstants.INTAKE_PIVOT_GEARING;
 
