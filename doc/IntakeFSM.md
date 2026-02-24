@@ -23,11 +23,11 @@ stateDiagram-v2
   FOLD_OUT_STATE --> IDLE_OUT_STATE: Folding Out Complete 
   IDLE_OUT_STATE --> INTAKE_STATE: Only Circle Button pressed
   IDLE_OUT_STATE --> OUTTAKE_STATE: Only Cross Button pressed
-  INTAKE_STATE --> IDLE_OUT_STATE: Only Circle button is released
+  INTAKE_STATE --> IDLE_OUT_STATE: Circle button is pressed
   OUTTAKE_STATE --> IDLE_OUT_STATE: Only Cross Button is Released
   IDLE_OUT_STATE --> FOLD_IN_STATE: Only L1 Button Pressed
   FOLD_IN_STATE --> IDLE_IN_STATE: Folding In Is Complete
-  INTAKE_STATE --> INTAKE_STATE: Circle Button Is Held
+  INTAKE_STATE --> INTAKE_STATE: No relevent buttons pressed
   OUTTAKE_STATE --> OUTTAKE_STATE: Cross Button Is Held
   IDLE_OUT_STATE --> IDLE_OUT_STATE: No Other Buttons Pressed
   IDLE_IN_STATE --> IDLE_IN_STATE: No Other Buttons Pressed
@@ -42,4 +42,6 @@ stateDiagram-v2
   FOLD_OUT_STATE --> PARTIAL_OUT_STATE: Share Button is Pressed
   FOLD_OUT_STATE --> FOLD_IN_STATE: L1 Button Pressed
   FOLD_IN_STATE --> FOLD_OUT_STATE: L2 Button Pressed
+  INTAKE_STATE --> FOLD_IN_STATE: L1 Button Pressed
+  INTAKE_STATE --> OUTTAKE_STATE: Cross Button Pressed  
 ```

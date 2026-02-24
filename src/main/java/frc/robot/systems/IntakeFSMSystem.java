@@ -60,7 +60,6 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 
 	private Angle posRadians;
 
-
 	private TalonFXSimState pivotSimState;
 	private SingleJointedArmSim intakeSim;
 	private DIOSim simGroundLimitSwitch;
@@ -198,7 +197,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		pivotMotorRight.setPosition(IntakeConstants.UPPER_TARGET_ANGLE);
 		intakeMotor.setPosition(0);
 
-		/* 
+		/*
 		if (RobotBase.isSimulation()) {
 			intakeSim = new SingleJointedArmSim(DCMotor.getKrakenX60(2),
 				IntakeConstants.INTAKE_PIVOT_GEARING,
@@ -227,7 +226,6 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	public void reset() {
 		setCurrentState(IntakeFSMState.IDLE_IN_STATE);
-
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -420,7 +418,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				}
 
 			case PARTIAL_OUT_STATE:
-				if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
+				if (input.getButtonValue(null)) {
 					return IntakeFSMState.FOLD_OUT_STATE;
 				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
 					return IntakeFSMState.FOLD_IN_STATE;
@@ -429,15 +427,9 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				}
 
 			case IDLE_OUT_STATE:
-				if (input.getButtonPressed(ButtonInput.INTAKE_BUTTON)
-					&& !input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON)
-					&& !input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)
-					&& !input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
+				if (input.getButtonPressed(ButtonInput.INTAKE_BUTTON)) {
 					return IntakeFSMState.INTAKE_STATE;
-				} else if (input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON)
-					&& !input.getButtonPressed(ButtonInput.INTAKE_BUTTON)
-					&& !input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)
-					&& !input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
+				} else if (input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON)) {
 					return IntakeFSMState.OUTTAKE_STATE;
 				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
 					return IntakeFSMState.FOLD_IN_STATE;
@@ -446,14 +438,20 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				} else {
 					return IntakeFSMState.IDLE_OUT_STATE;
 				}
-
 			case INTAKE_STATE:
-				if (input.getButtonReleased(ButtonInput.INTAKE_BUTTON)) {
+				if (input.getButtonPressed(ButtonInput.INTAKE_BUTTON)) {
+					//toggle off
 					return IntakeFSMState.IDLE_OUT_STATE;
+				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
+					//Folding in should cancel intake + fold in
+					return IntakeFSMState.FOLD_IN_STATE;
+				} else if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
+					return IntakeFSMState.FOLD_OUT_STATE;
+				} else if (input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON)) {
+					return IntakeFSMState.OUTTAKE_STATE;
 				} else {
 					return IntakeFSMState.INTAKE_STATE;
 				}
-
 			case OUTTAKE_STATE:
 				if (input.getButtonReleased(ButtonInput.OUTTAKE_BUTTON)) {
 					return IntakeFSMState.IDLE_OUT_STATE;
