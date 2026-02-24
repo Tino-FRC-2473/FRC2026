@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.input.AutoInput;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.systems.Drivetrain;
+import frc.robot.systems.FSMSystem;
 import frc.robot.systems.Drivetrain.DrivetrainState;
 
 public class AutoPaths {
@@ -16,10 +18,17 @@ public class AutoPaths {
 	/**
 	 * An auto that is only here temporarily for testing purposes.
 	 * @param input the auto input
-	 * @param drivetrain the drivetrain
+	 * @param drivetrainSystem a system that might be the drivetrain
 	 * @return the auto
 	 */
-	public static Command getTestAuto(AutoInput input, Drivetrain drivetrain) {
+	public static Command getTestAuto(AutoInput input,
+		FSMSystem<Drivetrain.DrivetrainState> drivetrainSystem) {
+		Drivetrain drivetrain;
+		if (Drivetrain.class.isInstance(drivetrainSystem)) {
+			drivetrain = (Drivetrain) drivetrainSystem;
+		} else {
+			return new InstantCommand();
+		}
 		return new AutoBuilder()
 			.doNext(input.pressButtonCommand(ButtonInput.DRIVETRAIN_RESEED))
 			.doNext(drivetrain.watchForStatesCommand(DrivetrainState.TELEOP))

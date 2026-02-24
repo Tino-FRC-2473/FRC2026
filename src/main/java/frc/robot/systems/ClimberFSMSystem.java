@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
 import frc.robot.HardwareMap;
-import frc.robot.input.TeleopInput;
+import frc.robot.input.Input;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
@@ -44,7 +44,7 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 
-public class ClimberFSMSystem {
+public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState> {
 	public enum ClimberFSMState {
 		IDLE,
 		MANUAL_DIRECT_CONTROL,
@@ -66,9 +66,6 @@ public class ClimberFSMSystem {
 	private ElevatorSim sim;
 	private DIOSim limitSimLeft;
 	private DIOSim limitSimRight;
-
-
-	private ClimberFSMState currentState;
 	private MotionMagicVoltage motionRequest;
 
 
@@ -123,7 +120,7 @@ public class ClimberFSMSystem {
 		climberMotorLeft.getConfigurator().apply(talonFXConfigs);
 
 		climberMotorLeft.setPosition(0);
-		currentState = ClimberFSMState.IDLE;
+		setCurrentState(ClimberFSMState.IDLE);
 
 		if (RobotBase.isSimulation()) {
 			// Adjust mass based on climber angle (Gravity component: mg * sin(theta))
@@ -149,17 +146,6 @@ public class ClimberFSMSystem {
 		reset();
 	}
 
-
-	/**
-	 * Get the current FSM state.
-	 *
-	 * @return current FSM state
-	 */
-	@AutoLogOutput(key = "Climber/State")
-	public ClimberFSMState getCurrentState() {
-		return currentState;
-	}
-
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.
@@ -168,8 +154,9 @@ public class ClimberFSMSystem {
 	 * as it may be called multiple times in a boot cycle,
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
+	@Override
 	public void reset() {
-		currentState = ClimberFSMState.AUTO_IDLE;
+		setCurrentState(ClimberFSMState.AUTO_IDLE);
 		update(null);
 	}
 
@@ -177,10 +164,11 @@ public class ClimberFSMSystem {
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
 	 *
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *			  the robot is in autonomous mode.
 	 */
-	public void update(TeleopInput input) {
+	@Override
+	public void update(Input input) {
 
 		if (RobotBase.isSimulation()) {
 			sim.setInputVoltage(climberMotorLeft.getSimState().getMotorVoltage());
@@ -210,7 +198,7 @@ public class ClimberFSMSystem {
 			return;
 		}
 
-		switch (currentState) {
+		switch (getCurrentState()) {
 			case IDLE -> handleIdleState(input);
 			case AUTO_IDLE -> handleIdleState(input);
 			case LOCKED_FINAL -> handleIdleState(input);
@@ -222,10 +210,11 @@ public class ClimberFSMSystem {
 			case AUTO_UP_1 -> handleL1ExtendState(input);
 			case AUTO_UP_2 -> handleL1RetractState(input);
 
-			default -> throw new IllegalStateException("Invalid state: " + currentState.toString());
+			default -> throw new IllegalStateException(
+					"Invalid state: " + getCurrentState().toString());
 		}
 
-		currentState = nextState(input);
+		setCurrentState(nextState(input));
 		updateLogging();
 	}
 
@@ -315,12 +304,13 @@ public class ClimberFSMSystem {
 			+ ClimberConstants.POSITION_TOLERANCE_L1.in(Inches);
 	}
 
-	private ClimberFSMState nextState(TeleopInput input) {
+	@Override
+	protected ClimberFSMState nextState(Input input) {
 		if (input == null) {
 			return ClimberFSMState.IDLE;
 		}
 
-		switch (currentState) {
+		switch (getCurrentState()) {
 			case AUTO_IDLE:
 				if (input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP)) {
 					return ClimberFSMState.AUTO_DOWN_1;
@@ -369,7 +359,7 @@ public class ClimberFSMSystem {
 				boolean shouldAdvanceExtendedL1 =
 					(input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP) && isExtendedL1());
 				if (shouldAdvanceExtendedL1) {
-					if (currentState == ClimberFSMState.L1_EXTEND) {
+					if (getCurrentState() == ClimberFSMState.L1_EXTEND) {
 						return ClimberFSMState.L1_RETRACT;
 					}
 				}
@@ -389,12 +379,12 @@ public class ClimberFSMSystem {
 		}
 	}
 
-	private void handleIdleState(TeleopInput input) {
+	private void handleIdleState(Input input) {
 		climberMotorLeft.set(0);
 
 	}
 
-	private void handleManualDirectControlState(TeleopInput input) {
+	private void handleManualDirectControlState(Input input) {
 		double manualControlValue = MathUtil.applyDeadband(input
 			.getAxisValue(AxialInput.CLIMBER_MANUAL_CONTROL),
 				ClimberConstants.JOYSTICK_DEADBAND);
@@ -416,7 +406,7 @@ public class ClimberFSMSystem {
 		}
 	}
 
-	private void handleL1ExtendState(TeleopInput input) {
+	private void handleL1ExtendState(Input input) {
 		// DutyCycleOut n = new DutyCycleOut(0.5);
 		// DutyCycleOut b = new DutyCycleOut(0.5);
 		// climberMotorLeft.setControl(n);
@@ -428,13 +418,13 @@ public class ClimberFSMSystem {
 		//System.out.println(motionRequest.getControlInfo());
 	}
 
-	private void handleL1RetractState(TeleopInput input) {
+	private void handleL1RetractState(Input input) {
 		climberMotorLeft.setControl(motionRequest.withPosition(
 			ClimberConstants.L1_RETRACT_POS.in(Inches)
 		));
 	}
 
-	private void handleResetToZero(TeleopInput input) {
+	private void handleResetToZero(Input input) {
 		if (groundLimitSwitchLeft.get() || getClimberHeightInches() <= 0
 			|| groundLimitSwitchRight.get()) {
 			climberMotorLeft.set(0);
