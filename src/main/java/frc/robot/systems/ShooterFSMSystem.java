@@ -73,6 +73,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private DigitalInput breakBeam;
 	private Timer feedTimer = new Timer();
 	private boolean noFuelStored = false;
+	private boolean flywheelMotorStopped = false;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -290,6 +291,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			}
 		}
 		Logger.recordOutput("Current State", getCurrentState());
+		if (flywheelMotor.getVelocity() != null) {
+				double curSpeed = flywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
+				flywheelSpeed = RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
+				Logger.recordOutput("Actual Motor Speed", flywheelSpeed.in(RotationsPerSecond));
+		}
 		setCurrentState(nextState(input));
 	}
 
@@ -442,7 +448,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 */
 	private void handleIdleState(TeleopInput input) {
 		flywheelTargetSpeed = RotationsPerSecond.of(0);
-		updateFlywheel();
+		//updateFlywheel();
+		flywheelMotor.stopMotor();
 		//updateHood();
 		feederMotor.set(0);
 		feedTimer.stop();
@@ -624,22 +631,32 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			var change = flywheelTargetSpeed.in(RotationsPerSecond) - flyIncrement;
 			if (change > 0) {
 				flywheelTargetSpeed = RotationsPerSecond.of(change);
+				flywheelMotorStopped = false;
 			} else {
 				flywheelTargetSpeed = RotationsPerSecond.of(0);
+				flywheelMotorStopped = true;
 			}
 			//decrease flywheel speed by some constant, right now set to 10 m/s
 		} else if (flywheelSet) {
 			var change = flywheelTargetSpeed.in(RotationsPerSecond) + flyIncrement;
 			if (change < ShooterConstants.FLYWHEEL_MAX_SPEED.in(RotationsPerSecond)) {
 				flywheelTargetSpeed = RotationsPerSecond.of(change);
+				flywheelMotorStopped = false;
+				
 			} else {
 				flywheelTargetSpeed = ShooterConstants.FLYWHEEL_MAX_SPEED;
+				flywheelMotorStopped = false;
 			}
 
 			//increase flywheel speed by some constant, right now set to 10 m/s
 		}
 
-		updateFlywheel();
+		if (!flywheelMotorStopped){
+			updateFlywheel();
+		} else {
+			flywheelMotor.stopMotor();
+		}
+		
 
 		// check if current speed of motors and current angle matches what we just set it to there
 		// with the boolean conditions
@@ -649,9 +666,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		Logger.recordOutput("Flywheel Target Speed", flywheelTargetSpeed);
 		flywheelMotor.setControl(flywheelRequest.withVelocity(
 			flywheelTargetSpeed.in(RotationsPerSecond)));
-		double curSpeed = flywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
-		flywheelSpeed = RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
-		Logger.recordOutput("Actual Motor Speed", flywheelSpeed.in(RotationsPerSecond));
+		
+		
+		
 	}
 
 
@@ -661,6 +678,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		}
 		return false;
 	}
+
+	
 
 	// private void updateHood() {
 	// 	hoodMotor.setControl(hoodRequest.withPosition(hoodTargetAngle.magnitude()));
