@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
 
 import frc.robot.HardwareMap;
-import frc.robot.input.TeleopInput;
+import frc.robot.input.Input;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
@@ -33,7 +33,8 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 
-public class ClimberFSMSystem  {
+
+public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState> {
 	public enum ClimberFSMState {
 		IDLE,
 		MANUAL_DIRECT_CONTROL,
@@ -55,9 +56,6 @@ public class ClimberFSMSystem  {
 	private ElevatorSim sim;
 	private DIOSim limitSimLeft;
 	private DIOSim limitSimRight;
-
-
-	private ClimberFSMState currentState;
 	private MotionMagicVoltage motionRequest;
 
 	/**
@@ -146,17 +144,33 @@ public class ClimberFSMSystem  {
 		motionMagicConfigs.MotionMagicAcceleration = ClimberConstants.TARGET_ACCEL;
 		motionMagicConfigs.MotionMagicExpo_kV = ClimberConstants.EXPO_KV;
 
-		return talonFXConfigs;
-	}
+		climberMotorLeft.getConfigurator().apply(talonFXConfigs);
 
-	/**
-	 * Get the current FSM state.
-	 *
-	 * @return current FSM state
-	 */
-	@AutoLogOutput(key = "Climber/State")
-	public ClimberFSMState getCurrentState() {
-		return currentState;
+		climberMotorLeft.setPosition(0);
+		setCurrentState(ClimberFSMState.IDLE);
+
+		if (RobotBase.isSimulation()) {
+			// Adjust mass based on climber angle (Gravity component: mg * sin(theta))
+			double effectiveMass = ClimberConstants.EFFECTIVE_WEIGHT;
+
+			sim = new ElevatorSim(
+				DCMotor.getKrakenX60(2),
+				ClimberConstants.CLIMBER_GEAR_RATIO,  // Gearing ( 9:1)
+				effectiveMass,						  // Angled effective mass
+				Units.inchesToMeters(1.0),			  // Drum Radius
+				0.0,									// Min Height
+				Units.inchesToMeters(ClimberConstants.UPPER_THRESHOLD.in(Inches)), // Max Height
+				true,								   // Simulate Gravity
+				0.0,									// Starting position
+				0.0,								   // Measurement StdDev
+				0.0									 // Starting velocity
+			);
+
+			limitSimLeft = new DIOSim(groundLimitSwitchLeft);
+			limitSimRight = new DIOSim(groundLimitSwitchRight);
+		}
+
+		reset();
 	}
 
 	/**
@@ -167,8 +181,9 @@ public class ClimberFSMSystem  {
 	 * as it may be called multiple times in a boot cycle,
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
+	@Override
 	public void reset() {
-		currentState = ClimberFSMState.AUTO_IDLE;
+		setCurrentState(ClimberFSMState.AUTO_IDLE);
 		update(null);
 	}
 
@@ -176,11 +191,11 @@ public class ClimberFSMSystem  {
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
 	 *
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *			  the robot is in autonomous mode.
 	 */
-	public void update(TeleopInput input) {
-
+	@Override
+	public void update(Input input) {
 
 		if (RobotBase.isSimulation()) {
 			sim.setInputVoltage(climberMotorLeft.getSimState().getMotorVoltage());
@@ -208,7 +223,7 @@ public class ClimberFSMSystem  {
 			return;
 		}
 
-		switch (currentState) {
+		switch (getCurrentState()) {
 			case IDLE -> handleIdleState(input);
 			case AUTO_IDLE -> handleIdleState(input);
 			case LOCKED_FINAL -> handleIdleState(input);
@@ -220,10 +235,11 @@ public class ClimberFSMSystem  {
 			case AUTO_UP_1 -> handleL1ExtendState(input);
 			case AUTO_UP_2 -> handleL1RetractState(input);
 
-			default -> throw new IllegalStateException("Invalid state: " + currentState.toString());
+			default -> throw new IllegalStateException(
+					"Invalid state: " + getCurrentState().toString());
 		}
 
-		currentState = nextState(input);
+		setCurrentState(nextState(input));
 		updateLogging();
 	}
 
@@ -336,12 +352,13 @@ public class ClimberFSMSystem  {
 			+ ClimberConstants.DOWN_POSITION_TOLERANCE_L1.in(Inches));
 	}
 
-	private ClimberFSMState nextState(TeleopInput input) {
+	@Override
+	protected ClimberFSMState nextState(Input input) {
 		if (input == null) {
 			return ClimberFSMState.IDLE;
 		}
 
-		switch (currentState) {
+		switch (getCurrentState()) {
 			case AUTO_IDLE:
 				if (input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP)) {
 					return ClimberFSMState.AUTO_DOWN_1;
@@ -390,7 +407,7 @@ public class ClimberFSMSystem  {
 				boolean shouldAdvanceExtendedL1 =
 					(input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP) && isExtendedL1());
 				if (shouldAdvanceExtendedL1) {
-					if (currentState == ClimberFSMState.L1_EXTEND) {
+					if (getCurrentState() == ClimberFSMState.L1_EXTEND) {
 						return ClimberFSMState.L1_RETRACT;
 					}
 				}
@@ -410,12 +427,12 @@ public class ClimberFSMSystem  {
 		}
 	}
 
-	private void handleIdleState(TeleopInput input) {
+	private void handleIdleState(Input input) {
 		climberMotorLeft.set(0);
 
 	}
 
-	private void handleManualDirectControlState(TeleopInput input) {
+	private void handleManualDirectControlState(Input input) {
 		double manualControlValue = MathUtil.applyDeadband(input
 			.getAxisValue(AxialInput.CLIMBER_MANUAL_CONTROL),
 				ClimberConstants.JOYSTICK_DEADBAND);
@@ -433,22 +450,26 @@ public class ClimberFSMSystem  {
 		}
 	}
 
-	private void handleL1ExtendState(TeleopInput input) {
+	private void handleL1ExtendState(Input input) {
+		// DutyCycleOut n = new DutyCycleOut(0.5);
+		// DutyCycleOut b = new DutyCycleOut(0.5);
+		// climberMotorLeft.setControl(n);
+		// climberMotorRight.setControl(b);
 
 		climberMotorLeft.setControl(motionRequest.withPosition(
 			ClimberConstants.L1_EXTEND_POS.in(Inches)
 		));
 	}
 
-	private void handleL1RetractState(TeleopInput input) {
+	private void handleL1RetractState(Input input) {
 		climberMotorLeft.setControl(motionRequest.withPosition(
 			ClimberConstants.L1_RETRACT_POS.in(Inches)
 		));
 	}
 
-	private void handleResetToZero(TeleopInput input) {
-		if (getLeftLimitSwitch() || getClimberHeightInches() <= 0
-			|| getRightLimitSwitch()) {
+	private void handleResetToZero(Input input) {
+		if (groundLimitSwitchLeft.get() || getClimberHeightInches() <= 0
+			|| groundLimitSwitchRight.get()) {
 			climberMotorLeft.set(0);
 		} else {
 			climberMotorLeft.setControl(motionRequest.withPosition(

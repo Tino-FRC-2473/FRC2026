@@ -15,7 +15,9 @@ import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
+import frc.robot.systems.FSMSystem;
 import frc.robot.systems.IntakeFSMSystem;
+import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
 
@@ -29,10 +31,10 @@ public class Robot extends LoggedRobot {
 	private Input input;
 
 	// Systems
-	private Drivetrain drivetrain;
-	private ClimberFSMSystem climberFSMSystem;
-	private IntakeFSMSystem intakeFSMSystem;
-	private ShooterFSMSystem shooterFSMSystem;
+	private FSMSystem<Drivetrain.DrivetrainState> drivetrain;
+	private FSMSystem<ClimberFSMSystem.ClimberFSMState> climberFSMSystem;
+	private FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem;
+	private FSMSystem<ShooterFSMSystem.ShooterFSMState> shooterFSMSystem;
 
 
 	/**
@@ -47,19 +49,22 @@ public class Robot extends LoggedRobot {
 		Logger.addDataReceiver(new NT4Publisher());
 		Logger.start();
 
+		// Instantiate all systems here
+		drivetrain = HardwareMap.isDrivetrainEnabled()
+			? new Drivetrain()
+			: new PlaceholderFSMSystem<>();
 
-		if (HardwareMap.isDrivetrainEnabled()) {
-			drivetrain = new Drivetrain();
-		}
-		if (HardwareMap.isClimberEnabled()) {
-			climberFSMSystem = new ClimberFSMSystem();
-		}
-		if (HardwareMap.isIntakeEnabled()) {
-			intakeFSMSystem = new IntakeFSMSystem();
-		}
-		if (HardwareMap.isShooterEnabled()) {
-			shooterFSMSystem = new ShooterFSMSystem();
-		}
+		climberFSMSystem = HardwareMap.isClimberEnabled()
+			? new ClimberFSMSystem()
+			: new PlaceholderFSMSystem<>();
+
+		intakeFSMSystem = HardwareMap.isIntakeEnabled()
+			? new IntakeFSMSystem()
+			: new PlaceholderFSMSystem<>();
+
+		shooterFSMSystem = HardwareMap.isShooterEnabled()
+			? new ShooterFSMSystem()
+			: new PlaceholderFSMSystem<>();
 	}
 
 	@Override
@@ -74,7 +79,11 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void autonomousPeriodic() {
-		//drivetrain.update(input);
+		drivetrain.update(input);
+		climberFSMSystem.update(input);
+		intakeFSMSystem.update(input);
+		shooterFSMSystem.update(input);
+
 		input.update();
 		CommandScheduler.getInstance().run();
 
@@ -96,12 +105,12 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void teleopPeriodic() {
-		//drivetrain.update(input);
-		input.update();
-		climberFSMSystem.update((TeleopInput) input);
-		intakeFSMSystem.update((TeleopInput) input);
-		shooterFSMSystem.update((TeleopInput) input);
+		drivetrain.update(input);
+		climberFSMSystem.update(input);
+		intakeFSMSystem.update(input);
+		shooterFSMSystem.update(input);
 
+		input.update();
 		// logs motor values
 		MotorManager.update();
 	}
