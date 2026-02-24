@@ -76,7 +76,6 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		climberMotorRight.setPosition(0);
 		climberMotorLeft.setPosition(0);
 
-		currentState = ClimberFSMState.IDLE;
 
 		groundLimitSwitchLeft = new DigitalInput(HardwareMap.
 			CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT);
@@ -103,6 +102,8 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 			limitSimLeft = new DIOSim(groundLimitSwitchLeft);
 			limitSimRight = new DIOSim(groundLimitSwitchRight);
 		}
+		climberMotorLeft.setPosition(0);
+		setCurrentState(ClimberFSMState.AUTO_IDLE);
 
 		reset();
 	}
@@ -144,33 +145,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		motionMagicConfigs.MotionMagicAcceleration = ClimberConstants.TARGET_ACCEL;
 		motionMagicConfigs.MotionMagicExpo_kV = ClimberConstants.EXPO_KV;
 
-		climberMotorLeft.getConfigurator().apply(talonFXConfigs);
-
-		climberMotorLeft.setPosition(0);
-		setCurrentState(ClimberFSMState.IDLE);
-
-		if (RobotBase.isSimulation()) {
-			// Adjust mass based on climber angle (Gravity component: mg * sin(theta))
-			double effectiveMass = ClimberConstants.EFFECTIVE_WEIGHT;
-
-			sim = new ElevatorSim(
-				DCMotor.getKrakenX60(2),
-				ClimberConstants.CLIMBER_GEAR_RATIO,  // Gearing ( 9:1)
-				effectiveMass,						  // Angled effective mass
-				Units.inchesToMeters(1.0),			  // Drum Radius
-				0.0,									// Min Height
-				Units.inchesToMeters(ClimberConstants.UPPER_THRESHOLD.in(Inches)), // Max Height
-				true,								   // Simulate Gravity
-				0.0,									// Starting position
-				0.0,								   // Measurement StdDev
-				0.0									 // Starting velocity
-			);
-
-			limitSimLeft = new DIOSim(groundLimitSwitchLeft);
-			limitSimRight = new DIOSim(groundLimitSwitchRight);
-		}
-
-		reset();
+		return talonFXConfigs;
 	}
 
 	/**
