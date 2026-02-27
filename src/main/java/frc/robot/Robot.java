@@ -116,7 +116,6 @@ public class Robot extends LoggedRobot {
 		//drivetrain.reset();
 		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
-		shooterFSMSystem.reset();
 	}
 
 	@Override
