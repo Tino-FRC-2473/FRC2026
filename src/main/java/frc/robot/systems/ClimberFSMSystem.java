@@ -57,7 +57,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	private DIOSim limitSimLeft;
 	private DIOSim limitSimRight;
 	private MotionMagicVoltage motionRequest;
-	private IntakeFSMSystem intake;
+	private FSMSystem<IntakeFSMSystem.IntakeFSMState>  intake;
 
 	/**
 	 * Create ClimberFSMSystem and initialize to starting state. Also perform any
@@ -65,7 +65,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	 * the constructor is called only once when the robot boots.
 	 * @param intakeFSMSystem the IntakeFSMSystem
 	 */
-	public ClimberFSMSystem(IntakeFSMSystem intakeFSMSystem) {
+	public ClimberFSMSystem(FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem) {
 		intake = intakeFSMSystem;
 		climberMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_LEFT);
 		climberMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_RIGHT);
@@ -439,7 +439,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		// DutyCycleOut b = new DutyCycleOut(0.5);
 		// climberMotorLeft.setControl(n);
 		// climberMotorRight.setControl(b);
-		if (!intake.isIntakeDown()) {
+		if (!((IntakeFSMSystem) intake).isIntakeDown()) {
 			climberMotorLeft.setControl(motionRequest.withPosition(
 				ClimberConstants.L1_EXTEND_POS.in(Inches)
 			));
@@ -447,7 +447,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	}
 
 	private void handleL1RetractState(Input input) {
-		if (!intake.isIntakeDown()) {
+		if (!((IntakeFSMSystem) intake).isIntakeDown()) {
 			climberMotorLeft.setControl(motionRequest.withPosition(
 				ClimberConstants.L1_RETRACT_POS.in(Inches)
 			));
@@ -455,7 +455,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	}
 
 	private void handleResetToZero(Input input) {
-		if (!intake.isIntakeDown()) {
+		if (!((IntakeFSMSystem) intake).isIntakeDown()) {
 			if (groundLimitSwitchLeft.get() || getClimberHeightInches() <= 0
 				|| groundLimitSwitchRight.get()) {
 				climberMotorLeft.set(0);
