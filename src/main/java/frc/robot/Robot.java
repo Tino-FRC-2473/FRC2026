@@ -41,7 +41,7 @@ public class Robot extends LoggedRobot {
 	private Input input;
 
 	// Systems
-	private FSMSystem<Drivetrain.DrivetrainState> drivetrain;
+	private FSMSystem<Drivetrain.DrivetrainState> drivetrainFSMSystem;
 	private FSMSystem<ClimberFSMSystem.ClimberFSMState> climberFSMSystem;
 	private FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem;
 	private FSMSystem<ShooterFSMSystem.ShooterFSMState> shooterFSMSystem;
@@ -62,11 +62,13 @@ public class Robot extends LoggedRobot {
 
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
-			drivetrain = new Drivetrain();
-			vision = new Vision(drivetrain::addVisionMeasurement, () -> drivetrain.getDrivetrainRotation(), VisionConstants.LIMELIGHT_NAME);
+			Drivetrain drivetrain = new Drivetrain();
+			drivetrainFSMSystem = drivetrain;
+			vision = new Vision(drivetrain::addVisionMeasurement, drivetrain.getDrivetrainRotation(), VisionConstants.LIMELIGHT_NAME);
 		} else {
-      drivetrain = new PlaceholderFSMSystem<>();
-    }
+      		drivetrainFSMSystem = new PlaceholderFSMSystem<>();
+			vision = null;
+    	}
 
 		climberFSMSystem = HardwareMap.isClimberEnabled()
 			? new ClimberFSMSystem()
@@ -93,7 +95,7 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void autonomousPeriodic() {
-		drivetrain.update(input);
+		drivetrainFSMSystem.update(input);
 		climberFSMSystem.update(input);
 		intakeFSMSystem.update(input);
 		shooterFSMSystem.update(input);
@@ -119,7 +121,7 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void teleopPeriodic() {
-		drivetrain.update(input);
+		drivetrainFSMSystem.update(input);
 		climberFSMSystem.update(input);
 		intakeFSMSystem.update(input);
 		shooterFSMSystem.update(input);
@@ -162,7 +164,7 @@ public class Robot extends LoggedRobot {
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
-	public void robotPeriodic() { 
-		vision.periodic();
+	public void robotPeriodic() {
+		if (vision != null) vision.periodic();
 	}
 }

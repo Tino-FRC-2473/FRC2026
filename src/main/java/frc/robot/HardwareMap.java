@@ -51,7 +51,7 @@ public final class HardwareMap {
 	 * @return if the hardware for the drivetrain is present
 	 */
 	public static boolean isDrivetrainEnabled() {
-		return false;
+		return true;
 	}
 
 	/**
