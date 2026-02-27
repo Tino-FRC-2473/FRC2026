@@ -51,6 +51,7 @@ public final class TeleopInput extends Input {
 
 	@Override
 	public Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
+
 		return switch (key) {
 
 			// Drivetrain
@@ -59,6 +60,11 @@ public final class TeleopInput extends Input {
 
 
 			// Intake
+
+			//Button layout to be fixed, one idea is to make PARTIAL_OUT_BUTTON,
+			//FOLD_IN_BUTTON, and FOLD_OUT_BUTTON one button that toggles between states.
+
+
 			case PARTIAL_OUT_BUTTON -> mechController::share;
 			case INTAKE_BUTTON -> mechController::circle;
 			case OUTTAKE_BUTTON -> mechController::cross;
@@ -68,8 +74,15 @@ public final class TeleopInput extends Input {
 			// Climber
 			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
 			case CLIMBER_NEXT_STEP -> mechController::square;
-			case CLIMBER_EMERGENCY_ABORT -> mechController::R1;
-			case CLIMBER_DOWN_BUTTON -> mechController::R2;
+			case CLIMBER_EMERGENCY_ABORT -> mechController::cross;
+			case CLIMBER_DOWN_BUTTON -> mechController::circle;
+
+
+			case PASSER_PREP_TOGGLE -> mechController::R1;
+			case SHOOTER_PREP_TOGGLE -> mechController::L1;
+			case MANUAL_SHOOT_TOGGLE -> mechController::L2;
+			case REV_FEEDER -> mechController::R2;
+			case IDLE_SHOOTER_TOGGLE -> mechController::touchpad;
 
 			default -> throw new IllegalArgumentException("Unknown button input");
 		};

@@ -38,8 +38,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.DrivetrainConstants;
-import frc.robot.Constants.ModuleConstants;
 
+import frc.robot.Constants.ModuleConstants;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.input.Input;
@@ -354,4 +355,22 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
 	}
 
+	 * Aligns the bot to target the hub for shooting.
+	 *
+	 */
+	public void targetHub() {
+		//TODO: Code to be finished in a separate branch
+		Pose2d transformPose = getPose().relativeTo(ShooterConstants.HUB_POSE);
+	}
+
+	/**
+	 * Aligns the bot to target the passing target.
+	 * @param targetPose the target passing pose
+	 */
+	public void targetPassZone(Pose2d targetPose) {
+		//toggleNumber = 1 for outpost, toggleNumber = 2 for other mirrored pose, etc
+		//TODO: Code to be finished in a seperate branch
+		Pose2d transformPose = getPose().relativeTo(targetPose);
+		//TODO: Code to be implemented differently later
+	}
 }

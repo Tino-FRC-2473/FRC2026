@@ -19,15 +19,17 @@ import frc.robot.Constants.VisionConstants;
 
 
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.auto.AutoPaths;
 import frc.robot.input.AutoInput;
 import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
 import frc.robot.systems.Vision;
+import frc.robot.systems.FSMSystem;
 import frc.robot.systems.IntakeFSMSystem;
+import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.systems.ClimberFSMSystem;
+import frc.robot.systems.ShooterFSMSystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -39,9 +41,10 @@ public class Robot extends LoggedRobot {
 	private Input input;
 
 	// Systems
-	private Drivetrain drivetrain;
-	private ClimberFSMSystem climberFSMSystem;
-	private IntakeFSMSystem intakeFSMSystem;
+	private FSMSystem<Drivetrain.DrivetrainState> drivetrain;
+	private FSMSystem<ClimberFSMSystem.ClimberFSMState> climberFSMSystem;
+	private FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem;
+	private FSMSystem<ShooterFSMSystem.ShooterFSMState> shooterFSMSystem;
 
 	private Vision vision;
 
@@ -61,10 +64,21 @@ public class Robot extends LoggedRobot {
 		if (HardwareMap.isDrivetrainEnabled()) {
 			drivetrain = new Drivetrain();
 			vision = new Vision(drivetrain::addVisionMeasurement, () -> drivetrain.getDrivetrainRotation(), VisionConstants.LIMELIGHT_NAME);
-		}
+		} else {
+      drivetrain = new PlaceholderFSMSystem<>();
+    }
 
-		climberFSMSystem = new ClimberFSMSystem();
-		intakeFSMSystem = new IntakeFSMSystem();
+		climberFSMSystem = HardwareMap.isClimberEnabled()
+			? new ClimberFSMSystem()
+			: new PlaceholderFSMSystem<>();
+
+		intakeFSMSystem = HardwareMap.isIntakeEnabled()
+			? new IntakeFSMSystem()
+			: new PlaceholderFSMSystem<>();
+
+		shooterFSMSystem = HardwareMap.isShooterEnabled()
+			? new ShooterFSMSystem()
+			: new PlaceholderFSMSystem<>();
 	}
 
 	@Override
@@ -74,12 +88,16 @@ public class Robot extends LoggedRobot {
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
 		input.reset();
-		CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
+		// CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
 	}
 
 	@Override
 	public void autonomousPeriodic() {
 		drivetrain.update(input);
+		climberFSMSystem.update(input);
+		intakeFSMSystem.update(input);
+		shooterFSMSystem.update(input);
+
 		input.update();
 		CommandScheduler.getInstance().run();
 
@@ -93,18 +111,20 @@ public class Robot extends LoggedRobot {
 		input = new TeleopInput();
 		input.reset();
 		CommandScheduler.getInstance().cancelAll();
-		drivetrain.reset();
+		//drivetrain.reset();
 		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
+		shooterFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
 		drivetrain.update(input);
-		input.update();
-		climberFSMSystem.update((TeleopInput) input);
-		intakeFSMSystem.update((TeleopInput) input);
+		climberFSMSystem.update(input);
+		intakeFSMSystem.update(input);
+		shooterFSMSystem.update(input);
 
+		input.update();
 		// logs motor values
 		MotorManager.update();
 	}
