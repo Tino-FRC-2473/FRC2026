@@ -15,23 +15,27 @@ stateDiagram-v2
   state "Folding In: PID to IN target" as FOLD_IN_STATE
 
   [*] --> IDLE_OUT_STATE 
-  IDLE_IN_STATE --> FOLD_OUT_STATE: Only Circle button pressed
+  IDLE_IN_STATE --> FOLD_OUT_STATE: Only L2 button pressed
   FOLD_OUT_STATE --> IDLE_OUT_STATE: Folding Out Complete 
-  IDLE_OUT_STATE --> INTAKE_STATE: Only Triangle Button pressed
-  IDLE_OUT_STATE --> OUTTAKE_STATE: Only Square Button pressed
-  INTAKE_STATE --> IDLE_OUT_STATE: Only Triangle button is released
-  OUTTAKE_STATE --> IDLE_OUT_STATE: Only Square Button is Released
-  IDLE_OUT_STATE --> FOLD_IN_STATE: Only Cross Button Pressed
+  IDLE_OUT_STATE --> INTAKE_STATE: Only Circle Button pressed
+  IDLE_OUT_STATE --> OUTTAKE_STATE: Only Cross Button pressed
+  INTAKE_STATE --> IDLE_OUT_STATE: Only Circle button is released
+  OUTTAKE_STATE --> IDLE_OUT_STATE: Only Cross Button is Released
+  IDLE_OUT_STATE --> FOLD_IN_STATE: Only L1 Button Pressed
   FOLD_IN_STATE --> IDLE_IN_STATE: Folding In Is Complete
-  INTAKE_STATE --> INTAKE_STATE: Triangle Button Is Held
-  OUTTAKE_STATE --> OUTTAKE_STATE: Square Button Is Held
+  INTAKE_STATE --> INTAKE_STATE: Circle Button Is Held
+  OUTTAKE_STATE --> OUTTAKE_STATE: Cross Button Is Held
   IDLE_OUT_STATE --> IDLE_OUT_STATE: No Other Buttons Pressed
   IDLE_IN_STATE --> IDLE_IN_STATE: No Other Buttons Pressed
   FOLD_OUT_STATE --> FOLD_OUT_STATE: Folding out is not complete
   FOLD_IN_STATE --> FOLD_IN_STATE: Folding in is not complete
-  IDLE_OUT_STATE --> PARTIAL_OUT_STATE: Only Options Button is Pressed
-  PARTIAL_OUT_STATE --> FOLD_IN_STATE: Only Cross Button is Pressed
-  PARTIAL_OUT_STATE --> FOLD_OUT_STATE: Only Circle Button is Pressed
-  PARTIAL_OUT_STATE --> PARTIAL_OUT_STATE: If Circle/Cross Button not Pressed
-  IDLE_IN_STATE --> PARTIAL_OUT_STATE: Options Button is Pressed
+  IDLE_OUT_STATE --> PARTIAL_OUT_STATE: Only Share Button is Pressed
+  PARTIAL_OUT_STATE --> FOLD_IN_STATE: Only L1 Button is Pressed
+  PARTIAL_OUT_STATE --> FOLD_OUT_STATE: Only L2 Button is Pressed
+  PARTIAL_OUT_STATE --> PARTIAL_OUT_STATE: If Circle/L1 Button not Pressed
+  IDLE_IN_STATE --> PARTIAL_OUT_STATE: Share Button is Pressed
+  FOLD_IN_STATE --> PARTIAL_OUT_STATE: Share Button is Pressed
+  FOLD_OUT_STATE --> PARTIAL_OUT_STATE: Share Button is Pressed
+  FOLD_OUT_STATE --> FOLD_IN_STATE: L1 Button Pressed
+  FOLD_IN_STATE --> FOLD_OUT_STATE: L2 Button Pressed
 ```

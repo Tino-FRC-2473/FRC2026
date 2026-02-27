@@ -58,11 +58,6 @@ public final class TeleopInput extends Input {
 			case DRIVETRAIN_RESEED -> driveController::options;
 
 			// Intake
-
-			//Button layout to be fixed, one idea is to make PARTIAL_OUT_BUTTON,
-			//FOLD_IN_BUTTON, and FOLD_OUT_BUTTON one button that toggles between states.
-
-
 			case PARTIAL_OUT_BUTTON -> mechController::share;
 			case INTAKE_BUTTON -> mechController::circle;
 			case OUTTAKE_BUTTON -> mechController::cross;
