@@ -562,7 +562,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 * @return whether the limit is reached
 	 */
 	public boolean isIntakeDownRunning() {
-		return (getCurrentState() == IntakeFSMState.INTAKE_STATE); 
+		return (getCurrentState() == IntakeFSMState.INTAKE_STATE);
 	}
 
 }
