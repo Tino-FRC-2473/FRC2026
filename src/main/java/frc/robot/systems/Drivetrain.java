@@ -9,12 +9,10 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -200,13 +198,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		Pose2d target = null; //(shooter != null) ? shooter.getAutoTargetPose() : null;
 
-		target = TAG_LAYOUT.getTagPose(10).get().toPose2d();
+		target = TAG_LAYOUT.getTagPose(10).get().toPose2d();  
+		Pose2D targetPose = new Pose2d(11.9191774, 4.0346376, new Rotation2d());
 
 
-		if (target != null && DriverStation.getAlliance().isPresent()) {
+		if (targetPose != null && DriverStation.getAlliance().isPresent()) {
 			double angle = Math.atan2(
-				target.getY() - getPose().getY(),
-				target.getX() - getPose().getX()
+				targetPose.getY() - getPose().getY(),
+				targetPose.getX() - getPose().getX()
 			);
 
 			drivetrain.setControl(
