@@ -57,7 +57,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	private DIOSim limitSimLeft;
 	private DIOSim limitSimRight;
 	private MotionMagicVoltage motionRequest;
-	private FSMSystem<IntakeFSMSystem.IntakeFSMState> intake;
+	private IntakeFSMSystem intake;
 
 	/**
 	 * Create ClimberFSMSystem and initialize to starting state. Also perform any
@@ -65,7 +65,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	 * the constructor is called only once when the robot boots.
 	 * @param intakeFSMSystem the IntakeFSMSystem
 	 */
-	public ClimberFSMSystem(FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem) {
+	public ClimberFSMSystem(IntakeFSMSystem intakeFSMSystem) {
 		intake = intakeFSMSystem;
 		climberMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_LEFT);
 		climberMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_RIGHT);
