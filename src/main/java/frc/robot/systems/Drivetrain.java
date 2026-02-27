@@ -355,6 +355,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
 	}
 
+	 /**
 	 * Aligns the bot to target the hub for shooting.
 	 *
 	 */

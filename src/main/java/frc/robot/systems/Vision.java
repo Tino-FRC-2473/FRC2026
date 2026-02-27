@@ -30,7 +30,7 @@ import limelight.networktables.LimelightPoseEstimator.BotPose;
 public class Vision {
 	private String limelightName;
 	private VisionConsumer visionConsumer;
-	private Supplier<Rotation3d> rotationSupplier;
+	private Rotation3d rotation;
 
 
 	/**
@@ -40,9 +40,9 @@ public class Vision {
 	 * @param limeLightName The name of the Limelight
 	 */
 	public Vision(
-		VisionConsumer consumer, Supplier<Rotation3d> rotSupplier,
+		VisionConsumer consumer, Rotation3d rot,
 		String limeLightName) {
-		rotationSupplier = rotSupplier;
+		rotation = rot;
 		this.limelightName = limeLightName;
 		visionConsumer = consumer;
 
@@ -55,7 +55,7 @@ public class Vision {
 	 * Periodic method for the vision subsystem.
 	 */
 	public void periodic() {
-		Rotation3d rotation = rotationSupplier.get();
+		//Rotation3d rotation = rotationSupplier.get();
 		LimelightHelpers.SetRobotOrientation(limelightName, rotation.getZ(), 0, rotation.getY(), 0, rotation.getX(), 0);
 
 		PoseEstimate visionEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
