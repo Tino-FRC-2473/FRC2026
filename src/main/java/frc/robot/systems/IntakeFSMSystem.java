@@ -565,4 +565,14 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		return (getCurrentState() == IntakeFSMState.INTAKE_STATE);
 	}
 
+	/**
+	 * Getter for the result of the elevator's top limit switch.
+	 * @return whether the limit is reached
+	 */
+	public boolean isIntakeDown() {
+		return (getCurrentState() == IntakeFSMState.IDLE_OUT_STATE || 
+			getCurrentState() == IntakeFSMState.INTAKE_STATE ||
+			getCurrentState() == IntakeFSMState.OUTTAKE_STATE);
+	}
+
 }
