@@ -87,7 +87,7 @@ public final class AutoInput extends Input {
 
 	@Override
 	protected Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
-		return (e) -> new BooleanEvent(e, () -> buttonValues.get(key));
+		return (e) -> new BooleanEvent(e, () -> buttonValues.getOrDefault(key, false));
 	}
 
 }

@@ -7,14 +7,12 @@ import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import frc.robot.Constants.VisionConstants;
+import frc.robot.auto.AutoPaths;
 
 // WPILib Imports
 
 // Systems
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import frc.robot.Constants.VisionConstants;
 
 
 
@@ -64,11 +62,15 @@ public class Robot extends LoggedRobot {
 		if (HardwareMap.isDrivetrainEnabled()) {
 			Drivetrain drivetrain = new Drivetrain();
 			drivetrainFSMSystem = drivetrain;
-			vision = new Vision(drivetrain::addVisionMeasurement, drivetrain.getDrivetrainRotation(), VisionConstants.LIMELIGHT_NAME);
+			vision = new Vision(
+				drivetrain::addVisionMeasurement,
+				drivetrain.getDrivetrainRotation(),
+				VisionConstants.LIMELIGHT_NAME
+			);
 		} else {
-      		drivetrainFSMSystem = new PlaceholderFSMSystem<>();
+			drivetrainFSMSystem = new PlaceholderFSMSystem<>();
 			vision = null;
-    	}
+		}
 
 		climberFSMSystem = HardwareMap.isClimberEnabled()
 			? new ClimberFSMSystem()
@@ -90,7 +92,9 @@ public class Robot extends LoggedRobot {
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
 		input.reset();
-		// CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
+		CommandScheduler.getInstance().schedule(
+			AutoPaths.getTestAuto(autoInput, drivetrainFSMSystem)
+		);
 	}
 
 	@Override
@@ -164,6 +168,8 @@ public class Robot extends LoggedRobot {
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
 	public void robotPeriodic() {
-		if (vision != null) vision.periodic();
+		if (vision != null) {
+			vision.periodic();
+		}
 	}
 }
