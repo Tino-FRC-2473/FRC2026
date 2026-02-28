@@ -92,9 +92,10 @@ public class Robot extends LoggedRobot {
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
 		input.reset();
-		if (drivetrainFSMSystem instanceof Drivetrain drive) {
+		if (drivetrainFSMSystem instanceof Drivetrain drive
+			&& shooterFSMSystem instanceof ShooterFSMSystem shooter) {
 			CommandScheduler.getInstance().schedule(
-				AutoPaths.getTestAuto(autoInput, drive)
+				AutoPaths.getTestAuto(autoInput, drive, shooter)
 			);
 		}
 	}
