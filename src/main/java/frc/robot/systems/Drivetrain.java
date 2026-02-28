@@ -10,11 +10,13 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
@@ -28,7 +30,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	// FSM states enum
 	public enum DrivetrainState {
-		TELEOP
+		TELEOP,
+		FACE_HUB
 	}
 
 	// Max linear & angular speeds
@@ -77,6 +80,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		switch (currentState) {
 			case TELEOP:
 				handleTeleopState(input);
+				break;
+			case FACE_HUB:
+				handleFaceHubState(input);
 				break;
 			default:
 				throw new IllegalStateException(
@@ -140,6 +146,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	/* ======================== Private methods ======================== */
 
+	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle =
+		new SwerveRequest.FieldCentricFacingAngle()
+		.withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
+		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+
 	@Override
 	protected DrivetrainState nextState(Input input) {
 		if (input == null) {
@@ -148,7 +159,15 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		switch (currentState) {
 			case TELEOP:
+				if (input.getButtonPressed(ButtonInput.FACE_HUB)) {
+					return DrivetrainState.FACE_HUB;
+				}
 				return DrivetrainState.TELEOP;
+			case FACE_HUB:
+				if (input.getButtonReleased(ButtonInput.FACE_HUB)) {
+					return DrivetrainState.TELEOP;
+				}
+				return DrivetrainState.FACE_HUB;
 			default:
 				throw new IllegalStateException(
 					"[DRIVETRAIN] Cannot get next state of an invalid current state: "
@@ -156,6 +175,57 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				);
 		}
 	}
+
+	private void handleFaceHubState(Input input) {
+		if (input == null) {
+			return;
+		}
+
+		double xSpeed = MathUtil.applyDeadband(
+			input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
+			DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+
+		double ySpeed = MathUtil.applyDeadband(
+			-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
+			DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+
+
+		Pose2d targetPose = new Pose2d(11.9191774, 4.0346376, new Rotation2d());
+
+
+		if (targetPose != null && DriverStation.getAlliance().isPresent()) {
+			double angle = Math.atan2(
+				targetPose.getY() - getPose().getY(),
+				targetPose.getX() - getPose().getX()
+			);
+
+			drivetrain.setControl(
+				driveFacingAngle
+					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
+					.withHeadingPID(7, 0, 0)
+			);
+		} else {
+			double thetaSpeed = MathUtil.applyDeadband(
+					-input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
+				DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+
+			drivetrain.setControl(
+				driveFieldCentric
+					.withVelocityX(-
+					xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
+			);
+			System.out.println("Hi");
+		}
+
+		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
+			drivetrain.seedFieldCentric();
+		}
+	}
+
 
 	private void handleTeleopState(Input input) {
 		if (input == null) {
