@@ -52,7 +52,7 @@ public class AutoPaths {
 
 		BlueHUB_T,
 		RedHUB_T(BlueHUB_T),
-		
+
 		BlueD_HUB,
 		RedD_HUB(BlueD_HUB),
 
@@ -100,21 +100,21 @@ public class AutoPaths {
 
 	public record DepotShootClimbSettings(
 		boolean shouldShoot, boolean isRed, StartingPositon startingPositon) {
-			enum StartingPositon {
-				S1(DrivePaths.BlueS1_D),
-				S2(DrivePaths.BlueS2_D),
-				S3(DrivePaths.BlueS3_D);
+		public enum StartingPositon {
+			S1(DrivePaths.BlueS1_D),
+			S2(DrivePaths.BlueS2_D),
+			S3(DrivePaths.BlueS3_D);
 
-				private DrivePaths depotPath;
-				StartingPositon(DrivePaths pathToDepot) {
-					depotPath = pathToDepot;
-				}
+			private DrivePaths depotPath;
+			StartingPositon(DrivePaths pathToDepot) {
+				depotPath = pathToDepot;
+			}
 
-				public DrivePaths getDepotPath() {
-					return depotPath;
-				}
+			DrivePaths getDepotPath() {
+				return depotPath;
 			}
 		}
+	}
 
 	/**
 	 * Returns an auto command that goes from a start position to depot,
@@ -124,9 +124,8 @@ public class AutoPaths {
 	 * @param shooter the shooter
 	 * @param climber the climber
 	 * @param intake the intake
-	 * @param firstPath the first path, indicates the starting position
-	 * @param shouldShoot whether the path should go to the hub and shoot
-	 * @param isRed whether the bot is on the red alliance
+	 * @param settings the setttings, including Blue/Red,
+	 * starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
 	public static Command getDepotShootClimb(
