@@ -170,6 +170,37 @@ public class AutoPaths {
 	}
 
 	/**
+	 * Returns an auto command that goes from blue S1 to depot,
+	 * intakes, and then shoots, then climbs.
+	 * @param input the auto input
+	 * @param drivetrain the drivetrain
+	 * @param shooter the shooter
+	 * @param climber the climber
+	 * @param intake the intake
+	 * @return the auto as a command
+	 */
+	public static Command getBlueS1DepotClimb(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		ClimberFSMSystem climber,
+		IntakeFSMSystem intake
+
+	) {
+		return new CommandComposer()
+			//fold out intake
+			.doNext(DrivePaths.BlueS1_D.get())
+			//start intake
+			.doNext(DrivePaths.BlueD_INTAKE.get())
+			//stop intake
+			//fold in
+			//extend clibmer
+			.doNext(DrivePaths.BlueD_T.get())
+			//retract climber
+			.close();
+	}
+
+	/**
 	 * Returns a test auto that drives with the the BlueHubNZCimb2 trajectory,
 	 * and then shoots in the direction its facing for 10 seconds.
 	 * @param input the auto input
