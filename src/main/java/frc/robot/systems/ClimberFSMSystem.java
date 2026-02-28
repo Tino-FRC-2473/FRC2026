@@ -9,6 +9,9 @@ import edu.wpi.first.math.util.Units;
 
 import static edu.wpi.first.units.Units.Inches;
 
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
@@ -57,13 +60,16 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	private DIOSim limitSimLeft;
 	private DIOSim limitSimRight;
 	private MotionMagicVoltage motionRequest;
+	private Optional<IntakeFSMSystem> intake;
 
 	/**
 	 * Create ClimberFSMSystem and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
+	 * @param intakeFSMSystem the IntakeFSMSystem
 	 */
-	public ClimberFSMSystem() {
+	public ClimberFSMSystem(Optional<IntakeFSMSystem> intakeFSMSystem) {
+		intake = intakeFSMSystem;
 		climberMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_LEFT);
 		climberMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_RIGHT);
 		climberMotorRight.setControl(new Follower(HardwareMap.CAN_ID_CLIMBER_LEFT,
@@ -349,6 +355,12 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 				if (input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP)) {
 					return ClimberFSMState.L1_EXTEND;
 				}
+				if (input.getButtonPressed(ButtonInput.CLIMBER_AUTO_UP_1)) {
+					return ClimberFSMState.AUTO_UP_1;
+				}
+				if (input.getButtonPressed(ButtonInput.CLIMBER_AUTO_UP_2)) {
+					return ClimberFSMState.AUTO_UP_2;
+				}
 				return ClimberFSMState.IDLE;
 			case MANUAL_DIRECT_CONTROL:
 				if (input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP)) {
@@ -357,16 +369,16 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 				return ClimberFSMState.MANUAL_DIRECT_CONTROL;
 			case AUTO_UP_1:
 				if (isExtendedL1()) {
-					return ClimberFSMState.IDLE;
+					return ClimberFSMState.AUTO_IDLE;
 				}
 				return ClimberFSMState.AUTO_UP_1;
 			case AUTO_UP_2:
 				if (isRetractedL1()) {
-					return ClimberFSMState.IDLE;
+					return ClimberFSMState.AUTO_IDLE;
 				}
 				return ClimberFSMState.AUTO_UP_2;
 			case AUTO_DOWN_1:
-				if (input.getButtonPressed(ButtonInput.CLIMBER_DOWN_BUTTON) && isExtendedL1()) {
+				if (input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP) && isExtendedL1()) {
 					return ClimberFSMState.AUTO_DOWN_2;
 				}
 				return ClimberFSMState.AUTO_DOWN_1;
@@ -430,26 +442,37 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		// DutyCycleOut b = new DutyCycleOut(0.5);
 		// climberMotorLeft.setControl(n);
 		// climberMotorRight.setControl(b);
-
-		climberMotorLeft.setControl(motionRequest.withPosition(
-			ClimberConstants.L1_EXTEND_POS.in(Inches)
-		));
+		if (!isIntakeDown()) {
+			climberMotorLeft.setControl(motionRequest.withPosition(
+				ClimberConstants.L1_EXTEND_POS.in(Inches)
+			));
+		}
 	}
 
 	private void handleL1RetractState(Input input) {
-		climberMotorLeft.setControl(motionRequest.withPosition(
-			ClimberConstants.L1_RETRACT_POS.in(Inches)
-		));
+		if (!isIntakeDown()) {
+			climberMotorLeft.setControl(motionRequest.withPosition(
+				ClimberConstants.L1_RETRACT_POS.in(Inches)
+			));
+		}
 	}
 
 	private void handleResetToZero(Input input) {
-		if (groundLimitSwitchLeft.get() || getClimberHeightInches() <= 0
-			|| groundLimitSwitchRight.get()) {
-			climberMotorLeft.set(0);
-		} else {
-			climberMotorLeft.setControl(motionRequest.withPosition(
-				ClimberConstants.GROUND.in(Inches)
-			));
+		if (!isIntakeDown()) {
+			if (groundLimitSwitchLeft.get() || getClimberHeightInches() <= 0
+				|| groundLimitSwitchRight.get()) {
+				climberMotorLeft.set(0);
+			} else {
+				climberMotorLeft.setControl(motionRequest.withPosition(
+					ClimberConstants.GROUND.in(Inches)
+				));
+			}
 		}
+	}
+
+	private boolean isIntakeDown() {
+		AtomicBoolean isDown = new AtomicBoolean(false);
+		intake.ifPresent((i) -> isDown.set(i.isIntakeDown()));
+		return isDown.get();
 	}
 }
