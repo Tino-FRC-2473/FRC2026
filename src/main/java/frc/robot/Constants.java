@@ -11,7 +11,8 @@ import edu.wpi.first.units.measure.Frequency;
 public class Constants {
 	public static final class LimelightConstants {
 		public static final long AUTO_UPDATE_INTERVAL_MS = 20L;
-		public static final Distance LIMELIGHT_HEIGHT = Units.Inches.of(28.5);
+		public static final Distance LIMELIGHT_HEIGHT = Units.Inches.of(22.6);
+		public static final Angle LIMELIGHT_ANGLE = Units.Degrees.of(7.99);
 	}
 
 	public static final class DrivetrainConstants {
