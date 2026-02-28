@@ -38,7 +38,7 @@ import frc.robot.input.InputTypes.ButtonInput;
 
 
 public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState> {
-	enum ShooterFSMState {
+	public enum ShooterFSMState {
 		IDLE_STATE,
 		SHOOTER_PREP_STATE,
 		PASSER_PREP_STATE,

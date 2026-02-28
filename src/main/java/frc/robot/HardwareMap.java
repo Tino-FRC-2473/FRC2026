@@ -25,7 +25,7 @@ public final class HardwareMap {
 
 	//rio - dio ports
 	public static final int INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT = 0;
-	public static final int INTAKE_TOP_LIMIT_SWITCH_DIO_PORT = 1;
+	public static final int INTAKE_TOP_LIMIT_SWITCH_DIO_PORT = 2;
 	public static final int STORAGE_BREAK_BEAM_DIO_PORT = 2; //receiver of breakbeam
 
 	// Pneumatics channel numbers
@@ -59,6 +59,22 @@ public final class HardwareMap {
 	 * @return if the hardware for the climber is present
 	 */
 	public static boolean isClimberEnabled() {
+		return false;
+	}
+
+	/**
+	 * Hardware map entry for the intake subsystem.
+	 * @return if the hardware for the intake is present
+	 */
+	public static boolean isIntakeEnabled() {
+		return false;
+	}
+
+	/**
+	 * Hardware map entry for the shooter subsystem.
+	 * @return if the hardware for the shooter is present
+	 */
+	public static boolean isShooterEnabled() {
 		return false;
 	}
 }
