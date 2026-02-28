@@ -93,11 +93,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	//Pathfind targeting stuff
 	private AprilTagFieldLayout field = AprilTagFieldLayout
 		.loadField(AprilTagFields.k2026RebuiltWelded);
-	private Pose2d test = field.getTagPose(8).orElse(null).toPose2d();
+	private Pose2d test = field.getTagPose(DrivetrainConstants.TAG_TO_ALIGN_TO)
+		.orElse(null).toPose2d();
 
 	private Transform2d offsetTransform = new Transform2d(
-				-0.5, // Back to Front
-				1.5, // Side to Side
+				DrivetrainConstants.X_TRANFORM_FROM_TAG, // Back to Front
+				DrivetrainConstants.Y_TRANFORM_FROM_TAG, // Side to Side
 				Rotation2d.kCW_90deg);
 
 	private Pose2d pathfindTarget = test.transformBy(offsetTransform);
@@ -302,7 +303,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		double xSpeed = -MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
+				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double ySpeed = -MathUtil.applyDeadband(
@@ -355,7 +356,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
 	}
 
-	 /**
+	/**
 	 * Aligns the bot to target the hub for shooting.
 	 *
 	 */

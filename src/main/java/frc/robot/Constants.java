@@ -84,10 +84,14 @@ public class Constants {
 		// Drivetrain deadbands
 		public static final double TRANSLATIONAL_DEADBAND = 0.1;
 		public static final double ROTATIONAL_DEADBAND = 0.1;
+
+		public static final int TAG_TO_ALIGN_TO = 8;
+		public static final double X_TRANFORM_FROM_TAG = -0.5;
+		public static final double Y_TRANFORM_FROM_TAG = 1.5;
 	}
 
 	public static final class ModuleConstants {
-		public static double DRIVE_P = 7;
+		public static final double DRIVE_P = 7;
 		public static final double DRIVE_I = 1.75;
 		public static final double DRIVE_D = 0.1;
 		public static final double DRIVE_V = 0.124;
@@ -95,7 +99,7 @@ public class Constants {
 		public static final double DRIVE_CURRENT_LIMIT = 80;
 		public static final double STEER_CURRENT_LIMIT = 60;
 
-		public static double STEER_P = 13;
+		public static final double STEER_P = 13;
 		public static final double STEER_I = 0.1;
 		public static final double STEER_D = 0.1;
 		public static final double STEER_V = 0.1;
