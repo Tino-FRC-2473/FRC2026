@@ -1,6 +1,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
@@ -38,6 +39,15 @@ public class Constants {
 		// Drivetrain deadbands
 		public static final double TRANSLATIONAL_DEADBAND = 0.1;
 		public static final double ROTATIONAL_DEADBAND = 0.1;
+
+		public static final double FACE_HUB_P = 7.0;
+		public static final double FACE_HUB_I = 0.0;
+		public static final double FACE_HUB_D = 0.0;
+
+		public static final Pose2d RED_HUB_POSE =
+			new Pose2d(11.9191774, 4.0346376, new Rotation2d());
+		public static final Pose2d BLUE_HUB_POSE =
+			new Pose2d(4.6291742, 4.0346376, new Rotation2d());
 	}
 
 	public static final class ModuleConstants {

@@ -10,7 +10,6 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -189,8 +188,13 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 			DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-
-		Pose2d targetPose = new Pose2d(11.9191774, 4.0346376, new Rotation2d());
+		Pose2d targetPose;
+		if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get()
+			== DriverStation.Alliance.Red) {
+			targetPose = DrivetrainConstants.RED_HUB_POSE;
+		} else {
+			targetPose = DrivetrainConstants.BLUE_HUB_POSE;
+		}
 
 
 		if (targetPose != null && DriverStation.getAlliance().isPresent()) {
@@ -204,7 +208,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
-					.withHeadingPID(7, 0, 0)
+					.withHeadingPID(DrivetrainConstants.FACE_HUB_P,
+						DrivetrainConstants.FACE_HUB_I,
+						DrivetrainConstants.FACE_HUB_D)
 			);
 		} else {
 			double thetaSpeed = MathUtil.applyDeadband(
