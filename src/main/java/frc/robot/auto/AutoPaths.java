@@ -47,6 +47,8 @@ public class AutoPaths {
 		RedHUB_T,
 		RedD_T,
 		RedD_HUB,
+		BlueD_INTAKE,
+		RedD_INTAKE;
 
 		private PathPlannerPath path;
 		DrivePaths() {
@@ -83,7 +85,20 @@ public class AutoPaths {
 		IntakeFSMSystem intake
 
 	) {
-		
+		return new CommandComposer()
+			//fold out intake
+			.doNext(DrivePaths.BlueS1_D.get())
+			//start intake
+			.doNext(DrivePaths.BlueD_INTAKE.get())
+			//stop intake
+			//fold in
+			.doNext(DrivePaths.BlueD_HUB.get())
+			//shoot for 2-3 sceonds
+			//stop shooting
+			//extend clibmer
+			.doNext(DrivePaths.BlueHUB_T.get())
+			//retract climber
+			.close();
 	}
 
 	/**
