@@ -501,6 +501,24 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	}
 
 	/**
+	 * Check if we are currently in shooter prep state, which is used for the drivetrain.
+	 * @return true if the past state is SHOOTER_PREP_STATE, false otherwise
+	 */
+	public boolean getIsPastStateShooterPrep() {
+		return pastState == ShooterFSMState.SHOOTER_PREP_STATE;
+	}
+
+	/**
+	 * Check if we are currently in shooter prep state, which is used for the drivetrain
+	 * to know whether to face the hub or the pass zone.
+	 * @return true if the current state is SHOOTER_PREP_STATE, false otherwise
+	 */
+	public boolean getIsCurrentStateShooterPrep() {
+		return getCurrentState() == ShooterFSMState.SHOOTER_PREP_STATE;
+	}
+
+
+	/**
 	 * Handle behavior in SHOOTER_PREP_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.

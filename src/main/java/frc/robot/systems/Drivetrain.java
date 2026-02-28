@@ -3,6 +3,8 @@ package frc.robot.systems;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
+import java.util.Optional;
+
 import org.littletonrobotics.junction.AutoLogOutput;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
@@ -30,7 +32,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	// FSM states enum
 	public enum DrivetrainState {
 		TELEOP,
-		FACE_HUB
+		FACE_HUB,
+		FACE_PASS_ZONE
 	}
 
 	// Max linear & angular speeds
@@ -53,13 +56,15 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private DrivetrainState currentState;
 	// Drivetrain subsystem instance
 	private CommandSwerveDrivetrain drivetrain;
+	private ShooterFSMSystem shooter;
 
 	/**
 	 * Constructs the drivetrain subsystem.
+	 * @param shooterFSMSystem the shooter FSM system, used for targeting the hub in FACE_HUB state
 	 */
-	public Drivetrain() {
+	public Drivetrain(Optional<ShooterFSMSystem> shooterFSMSystem) {
 		drivetrain = TunerConstants.createDrivetrain();
-
+		shooter = shooterFSMSystem.orElse(null);
 		reset();
 	}
 
@@ -82,6 +87,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				break;
 			case FACE_HUB:
 				handleFaceHubState(input);
+				break;
+			case FACE_PASS_ZONE:
+				handleFacePassZoneState(input);
 				break;
 			default:
 				throw new IllegalStateException(
@@ -158,15 +166,25 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		switch (currentState) {
 			case TELEOP:
-				if (input.getButtonPressed(ButtonInput.FACE_HUB)) {
-					return DrivetrainState.FACE_HUB;
+				if (input.getButtonPressed(ButtonInput.FACE_SHOOTER)) {
+					if (shooter.getIsPastStateShooterPrep()
+						|| shooter.getIsCurrentStateShooterPrep()) {
+						return DrivetrainState.FACE_HUB;
+					} else {
+						return DrivetrainState.FACE_PASS_ZONE;
+					}
 				}
 				return DrivetrainState.TELEOP;
 			case FACE_HUB:
-				if (input.getButtonReleased(ButtonInput.FACE_HUB)) {
+				if (input.getButtonReleased(ButtonInput.FACE_SHOOTER)) {
 					return DrivetrainState.TELEOP;
 				}
 				return DrivetrainState.FACE_HUB;
+			case FACE_PASS_ZONE:
+				if (input.getButtonReleased(ButtonInput.FACE_SHOOTER)) {
+					return DrivetrainState.TELEOP;
+				}
+				return DrivetrainState.FACE_PASS_ZONE;
 			default:
 				throw new IllegalStateException(
 					"[DRIVETRAIN] Cannot get next state of an invalid current state: "
@@ -224,13 +242,69 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 					.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
 			);
-			System.out.println("Hi");
 		}
 
 		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
 			drivetrain.seedFieldCentric();
 		}
 	}
+
+	private void handleFacePassZoneState(Input input) {
+		if (input == null) {
+			return;
+		}
+
+		double xSpeed = MathUtil.applyDeadband(
+			input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
+			DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+
+		double ySpeed = MathUtil.applyDeadband(
+			-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
+			DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+
+		Pose2d targetPose;
+		if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get()
+			== DriverStation.Alliance.Red) {
+			targetPose = DrivetrainConstants.RED_PASSING_POSE;
+		} else {
+			targetPose = DrivetrainConstants.BLUE_PASSING_POSE;
+		}
+
+
+		if (targetPose != null && DriverStation.getAlliance().isPresent()) {
+			double angle = Math.atan2(
+				targetPose.getY() - getPose().getY(),
+				targetPose.getX() - getPose().getX()
+			);
+
+			drivetrain.setControl(
+				driveFacingAngle
+					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
+					.withHeadingPID(DrivetrainConstants.FACE_HUB_P,
+						DrivetrainConstants.FACE_HUB_I,
+						DrivetrainConstants.FACE_HUB_D)
+			);
+		} else {
+			double thetaSpeed = MathUtil.applyDeadband(
+					-input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
+				DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+
+			drivetrain.setControl(
+				driveFieldCentric
+					.withVelocityX(-
+					xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
+			);
+		}
+
+		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
+			drivetrain.seedFieldCentric();
+		}
+	}
+
 
 
 	private void handleTeleopState(Input input) {

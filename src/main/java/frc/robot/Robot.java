@@ -3,6 +3,8 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
+import java.util.Optional;
+
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
@@ -50,9 +52,18 @@ public class Robot extends LoggedRobot {
 		Logger.addDataReceiver(new NT4Publisher());
 		Logger.start();
 
+		Optional<ShooterFSMSystem> shooter;
+		if (HardwareMap.isShooterEnabled()) {
+			shooter = Optional.of(new ShooterFSMSystem());
+			shooterFSMSystem = shooter.get();
+		} else {
+			shooterFSMSystem = new PlaceholderFSMSystem<>();
+			shooter = Optional.empty();
+		}
+
 		// Instantiate all systems here
 		drivetrain = HardwareMap.isDrivetrainEnabled()
-			? new Drivetrain()
+			? new Drivetrain(shooter)
 			: new PlaceholderFSMSystem<>();
 
 		climberFSMSystem = HardwareMap.isClimberEnabled()
@@ -63,9 +74,6 @@ public class Robot extends LoggedRobot {
 			? new IntakeFSMSystem()
 			: new PlaceholderFSMSystem<>();
 
-		shooterFSMSystem = HardwareMap.isShooterEnabled()
-			? new ShooterFSMSystem()
-			: new PlaceholderFSMSystem<>();
 	}
 
 	@Override
