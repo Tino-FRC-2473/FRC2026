@@ -22,6 +22,7 @@ import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.Drivetrain;
 import frc.robot.systems.ShooterFSMSystem;
+import frc.robot.systems.IntakeFSMSystem.IntakeFSMState;
 import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
 
 public class AutoPaths {
@@ -86,18 +87,42 @@ public class AutoPaths {
 
 	) {
 		return new CommandComposer()
-			//fold out intake
+
+			// drive from start to blue depo
 			.doNext(DrivePaths.BlueS1_D.get())
+
+			// fold out intake while driving
+			.with(input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON))
+			.with(intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE))
+
 			//start intake
+			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
+			.with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
+
+			// drive through depo
 			.doNext(DrivePaths.BlueD_INTAKE.get())
-			//stop intake
-			//fold in
+
+			//stop intake and fold in
+			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
+			.with(input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON))
+
+			//drive to hub
 			.doNext(DrivePaths.BlueD_HUB.get())
-			//shoot for 2-3 sceonds
-			//stop shooting
-			//extend clibmer
+
+			// shoot for 2-3 seconds
+			.doNext(shootFor(input, shooter, 2))
+
+			// extend climber
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+			.with(climber.waitForExtendedL1())
+
+			// drive to tower
 			.doNext(DrivePaths.BlueHUB_T.get())
-			//retract climber
+
+			// retract climber
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+
+			// finish command
 			.close();
 	}
 
@@ -135,6 +160,14 @@ public class AutoPaths {
 			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, false))
 			.with(input.setButtonCommand(ButtonInput.SHOOTER_PREP_TOGGLE, false))
 			.with(shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE))
+			.close();
+	}
+
+	private static Command shootFor(AutoInput input, ShooterFSMSystem shooter, double time) {
+		return new CommandComposer()
+			.with(startShootingCommand(input, shooter))
+			.with(new WaitCommand(time))
+			.doNext(stopShootingCommand(input, shooter))
 			.close();
 	}
 

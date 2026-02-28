@@ -41,5 +41,5 @@ stateDiagram-v2
     note: 7. Passer Prep and Shooter Prep are autonomous alignment prep states to different targets. Shooter Prep will target the hub and Passer Prep will target predetermined passing points (currently set to the outpost)
     note: 8. Manual Prep will primarily be used for testing or as a backup if things go wrong in competitions
     note: 9. Auto States would follow the same functionality as Passer_Prep and Shooter_Prep (not Manual_Prep), the only difference would be the physical trigger for intaking or toggling states not being there
-
+```
    
