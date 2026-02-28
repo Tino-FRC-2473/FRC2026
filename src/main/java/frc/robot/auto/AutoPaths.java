@@ -98,6 +98,24 @@ public class AutoPaths {
 
 	}
 
+	public record DepotShootClimbSettings(
+		boolean shouldShoot, boolean isRed, StartingPositon startingPositon) {
+			enum StartingPositon {
+				S1(DrivePaths.BlueS1_D),
+				S2(DrivePaths.BlueS2_D),
+				S3(DrivePaths.BlueS3_D);
+
+				private DrivePaths depotPath;
+				StartingPositon(DrivePaths pathToDepot) {
+					depotPath = pathToDepot;
+				}
+
+				public DrivePaths getDepotPath() {
+					return depotPath;
+				}
+			}
+		}
+
 	/**
 	 * Returns an auto command that goes from a start position to depot,
 	 * intakes, optionally shoots into the hub, then climbs.
@@ -111,21 +129,21 @@ public class AutoPaths {
 	 * @param isRed whether the bot is on the red alliance
 	 * @return the auto as a command
 	 */
-	public static Command getBlueS1DepoShootClimb(
+	public static Command getDepotShootClimb(
 		AutoInput input,
 		Drivetrain drivetrain,
 		ShooterFSMSystem shooter,
 		ClimberFSMSystem climber,
 		IntakeFSMSystem intake,
-		DrivePaths firstPath,
-		boolean shouldShoot,
-		boolean isRed
+		DepotShootClimbSettings settings
 
 	) {
+		boolean isRed = settings.isRed();
+		boolean shouldShoot = settings.shouldShoot();
 		return new CommandComposer()
 
 			// drive from start to blue depo
-			.doNext(firstPath.get(isRed))
+			.doNext(settings.startingPositon().getDepotPath().get(isRed))
 			//start intake
 			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
 			.with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
