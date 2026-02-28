@@ -120,7 +120,7 @@ public class Constants {
 
 		public static final double SHOOTER_CURRENT_LIMIT = 40; //Amps
 
-		public static final double TEMP_FLYSPEED = 2;
+		public static final double TEMP_FLYSPEED = 55;
 
 		private static final double JERK_MULT_CONSTANT = 100;
 		//constant to change the magnitude of jerk from acceleration
