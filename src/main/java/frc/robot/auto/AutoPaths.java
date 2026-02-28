@@ -171,7 +171,7 @@ public class AutoPaths {
 
 	/**
 	 * Returns an auto command that goes from blue S1 to depot,
-	 * intakes, and then shoots, then climbs.
+	 * intakes, then climbs.
 	 * @param input the auto input
 	 * @param drivetrain the drivetrain
 	 * @param shooter the shooter
@@ -190,6 +190,37 @@ public class AutoPaths {
 		return new CommandComposer()
 			//fold out intake
 			.doNext(DrivePaths.BlueS1_D.get())
+			//start intake
+			.doNext(DrivePaths.BlueD_INTAKE.get())
+			//stop intake
+			//fold in
+			//extend clibmer
+			.doNext(DrivePaths.BlueD_T.get())
+			//retract climber
+			.close();
+	}
+
+	/**
+	 * Returns an auto command that goes from blue S2 to depot,
+	 * intakes, then climbs.
+	 * @param input the auto input
+	 * @param drivetrain the drivetrain
+	 * @param shooter the shooter
+	 * @param climber the climber
+	 * @param intake the intake
+	 * @return the auto as a command
+	 */
+	public static Command getBlueS2DepotClimb(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		ClimberFSMSystem climber,
+		IntakeFSMSystem intake
+
+	) {
+		return new CommandComposer()
+			//fold out intake
+			.doNext(DrivePaths.BlueS2_D.get())
 			//start intake
 			.doNext(DrivePaths.BlueD_INTAKE.get())
 			//stop intake
