@@ -18,6 +18,8 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.input.AutoInput;
 import frc.robot.input.InputTypes.ButtonInput;
+import frc.robot.systems.ClimberFSMSystem;
+import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.Drivetrain;
 import frc.robot.systems.ShooterFSMSystem;
 import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
@@ -48,6 +50,24 @@ public class AutoPaths {
 				? new InstantCommand()
 				: AutoBuilder.followPath(path);
 		}
+
+	}
+
+	/**
+	 * Returns an auto command that goes from blue S1 to depot,
+	 * intakes, and then shoots, then climbs.
+	 * @param input the auto input
+	 * @param drivetrain the drivetrain
+	 * @param shooter the shooter
+	 * @return the auto as a command
+	 */
+	public static Command getBlueS1DepoShootClimb(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		ClimberFSMSystem climber,
+		IntakeFSMSystem intake
+	) {
 
 	}
 
