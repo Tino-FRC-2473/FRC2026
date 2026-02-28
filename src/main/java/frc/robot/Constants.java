@@ -68,7 +68,7 @@ public class Constants {
 
 		// drive velocity limits
 		// Max linear & angular speeds
-		public static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
+		public static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
 		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(0.75);
 
 		// pathing acceleration limits
@@ -182,7 +182,7 @@ public class Constants {
 
 		public static final double SHOOTER_CURRENT_LIMIT = 40; //Amps
 
-		public static final double TEMP_FLYSPEED = 55;
+		public static final double TEMP_FLYSPEED = 70;
 
 		private static final double JERK_MULT_CONSTANT = 100;
 		//constant to change the magnitude of jerk from acceleration
@@ -233,7 +233,7 @@ public class Constants {
 		// public static final double HOOD_MM_CONSTANT_G = 0.82;
 		//just an estimate, will use Recalc with measurements to calculate later
 
-		public static final double SPINDEX_CONSTANT_SPEED = 0.1; //ranges from -1 to 1
+		public static final double SPINDEX_CONSTANT_SPEED = 0.3; //ranges from -1 to 1
 		public static final double SPINDEX_CONSTANT_VOLTAGE = 0.3;
 
 		public static final double FEED_MAX_TIME = 2; //2s

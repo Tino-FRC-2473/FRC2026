@@ -63,14 +63,7 @@ public class Robot extends LoggedRobot {
 		Logger.addDataReceiver(new NT4Publisher());
 		Logger.start();
 
-		Optional<ShooterFSMSystem> shooter;
-		if (HardwareMap.isShooterEnabled()) {
-			shooter = Optional.of(new ShooterFSMSystem());
-			shooterFSMSystem = shooter.get();
-		} else {
-			shooterFSMSystem = new PlaceholderFSMSystem<>();
-			shooter = Optional.empty();
-		}
+		
 
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
@@ -89,6 +82,15 @@ public class Robot extends LoggedRobot {
 		} else {
 			intakeFSMSystem = new PlaceholderFSMSystem<>();
 			intake = Optional.empty();
+		}
+
+		Optional<ShooterFSMSystem> shooter;
+		if (HardwareMap.isShooterEnabled()) {
+			shooter = Optional.of(new ShooterFSMSystem((Drivetrain)drivetrainFSMSystem, (IntakeFSMSystem)intakeFSMSystem));
+			shooterFSMSystem = shooter.get();
+		} else {
+			shooterFSMSystem = new PlaceholderFSMSystem<>();
+			shooter = Optional.empty();
 		}
 
 		climberFSMSystem = HardwareMap.isClimberEnabled()

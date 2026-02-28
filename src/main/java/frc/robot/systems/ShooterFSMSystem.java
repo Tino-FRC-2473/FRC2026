@@ -136,8 +136,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		//set to 3
 		flywheelFeedbackConfigs.SensorToMechanismRatio = ShooterConstants.FLYWHEEL_GEAR_RATIO;
 
-		flywheelMotor.getConfigurator().apply(flywheelConfigs);
-		flywheelMotor.getConfigurator().apply(limitConfigs);
+		
 
 		feederConfigs = new TalonFXConfiguration();
 		var feeder0Config = feederConfigs.Slot0;
@@ -149,6 +148,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 		var flywheelMotorOutputs = flywheelConfigs.MotorOutput;
 		flywheelMotorOutputs.NeutralMode = NeutralModeValue.Coast;
+		flywheelMotorOutputs.Inverted = InvertedValue.CounterClockwise_Positive;
+
+		flywheelMotor.getConfigurator().apply(flywheelConfigs);
+		flywheelMotor.getConfigurator().apply(limitConfigs);
 
 		var feederMotionMagicConfigs = feederConfigs.MotionMagic;
 		feederMotionMagicConfigs.MotionMagicAcceleration =
@@ -537,21 +540,21 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleFeedState(TeleopInput input) {
-		if (!spindexTimer.isRunning()) {
-			spindexTimer.start();
-		}
-		if (spindexTimer.get() > 2 * ShooterConstants.SPINDEX_MAX_TIME) {
-			SparkMaxConfig normal = new SparkMaxConfig();
-			normal.inverted(false);
-			spindexMotor.configure(normal,
-				ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-			spindexTimer.restart();
-		} else if (spindexTimer.get() > ShooterConstants.SPINDEX_MAX_TIME) {
-			SparkMaxConfig invert = new SparkMaxConfig();
-			invert.inverted(true);
-			spindexMotor.configure(invert,
-				ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-		}
+		// if (!spindexTimer.isRunning()) {
+		// 	spindexTimer.start();
+		// }
+		// if (spindexTimer.get() > 2 * ShooterConstants.SPINDEX_MAX_TIME) {
+		// 	SparkMaxConfig normal = new SparkMaxConfig();
+		// 	normal.inverted(false);
+		// 	spindexMotor.configure(normal,
+		// 		ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+		// 	spindexTimer.restart();
+		// } else if (spindexTimer.get() > ShooterConstants.SPINDEX_MAX_TIME) {
+		// 	SparkMaxConfig invert = new SparkMaxConfig();
+		// 	invert.inverted(true);
+		// 	spindexMotor.configure(invert,
+		// 		ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+		// }
 
 
 		Logger.recordOutput("noFuelStored", noFuelStored);

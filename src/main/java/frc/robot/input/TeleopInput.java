@@ -51,7 +51,7 @@ public final class TeleopInput extends Input {
 
 	@Override
 	public Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
-
+		System.out.println(key);
 		return switch (key) {
 
 			// Drivetrain
@@ -59,18 +59,21 @@ public final class TeleopInput extends Input {
 			case DRIVETRAIN_PATHFIND -> driveController::square;
 
 			case FACE_HUB -> driveController::R2;
+			case FACE_SHOOTER -> driveController::L2;
 
 			// Intake
 			case PARTIAL_OUT_BUTTON -> mechController::share;
 			case INTAKE_BUTTON -> mechController::circle;
 			case OUTTAKE_BUTTON -> mechController::cross;
-			case FOLD_IN_BUTTON -> mechController::L1;
-			case FOLD_OUT_BUTTON -> mechController::L2;
+			case FOLD_IN_BUTTON -> mechController::triangle;
+			case FOLD_OUT_BUTTON -> mechController::square;
 
 			// Climber
 			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
 			case CLIMBER_NEXT_STEP -> mechController::square;
 			case CLIMBER_EMERGENCY_ABORT -> mechController::cross;
+			case CLIMBER_AUTO_UP_1 -> driveController::triangle;
+			case CLIMBER_AUTO_UP_2 -> driveController::circle;
 
 
 			case PASSER_PREP_TOGGLE -> mechController::R1;
