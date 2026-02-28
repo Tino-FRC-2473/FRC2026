@@ -11,6 +11,8 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.AngularVelocityUnit;
 
@@ -22,6 +24,10 @@ import edu.wpi.first.wpilibj.Timer;
 
 
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 
 
@@ -72,6 +78,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private IntakeFSMSystem intake;
 	private DigitalInput breakBeam;
 	private Timer feedTimer = new Timer();
+	private Timer spindexTimer = new Timer();
 	private boolean noFuelStored = false;
 	private boolean flywheelMotorStopped = false;
 
@@ -96,20 +103,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feederMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_FEEDER
 		);
-		// spindexMotor = new SparkMax(HardwareMap.CAN_ID_SPINDEXER,
-		// 	MotorType.kBrushless);
+		spindexMotor = new SparkMax(HardwareMap.CAN_ID_SPINDEXER,
+			MotorType.kBrushless);
 
-
-		// spindexMotor = new TalonFXWrapper(HardwareMap.CAN_ID_SPINDEXER);
-		// spindexConfigs = new TalonFXConfiguration();
-
-		// var spindexFeedbackConfigs = spindexConfigs.Feedback;
-		// var spindexRatio =
-		// 	ShooterConstants.SPINDEX_GEAR_RATIO;
-		// spindexFeedbackConfigs.SensorToMechanismRatio = spindexRatio;
-		// //set to 2 (divided by 360 to get in terms of degrees)
-
-		// spindexMotor.getConfigurator().apply(spindexConfigs);
 		var limitConfigs = new CurrentLimitsConfigs();
 
 		// enable stator current limit
@@ -167,16 +163,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feederMotor.getConfigurator().apply(feederConfigs);
 		feederMotor.getConfigurator().apply(limitConfigs);
 
-		// BaseStatusSignal.setUpdateFrequencyForAll(
-		// 		ShooterConstants.UPDATE_FREQUENCY_HZ,
-		// 		spindexMotor.getPosition(),
-		// 		spindexMotor.getVelocity(),
-		// 		spindexMotor.getAcceleration(),
-		// 		spindexMotor.getMotorVoltage(),
-		// 		spindexMotor.getRotorPosition(),
-		// 		spindexMotor.getRotorVelocity()
-		// );
-
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				ShooterConstants.UPDATE_FREQUENCY_HZ,
 				feederMotor.getPosition(),
@@ -196,12 +182,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				flywheelMotor.getRotorPosition(),
 				flywheelMotor.getRotorVelocity()
 		);
-
-		// spindexMotor.optimizeBusUtilization();
 		feederMotor.optimizeBusUtilization();
 		flywheelMotor.optimizeBusUtilization();
 
-		//breakBeam = new DigitalInput(HardwareMap.STORAGE_BREAK_BEAM_DIO_PORT);
+		breakBeam = new DigitalInput(HardwareMap.STORAGE_BREAK_BEAM_DIO_PORT);
 		reset();
 	}
 	/**
@@ -217,9 +201,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
 		this();
-		// drivetrain = driveSystem;
-		// curPose = drivetrain.getPose();
-		// intake = intakeSystem;
+		drivetrain = driveSystem;
+		curPose = drivetrain.getPose();
+		intake = intakeSystem;
 	}
 
 	/* ======================== Public methods ======================== */
@@ -262,7 +246,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	@Override
 	public void update(Input input) {
-		//curPose = drivetrain.getPose();
+		if (drivetrain != null) {
+			curPose = drivetrain.getPose();
+		}
 		if (getCurrentState() != null) {
 			switch (getCurrentState()) {
 				case IDLE_STATE:
@@ -438,6 +424,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feedTimer.reset();
 		feedTimer.stop();
 		noFuelStored = false;
+		spindexTimer.reset();
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
@@ -474,26 +461,39 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		} else {
 			correctTarget = outpostPose;
 		}
-		//drivetrain.targetPassZone(correctTarget);
 		//feeder 0 is flywheel velocity, feeder 1 is hood angle
-		double flyspeed = calculateTargetFlyspeed(correctTarget);
+		double flyspeed = calculateTargetPassSpeed(correctTarget);
 		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
 
 		updateFlywheel();
-		//updateHood();
 		// TBD: code to find the distance vector from where we are to passing targets
 		// (preferably outpost and thelocation of outpost on the other side) (3d vector)
 	}
 	/**
+	 * Calculate needed values to pass  in specific targets.
+	 * @param target The pose we are targetting towards
+	 * @return A double holding the target's needed flywheel speed
+	 */
+	public double calculateTargetPassSpeed(Pose2d target) {
+		Transform2d transform = curPose.minus(target);
+		double distance = Math.sqrt(Math.pow(transform.getX(), 2) + Math.pow(transform.getY(), 2));
+		double flyspeed = ShooterConstants.PASSING_REGRESSION_CONSTANT
+			+ ShooterConstants.PASSING_REGRESSION_SLOPE * Units.metersToInches(distance);
+		return flyspeed;
+		//code to be determined based off of regression model
+	}
+
+	/**
 	 * Calculate needed values to shoot in specific targets.
 	 * @param target The pose we are targetting towards
-	 * @return A list holding the target's needed flywheel speed and hood angle in that
-	 * order to make a pass
+	 * @return A double holding the target's needed flywheel speed
 	 */
-	public double calculateTargetFlyspeed(Pose2d target) {
+	public double calculateTargetShootSpeed(Pose2d target) {
 		return ShooterConstants.TEMP_FLYSPEED;
 		//code to be determined based off of regression model
 	}
+
+
 
 	private void stopFlywheel() {
 		flywheelTargetSpeed = RotationsPerSecond.of(0);
@@ -524,9 +524,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleShooterPrepState(TeleopInput input) {
-		double flyspeed = calculateTargetFlyspeed(hubPose);
+		double flyspeed = calculateTargetShootSpeed(hubPose);
 		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
-		//drivetrain.targetHub();
 
 		updateFlywheel();
 		//TBD: code to find the distance vector from where we are to hub center (3d vector)
@@ -538,63 +537,80 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleFeedState(TeleopInput input) {
+		if (!spindexTimer.isRunning()) {
+			spindexTimer.start();
+		}
+		if (spindexTimer.get() > 2 * ShooterConstants.SPINDEX_MAX_TIME) {
+			SparkMaxConfig normal = new SparkMaxConfig();
+			normal.inverted(false);
+			spindexMotor.configure(normal,
+				ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+			spindexTimer.restart();
+		} else if (spindexTimer.get() > ShooterConstants.SPINDEX_MAX_TIME) {
+			SparkMaxConfig invert = new SparkMaxConfig();
+			invert.inverted(true);
+			spindexMotor.configure(invert,
+				ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+		}
+
+
 		Logger.recordOutput("noFuelStored", noFuelStored);
 		Logger.recordOutput("isIntakeDown", modelIntake(input));
-		// if (!noFuelStored && !intake.isIntakeDownRunning()) {
-		// //if (!noFuelStored && !modelIntake(input)) {
-		// 	if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
-		// 		feederMotor.stopMotor();
-		// 		spindexMotor.stopMotor();
-		// 		//pastState should only store shooter_prep, passer_prep, and manual_prep
-		// 	} else {
-		// 		feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
-		// 		spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
-		// 	}
+		if (!noFuelStored && !intake.isIntakeDownRunning()) {
+		//if (!noFuelStored && !modelIntake(input)) {
+			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
+				feederMotor.stopMotor();
+				spindexMotor.stopMotor();
+				//pastState should only store shooter_prep, passer_prep, and manual_prep
+			} else {
+				feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
+				spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
+			}
 
-		// 	if (feedTimer.isRunning()) {
-		// 		if (!breakBeam.get()) {
-		// 			feedTimer.restart();
-		// 		} else {
-		// 			if (feedTimer.get() >= ShooterConstants.FEED_MAX_TIME) {
-		// 				noFuelStored = true; //we don't have fuel
-		// 			}
-		// 		}
+			if (feedTimer.isRunning()) {
+				if (!breakBeam.get()) {
+					feedTimer.restart();
+				} else {
+					if (feedTimer.get() >= ShooterConstants.FEED_MAX_TIME) {
+						noFuelStored = true; //we don't have fuel
+					}
+				}
 
-		// 	} else {
-		// 		feedTimer.start();
-		// 	}
+			} else {
+				feedTimer.start();
+			}
 
 
-		// } else if (intake.isIntakeDownRunning()) {
-		// //} else if (modelIntake(input)) {
-		// 	feedTimer.reset();
-		// 	noFuelStored = false;
-		// 	if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
-		// 		feederMotor.stopMotor();
-		// 		spindexMotor.stopMotor();
-		// 		//pastState should only store shooter_prep, passer_prep, and manual_prep
-		// 	} else {
-		// 		feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
-		// 		spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
-		// 	}
-		// } else {
-		// 	//condition for not having anyting stored
-		// 	feederMotor.stopMotor();
-		// 	spindexMotor.stopMotor();
-		// }
+		} else if (intake.isIntakeDownRunning()) {
+		//} else if (modelIntake(input)) {
+			feedTimer.reset();
+			noFuelStored = false;
+			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
+				feederMotor.stopMotor();
+				spindexMotor.stopMotor();
+				//pastState should only store shooter_prep, passer_prep, and manual_prep
+			} else {
+				feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
+				spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
+			}
+		} else {
+			//condition for not having anyting stored
+			feederMotor.stopMotor();
+			spindexMotor.stopMotor();
+		}
 
 		//if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
-		if (!input.getButtonValue(ButtonInput.REV_FEEDER)) {
-			System.out.println("reach 2");
-			feederMotor.stopMotor();
-				//spindexMotor.stopMotor();
-				//pastState should only store shooter_prep, passer_prep, and manual_prep
-		} else {
-			System.out.println("reach 1");
-			feederMotor.setControl(feederRequest.withVelocity(ShooterConstants.
-				FEEDER_CONSTANT_SPEED));
-				//spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
-		}
+		// if (!input.getButtonValue(ButtonInput.REV_FEEDER)) {
+		// 	System.out.println("reach 2");
+		// 	feederMotor.stopMotor();
+		// 		//spindexMotor.stopMotor();
+		// 		//pastState should only store shooter_prep, passer_prep, and manual_prep
+		// } else {
+		// 	System.out.println("reach 1");
+		// 	feederMotor.setControl(feederRequest.withVelocity(ShooterConstants.
+		// 		FEEDER_CONSTANT_SPEED));
+		// 		//spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
+		// }
 		Logger.recordOutput("BreakBeam Timer: ", feedTimer.get());
 	}
 

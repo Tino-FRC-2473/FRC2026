@@ -19,7 +19,6 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants.DrivetrainConstants;
-import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.input.Input;
@@ -344,25 +343,5 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@AutoLogOutput(key = "Drivetrain/Current State")
 	public DrivetrainState getCurrentState() {
 		return currentState;
-	}
-
-	/**
-	 * Aligns the bot to target the hub for shooting.
-	 *
-	 */
-	public void targetHub() {
-		//Code to be finished in a seperate branch
-		Pose2d transformPose = getPose().relativeTo(ShooterConstants.HUB_POSE);
-	}
-
-	/**
-	 * Aligns the bot to target the passing target.
-	 * @param targetPose the target passing pose
-	 */
-	public void targetPassZone(Pose2d targetPose) {
-		//toggleNumber = 1 for outpost, toggleNumber = 2 for other mirrored pose, etc
-		//Code to be finished in a seperate branch
-		Pose2d transformPose = getPose().relativeTo(targetPose);
-		//Code to be implemented differently later
 	}
 }
