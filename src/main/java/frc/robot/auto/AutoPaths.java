@@ -12,6 +12,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FileVersionException;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -29,35 +30,52 @@ public class AutoPaths {
 
 	enum DrivePaths {
 		BlueHubNZCimb2,
+		RedHubNZClimb2(BlueHubNZCimb2),
+
 		BlueLTNZClimb,
-		RedHubNZClimb,
-		RedLTNZClimb,
+		RedLTNZClimb(BlueLTNZClimb),
+
 		BlueHubNZClimb,
+		RedHubNZClimb(BlueHubNZClimb),
+
 		BlueRTNZClimb,
-		RedHubNZClimb2,
-		RedRTNZClimb,
+		RedRTNZClimb(BlueRTNZClimb),
+
 		BlueS1_D,
+		RedS1_D(BlueS1_D),
+
 		BlueS2_D,
+		RedS2_D(BlueS2_D),
+
 		BlueS3_D,
-		BlueHUB_T,
+		RedS3_D(BlueS3_D),
+
 		BlueD_T,
+		RedD_T(BlueD_T),
+
+		BlueHUB_T,
+		RedHUB_T(BlueHUB_T),
+		
 		BlueD_HUB,
-		RedS1_D,
-		RedS2_D,
-		RedS3_D,
-		RedHUB_T,
-		RedD_T,
-		RedD_HUB,
+		RedD_HUB(BlueD_HUB),
+
 		BlueD_INTAKE,
-		RedD_INTAKE;
+		RedD_INTAKE(BlueD_INTAKE);
 
 		private PathPlannerPath path;
-		DrivePaths() {
+		private DrivePaths mirror;
+
+		DrivePaths(DrivePaths mirroredPath) {
+			mirror = mirroredPath;
 			try {
 				path = PathPlannerPath.fromChoreoTrajectory(this.name());
 			} catch (FileVersionException | IOException | ParseException e) {
 				System.err.printf("Failure to load path: %s", this.name());
 			}
+		}
+
+		DrivePaths() {
+			this(null);
 		}
 
 		Command get() {
@@ -66,16 +84,34 @@ public class AutoPaths {
 				: AutoBuilder.followPath(path);
 		}
 
+		DrivePaths mirror() {
+			if (mirror == null) {
+				for (DrivePaths p : DrivePaths.values()) {
+					if (p.mirror != null && p.mirror == this) {
+						mirror = p.mirror;
+					}
+				}
+			}
+			return mirror;
+		}
+
+		Command get(boolean shouldMirror) {
+			return shouldMirror ? mirror().get() : get();
+		}
+
 	}
 
 	/**
-	 * Returns an auto command that goes from blue S1 to depot,
-	 * intakes, and then shoots, then climbs.
+	 * Returns an auto command that goes from a start position to depot,
+	 * intakes, optionally shoots into the hub, then climbs.
 	 * @param input the auto input
 	 * @param drivetrain the drivetrain
 	 * @param shooter the shooter
 	 * @param climber the climber
 	 * @param intake the intake
+	 * @param firstPath the first path, indicates the starting position
+	 * @param shouldShoot whether the path should go to the hub and shoot
+	 * @param isRed whether the bot is on the red alliance
 	 * @return the auto as a command
 	 */
 	public static Command getBlueS1DepoShootClimb(
@@ -83,41 +119,48 @@ public class AutoPaths {
 		Drivetrain drivetrain,
 		ShooterFSMSystem shooter,
 		ClimberFSMSystem climber,
-		IntakeFSMSystem intake
+		IntakeFSMSystem intake,
+		DrivePaths firstPath,
+		boolean shouldShoot,
+		boolean isRed
 
 	) {
 		return new CommandComposer()
 
 			// drive from start to blue depo
-			.doNext(DrivePaths.BlueS1_D.get())
-
-			// fold out intake while driving
-			.with(input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON))
-			.with(intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE))
-
+			.doNext(firstPath.get(isRed))
 			//start intake
 			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
 			.with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
 
 			// drive through depo
-			.doNext(DrivePaths.BlueD_INTAKE.get())
+			.doNext(DrivePaths.BlueD_INTAKE.get(isRed))
 
 			//stop intake and fold in
 			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
 			.with(input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON))
 
-			//drive to hub
-			.doNext(DrivePaths.BlueD_HUB.get())
+			// if we shouldn't shoot ...
+			.keepActiveIf(!shouldShoot)
+			// raise climber
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+			.with(climber.waitForExtendedL1())
+			// go to climber
+			.doNext(DrivePaths.BlueD_T.get(isRed))
+			.reactivate()
 
+			// if we should shoot ...
+			.keepActiveIf(shouldShoot)
+			//drive to hub
+			.doNext(DrivePaths.BlueD_HUB.get(isRed))
 			// shoot for 2-3 seconds
 			.doNext(shootFor(input, shooter, 2))
-
 			// extend climber
 			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
 			.with(climber.waitForExtendedL1())
-
 			// drive to tower
-			.doNext(DrivePaths.BlueHUB_T.get())
+			.doNext(DrivePaths.BlueHUB_T.get(isRed))
+			.reactivate()
 
 			// retract climber
 			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
@@ -140,10 +183,7 @@ public class AutoPaths {
 		ShooterFSMSystem shooter
 	) {
 		return new CommandComposer()
-			.doNext(DrivePaths.BlueHubNZCimb2.get())
-			.doNext(startShootingCommand(input, shooter))
-			.with(new WaitCommand(Seconds.of(2)))
-			.doNext(stopShootingCommand(input, shooter))
+			.doNext(shootFor(input, shooter, 2))
 			.close();
 	}
 
@@ -172,17 +212,29 @@ public class AutoPaths {
 	}
 
 	private static final class CommandComposer {
+		private boolean active = true;
 		private List<Command> commandSequence = new ArrayList<>();
 		private List<Command> currentCommandGroup = new ArrayList<>();
 
-		private CommandComposer doNext(Command command) {
-			completeCommand();
-			currentCommandGroup.add(command);
+		private CommandComposer keepActiveIf(boolean condition) {
+			active &= condition;
 			return this;
 		}
 
+		private CommandComposer reactivate() {
+			active = true;
+			return this;
+		}
+
+		private CommandComposer doNext(Command command) {
+			completeCommand();
+			return with(command);
+		}
+
 		private CommandComposer with(Command command) {
-			currentCommandGroup.add(command);
+			if (active) {
+				currentCommandGroup.add(command);
+			}
 			return this;
 		}
 
