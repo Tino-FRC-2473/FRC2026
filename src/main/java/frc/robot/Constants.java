@@ -1,5 +1,19 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Frequency;
+import edu.wpi.first.units.measure.MomentOfInertia;
+
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Hertz;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
+
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Volts;
@@ -88,6 +102,18 @@ public class Constants {
 		public static final int TAG_TO_ALIGN_TO = 8;
 		public static final double X_TRANFORM_FROM_TAG = -0.5;
 		public static final double Y_TRANFORM_FROM_TAG = 1.5;
+		public static final double FACE_HUB_P = 7.0;
+		public static final double FACE_HUB_I = 0.0;
+		public static final double FACE_HUB_D = 0.0;
+
+		public static final Pose2d RED_HUB_POSE =
+			new Pose2d(11.9191774, 4.0346376, new Rotation2d());
+		public static final Pose2d RED_PASSING_POSE =
+			new Pose2d(8.2741742, 4.0346376, new Rotation2d());
+		public static final Pose2d BLUE_HUB_POSE =
+			new Pose2d(14.001, 4.0346376, new Rotation2d());
+		public static final Pose2d BLUE_PASSING_POSE =
+			new Pose2d(2.54, 4.0346376, new Rotation2d());
 	}
 
 	public static final class ModuleConstants {
@@ -151,18 +177,18 @@ public class Constants {
 		public static final Pose2d HUB_POSE = new Pose2d();
 		//public static final double HOOD_GEAR_RATIO = 4;
 		public static final double SPINDEX_GEAR_RATIO = 3;
-		public static final double FLYWHEEL_GEAR_RATIO = 3;
+		public static final double FLYWHEEL_GEAR_RATIO = 1;
 		public static final double FEEDER_GEAR_RATIO = 3;
 
-		public static final double SHOOTER_CURRENT_LIMIT = 50; //Amps
+		public static final double SHOOTER_CURRENT_LIMIT = 40; //Amps
 
-		public static final double TEMP_FLYSPEED = 20;
+		public static final double TEMP_FLYSPEED = 55;
 
-		private static final double JERK_MULT_CONSTANT = 10;
+		private static final double JERK_MULT_CONSTANT = 100;
 		//constant to change the magnitude of jerk from acceleration
 		public static final Frequency UPDATE_FREQUENCY_HZ = Hertz.of(200);
 		public static final AngularAcceleration MAGIC_ACCELERATION =
-			RotationsPerSecondPerSecond.of(160);
+			RotationsPerSecondPerSecond.of(10000);
 		public static final double MAGIC_JERK =
 			MAGIC_ACCELERATION.times(JERK_MULT_CONSTANT).per(Seconds).magnitude();
 		// public static final AngularVelocity HOOD_VELOCITY = DegreesPerSecond.of(20);
@@ -178,26 +204,28 @@ public class Constants {
 
 		public static final AngularVelocity FLYWHEEL_MAX_SPEED = RotationsPerSecond.of(160);
 
-		public static final double FLYWHEEL_MM_CONSTANT_S = 0.1;
+		public static final double FLYWHEEL_MM_CONSTANT_S = 0; // 0.1;
 		//need to test by recording small amount of input that allows any movement at all
-		// public static final double HOOD_MM_CONSTANT_S = 0.1;
+		// public static final double HOOD_MM_CONSTANT_S = 0.1;n
 		//need to test by recording in some manner
 		public static final double MM_CONSTANT_V = 0.112; //taken straight from Phoenix6
 		// public static final Angle HOOD_MAX_ANGLE = Degrees.of(45);
 		// public static final Angle HOOD_MIN_ANGLE = Degrees.of(20);
 		// public static final Angle HOOD_INCREMENTER = Degrees.of(5);
-		public static final Angle HOOD_ANGLE = Degrees.of(45);
+		public static final Angle HOOD_ANGLE = Degrees.of(30); //from vertical
+
 		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(10);
 		public static final Angle FLYWHEEL_MAX_DEGREES = Degrees.of(360);
 
 		public static final double FEEDER_MM_CONSTANT_S = 0.1;
-		public static final double FEEDER_MM_CONSTANT_P = 0.1;
+		public static final double FEEDER_MM_CONSTANT_P = 0;
 		public static final double FEEDER_MM_CONSTANT_I = 0;
 		public static final double FEEDER_MM_CONSTANT_D = 0;
+		public static final double FEEDER_CONSTANT_SPEED = 20;
 
 		//All of these are placeholder values, all need to be changed
-		public static final double FLYWHEEL_MM_CONSTANT_P = 0;
-		public static final double FLYWHEEL_MM_CONSTANT_I = 0;
+		public static final double FLYWHEEL_MM_CONSTANT_P = 0.8;
+		public static final double FLYWHEEL_MM_CONSTANT_I = 0.02;
 		public static final double FLYWHEEL_MM_CONSTANT_D = 0;
 		// public static final double HOOD_MM_CONSTANT_P = 0;
 		// public static final double HOOD_MM_CONSTANT_I = 0;
@@ -206,9 +234,14 @@ public class Constants {
 		//just an estimate, will use Recalc with measurements to calculate later
 
 		public static final double SPINDEX_CONSTANT_SPEED = 0.1; //ranges from -1 to 1
-		public static final double SPINDEX_CONSTANT_VOLTAGE = 1;
+		public static final double SPINDEX_CONSTANT_VOLTAGE = 0.3;
 
-		public static final double FEED_MAX_TIME = 2; //2s 
+		public static final double FEED_MAX_TIME = 2; //2s
+
+		public static final double PASSING_REGRESSION_CONSTANT = 15.8;
+		public static final double PASSING_REGRESSION_SLOPE = 0.233; //inches
+
+		public static final double SPINDEX_MAX_TIME = 3; //3s, needs to be tuned
 	}
 	public static final class IntakeConstants {
 

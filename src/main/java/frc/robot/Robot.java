@@ -21,6 +21,7 @@ import frc.robot.Constants.VisionConstants;
 
 
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.auto.AutoPaths;
 import frc.robot.input.AutoInput;
 import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
@@ -62,6 +63,15 @@ public class Robot extends LoggedRobot {
 		Logger.addDataReceiver(new NT4Publisher());
 		Logger.start();
 
+		Optional<ShooterFSMSystem> shooter;
+		if (HardwareMap.isShooterEnabled()) {
+			shooter = Optional.of(new ShooterFSMSystem());
+			shooterFSMSystem = shooter.get();
+		} else {
+			shooterFSMSystem = new PlaceholderFSMSystem<>();
+			shooter = Optional.empty();
+		}
+
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
 			Drivetrain drivetrain = new Drivetrain();
@@ -85,9 +95,6 @@ public class Robot extends LoggedRobot {
 			? new ClimberFSMSystem(intake)
 			: new PlaceholderFSMSystem<>();
 
-		shooterFSMSystem = HardwareMap.isShooterEnabled()
-			? new ShooterFSMSystem()
-			: new PlaceholderFSMSystem<>();
 	}
 
 	@Override
@@ -97,7 +104,7 @@ public class Robot extends LoggedRobot {
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
 		input.reset();
-		// CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrain));
+		CommandScheduler.getInstance().schedule(AutoPaths.getTestAuto(autoInput, drivetrainFSMSystem));
 	}
 
 	@Override
@@ -133,6 +140,10 @@ public class Robot extends LoggedRobot {
 		shooterFSMSystem.update(input);
 
 		input.update();
+		climberFSMSystem.update((TeleopInput) input);
+		intakeFSMSystem.update((TeleopInput) input);
+		shooterFSMSystem.update((TeleopInput) input);
+
 		// logs motor values
 		MotorManager.update();
 	}

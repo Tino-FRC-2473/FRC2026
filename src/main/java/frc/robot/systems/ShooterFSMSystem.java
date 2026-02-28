@@ -7,8 +7,12 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.AngularVelocityUnit;
 
@@ -18,8 +22,12 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
+
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 
 
@@ -70,7 +78,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private IntakeFSMSystem intake;
 	private DigitalInput breakBeam;
 	private Timer feedTimer = new Timer();
+	private Timer spindexTimer = new Timer();
 	private boolean noFuelStored = false;
+	private boolean flywheelMotorStopped = false;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -96,17 +106,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		spindexMotor = new SparkMax(HardwareMap.CAN_ID_SPINDEXER,
 			MotorType.kBrushless);
 
-
-		// spindexMotor = new TalonFXWrapper(HardwareMap.CAN_ID_SPINDEXER);
-		// spindexConfigs = new TalonFXConfiguration();
-
-		// var spindexFeedbackConfigs = spindexConfigs.Feedback;
-		// var spindexRatio =
-		// 	ShooterConstants.SPINDEX_GEAR_RATIO;
-		// spindexFeedbackConfigs.SensorToMechanismRatio = spindexRatio;
-		// //set to 2 (divided by 360 to get in terms of degrees)
-
-		// spindexMotor.getConfigurator().apply(spindexConfigs);
 		var limitConfigs = new CurrentLimitsConfigs();
 
 		// enable stator current limit
@@ -148,6 +147,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feeder0Config.kI = ShooterConstants.FEEDER_MM_CONSTANT_I;
 		feeder0Config.kD = ShooterConstants.FEEDER_MM_CONSTANT_D;
 
+		var flywheelMotorOutputs = flywheelConfigs.MotorOutput;
+		flywheelMotorOutputs.NeutralMode = NeutralModeValue.Coast;
+
 		var feederMotionMagicConfigs = feederConfigs.MotionMagic;
 		feederMotionMagicConfigs.MotionMagicAcceleration =
 			ShooterConstants.MAGIC_ACCELERATION.in(RotationsPerSecondPerSecond);
@@ -155,19 +157,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		var feederFeedbackConfigs = feederConfigs.Feedback;
 		//set to 3
 		feederFeedbackConfigs.SensorToMechanismRatio = ShooterConstants.FEEDER_GEAR_RATIO;
+		var feederMotorConfigs = feederConfigs.MotorOutput;
+		feederMotorConfigs.Inverted = InvertedValue.Clockwise_Positive;
 
 		feederMotor.getConfigurator().apply(feederConfigs);
 		feederMotor.getConfigurator().apply(limitConfigs);
-
-		// BaseStatusSignal.setUpdateFrequencyForAll(
-		// 		ShooterConstants.UPDATE_FREQUENCY_HZ,
-		// 		spindexMotor.getPosition(),
-		// 		spindexMotor.getVelocity(),
-		// 		spindexMotor.getAcceleration(),
-		// 		spindexMotor.getMotorVoltage(),
-		// 		spindexMotor.getRotorPosition(),
-		// 		spindexMotor.getRotorVelocity()
-		// );
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				ShooterConstants.UPDATE_FREQUENCY_HZ,
@@ -188,8 +182,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				flywheelMotor.getRotorPosition(),
 				flywheelMotor.getRotorVelocity()
 		);
-
-		// spindexMotor.optimizeBusUtilization();
 		feederMotor.optimizeBusUtilization();
 		flywheelMotor.optimizeBusUtilization();
 
@@ -223,7 +215,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @return Boolean statement whether or not it is at flywheel speed or not
 	 */
 	public boolean isAtSpeed() {
-		Logger.recordOutput("Actual Motor Speed", flywheelSpeed.in(RotationsPerSecond));
+
 		double flyDifference =
 			flywheelTargetSpeed.in(RotationsPerSecond) - flywheelSpeed.in(RotationsPerSecond);
 		return (
@@ -254,7 +246,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	@Override
 	public void update(Input input) {
-		//curPose = drivetrain.getPose();
+		if (drivetrain != null) {
+			curPose = drivetrain.getPose();
+		}
 		if (getCurrentState() != null) {
 			switch (getCurrentState()) {
 				case IDLE_STATE:
@@ -283,6 +277,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			}
 		}
 		Logger.recordOutput("Current State", getCurrentState());
+		if (flywheelMotor.getVelocity() != null) {
+			double curSpeed = flywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
+			flywheelSpeed = RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
+			Logger.recordOutput("Actual Motor Speed", flywheelSpeed.in(RotationsPerSecond));
+		}
 		setCurrentState(nextState(input));
 	}
 
@@ -403,11 +402,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 					if (input != null && input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
 						pastState = getCurrentState();
 						return ShooterFSMState.IDLE_STATE;
-					} else if (input != null && isAtSpeed()
+					} else if (input != null //&& isAtSpeed()
 						&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
 						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						pastState = getCurrentState();
-						resetStorage();
+						//resetStorage();
 						return ShooterFSMState.FEED_STATE;
 					} else {
 						return getCurrentState();
@@ -425,6 +424,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feedTimer.reset();
 		feedTimer.stop();
 		noFuelStored = false;
+		spindexTimer.reset();
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
@@ -435,7 +435,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 */
 	private void handleIdleState(TeleopInput input) {
 		flywheelTargetSpeed = RotationsPerSecond.of(0);
-		updateFlywheel();
+		//updateFlywheel();
+		flywheelMotor.stopMotor();
 		//updateHood();
 		feederMotor.set(0);
 		feedTimer.stop();
@@ -460,26 +461,39 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		} else {
 			correctTarget = outpostPose;
 		}
-		drivetrain.targetPassZone(correctTarget);
 		//feeder 0 is flywheel velocity, feeder 1 is hood angle
-		double flyspeed = calculateTargetFlyspeed(correctTarget);
+		double flyspeed = calculateTargetPassSpeed(correctTarget);
 		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
 
 		updateFlywheel();
-		//updateHood();
 		// TBD: code to find the distance vector from where we are to passing targets
 		// (preferably outpost and thelocation of outpost on the other side) (3d vector)
 	}
 	/**
+	 * Calculate needed values to pass  in specific targets.
+	 * @param target The pose we are targetting towards
+	 * @return A double holding the target's needed flywheel speed
+	 */
+	public double calculateTargetPassSpeed(Pose2d target) {
+		Transform2d transform = curPose.minus(target);
+		double distance = Math.sqrt(Math.pow(transform.getX(), 2) + Math.pow(transform.getY(), 2));
+		double flyspeed = ShooterConstants.PASSING_REGRESSION_CONSTANT
+			+ ShooterConstants.PASSING_REGRESSION_SLOPE * Units.metersToInches(distance);
+		return flyspeed;
+		//code to be determined based off of regression model
+	}
+
+	/**
 	 * Calculate needed values to shoot in specific targets.
 	 * @param target The pose we are targetting towards
-	 * @return A list holding the target's needed flywheel speed and hood angle in that
-	 * order to make a pass
+	 * @return A double holding the target's needed flywheel speed
 	 */
-	public double calculateTargetFlyspeed(Pose2d target) {
+	public double calculateTargetShootSpeed(Pose2d target) {
 		return ShooterConstants.TEMP_FLYSPEED;
 		//code to be determined based off of regression model
 	}
+
+
 
 	private void stopFlywheel() {
 		flywheelTargetSpeed = RotationsPerSecond.of(0);
@@ -487,14 +501,31 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	}
 
 	/**
+	 * Check if we are currently in shooter prep state, which is used for the drivetrain.
+	 * @return true if the past state is SHOOTER_PREP_STATE, false otherwise
+	 */
+	public boolean getIsPastStateShooterPrep() {
+		return pastState == ShooterFSMState.SHOOTER_PREP_STATE;
+	}
+
+	/**
+	 * Check if we are currently in shooter prep state, which is used for the drivetrain
+	 * to know whether to face the hub or the pass zone.
+	 * @return true if the current state is SHOOTER_PREP_STATE, false otherwise
+	 */
+	public boolean getIsCurrentStateShooterPrep() {
+		return getCurrentState() == ShooterFSMState.SHOOTER_PREP_STATE;
+	}
+
+
+	/**
 	 * Handle behavior in SHOOTER_PREP_STATE.
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleShooterPrepState(TeleopInput input) {
-		double flyspeed = calculateTargetFlyspeed(hubPose);
+		double flyspeed = calculateTargetShootSpeed(hubPose);
 		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
-		drivetrain.targetHub();
 
 		updateFlywheel();
 		//TBD: code to find the distance vector from where we are to hub center (3d vector)
@@ -506,6 +537,23 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleFeedState(TeleopInput input) {
+		if (!spindexTimer.isRunning()) {
+			spindexTimer.start();
+		}
+		if (spindexTimer.get() > 2 * ShooterConstants.SPINDEX_MAX_TIME) {
+			SparkMaxConfig normal = new SparkMaxConfig();
+			normal.inverted(false);
+			spindexMotor.configure(normal,
+				ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+			spindexTimer.restart();
+		} else if (spindexTimer.get() > ShooterConstants.SPINDEX_MAX_TIME) {
+			SparkMaxConfig invert = new SparkMaxConfig();
+			invert.inverted(true);
+			spindexMotor.configure(invert,
+				ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+		}
+
+
 		Logger.recordOutput("noFuelStored", noFuelStored);
 		Logger.recordOutput("isIntakeDown", modelIntake(input));
 		if (!noFuelStored && !intake.isIntakeDownRunning()) {
@@ -550,6 +598,19 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			feederMotor.stopMotor();
 			spindexMotor.stopMotor();
 		}
+
+		//if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
+		// if (!input.getButtonValue(ButtonInput.REV_FEEDER)) {
+		// 	System.out.println("reach 2");
+		// 	feederMotor.stopMotor();
+		// 		//spindexMotor.stopMotor();
+		// 		//pastState should only store shooter_prep, passer_prep, and manual_prep
+		// } else {
+		// 	System.out.println("reach 1");
+		// 	feederMotor.setControl(feederRequest.withVelocity(ShooterConstants.
+		// 		FEEDER_CONSTANT_SPEED));
+		// 		//spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
+		// }
 		Logger.recordOutput("BreakBeam Timer: ", feedTimer.get());
 	}
 
@@ -605,22 +666,32 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			var change = flywheelTargetSpeed.in(RotationsPerSecond) - flyIncrement;
 			if (change > 0) {
 				flywheelTargetSpeed = RotationsPerSecond.of(change);
+				flywheelMotorStopped = false;
 			} else {
 				flywheelTargetSpeed = RotationsPerSecond.of(0);
+				flywheelMotorStopped = true;
 			}
 			//decrease flywheel speed by some constant, right now set to 10 m/s
 		} else if (flywheelSet) {
 			var change = flywheelTargetSpeed.in(RotationsPerSecond) + flyIncrement;
 			if (change < ShooterConstants.FLYWHEEL_MAX_SPEED.in(RotationsPerSecond)) {
 				flywheelTargetSpeed = RotationsPerSecond.of(change);
+				flywheelMotorStopped = false;
+
 			} else {
 				flywheelTargetSpeed = ShooterConstants.FLYWHEEL_MAX_SPEED;
+				flywheelMotorStopped = false;
 			}
 
 			//increase flywheel speed by some constant, right now set to 10 m/s
 		}
 
-		updateFlywheel();
+		if (!flywheelMotorStopped) {
+			updateFlywheel();
+		} else {
+			flywheelMotor.stopMotor();
+		}
+
 
 		// check if current speed of motors and current angle matches what we just set it to there
 		// with the boolean conditions
@@ -630,8 +701,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		Logger.recordOutput("Flywheel Target Speed", flywheelTargetSpeed);
 		flywheelMotor.setControl(flywheelRequest.withVelocity(
 			flywheelTargetSpeed.in(RotationsPerSecond)));
-		double curSpeed = flywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
-		flywheelSpeed = RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
+
 	}
 
 
@@ -641,6 +711,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		}
 		return false;
 	}
+
+
 
 	// private void updateHood() {
 	// 	hoodMotor.setControl(hoodRequest.withPosition(hoodTargetAngle.magnitude()));

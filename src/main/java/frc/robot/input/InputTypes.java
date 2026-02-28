@@ -20,6 +20,8 @@ public class InputTypes {
 		// Drivetrain
 		DRIVETRAIN_RESEED,
 		DRIVETRAIN_PATHFIND,
+		FACE_SHOOTER,
+		FACE_HUB,
 
 
 		// Climber

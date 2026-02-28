@@ -4,7 +4,7 @@ package frc.robot.systems;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
-
+import java.util.Optional;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -41,6 +41,7 @@ import frc.robot.Constants.DrivetrainConstants;
 
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.input.Input;
@@ -102,9 +103,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				Rotation2d.kCW_90deg);
 
 	private Pose2d pathfindTarget = test.transformBy(offsetTransform);
+	private ShooterFSMSystem shooter;
 
 	/**
 	 * Constructs the drivetrain subsystem.
+	 * @param shooterFSMSystem the shooter FSM system, used for targeting the hub in FACE_HUB state
 	 */
 	public Drivetrain() {
 		drivetrain = TunerConstants.createDrivetrain();
@@ -164,6 +167,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				drivetrain // Reference to the subsystem to set requirements
 		);
 
+		//shooter = shooterFSMSystem.orElse(null);
 		reset();
 	}
 
@@ -261,6 +265,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	/* ======================== Private methods ======================== */
+
+	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle =
+		new SwerveRequest.FieldCentricFacingAngle()
+		.withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
+		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
 	@Override
 	protected DrivetrainState nextState(Input input) {

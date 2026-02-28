@@ -14,14 +14,14 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_DRIVE_BACK_LEFT = 4;
 	public static final int CAN_ID_CLIMBER_LEFT = 6;
 	public static final int CAN_ID_CLIMBER_RIGHT = 7;
-	public static final int CAN_ID_SPARK_PIVOT_LEFT = 11;
-	public static final int CAN_ID_SPARK_PIVOT_RIGHT = 12;
+	public static final int CAN_ID_SPARK_PIVOT_LEFT = 9;
+	public static final int CAN_ID_SPARK_PIVOT_RIGHT = 10;
 	public static final int CAN_ID_SPARK_INTAKE = 5;
 
 	//values TBD
-	public static final int CAN_ID_FLYWHEEL = 9;
-	public static final int CAN_ID_FEEDER = 10;
-	public static final int CAN_ID_SPINDEXER = 11;
+	public static final int CAN_ID_FLYWHEEL = 12;
+	public static final int CAN_ID_FEEDER = 11;
+	public static final int CAN_ID_SPINDEXER = 13;
 
 	//rio - dio ports
 	public static final int INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT = 0;
