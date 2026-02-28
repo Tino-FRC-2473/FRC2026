@@ -20,7 +20,7 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
+
 import com.revrobotics.spark.SparkMax;
 
 
@@ -150,7 +150,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feeder0Config.kP = ShooterConstants.FEEDER_MM_CONSTANT_P;
 		feeder0Config.kI = ShooterConstants.FEEDER_MM_CONSTANT_I;
 		feeder0Config.kD = ShooterConstants.FEEDER_MM_CONSTANT_D;
-		
+
 		var flywheelMotorOutputs = flywheelConfigs.MotorOutput;
 		flywheelMotorOutputs.NeutralMode = NeutralModeValue.Coast;
 
@@ -231,7 +231,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @return Boolean statement whether or not it is at flywheel speed or not
 	 */
 	public boolean isAtSpeed() {
-		
+
 		double flyDifference =
 			flywheelTargetSpeed.in(RotationsPerSecond) - flywheelSpeed.in(RotationsPerSecond);
 		return (
@@ -292,9 +292,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		}
 		Logger.recordOutput("Current State", getCurrentState());
 		if (flywheelMotor.getVelocity() != null) {
-				double curSpeed = flywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
-				flywheelSpeed = RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
-				Logger.recordOutput("Actual Motor Speed", flywheelSpeed.in(RotationsPerSecond));
+			double curSpeed = flywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
+			flywheelSpeed = RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
+			Logger.recordOutput("Actual Motor Speed", flywheelSpeed.in(RotationsPerSecond));
 		}
 		setCurrentState(nextState(input));
 	}
@@ -566,14 +566,15 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// }
 
 		//if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
-		if (!input.getButtonValue(ButtonInput.REV_FEEDER)){
+		if (!input.getButtonValue(ButtonInput.REV_FEEDER)) {
 			System.out.println("reach 2");
-				feederMotor.stopMotor();
+			feederMotor.stopMotor();
 				//spindexMotor.stopMotor();
 				//pastState should only store shooter_prep, passer_prep, and manual_prep
 		} else {
-				System.out.println("reach 1");
-				feederMotor.setControl(feederRequest.withVelocity(ShooterConstants.FEEDER_CONSTANT_SPEED));
+			System.out.println("reach 1");
+			feederMotor.setControl(feederRequest.withVelocity(ShooterConstants.
+				FEEDER_CONSTANT_SPEED));
 				//spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
 		}
 		Logger.recordOutput("BreakBeam Timer: ", feedTimer.get());
@@ -642,7 +643,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			if (change < ShooterConstants.FLYWHEEL_MAX_SPEED.in(RotationsPerSecond)) {
 				flywheelTargetSpeed = RotationsPerSecond.of(change);
 				flywheelMotorStopped = false;
-				
+
 			} else {
 				flywheelTargetSpeed = ShooterConstants.FLYWHEEL_MAX_SPEED;
 				flywheelMotorStopped = false;
@@ -651,12 +652,12 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			//increase flywheel speed by some constant, right now set to 10 m/s
 		}
 
-		if (!flywheelMotorStopped){
+		if (!flywheelMotorStopped) {
 			updateFlywheel();
 		} else {
 			flywheelMotor.stopMotor();
 		}
-		
+
 
 		// check if current speed of motors and current angle matches what we just set it to there
 		// with the boolean conditions
@@ -666,9 +667,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		Logger.recordOutput("Flywheel Target Speed", flywheelTargetSpeed);
 		flywheelMotor.setControl(flywheelRequest.withVelocity(
 			flywheelTargetSpeed.in(RotationsPerSecond)));
-		
-		
-		
+
 	}
 
 
@@ -679,7 +678,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		return false;
 	}
 
-	
+
 
 	// private void updateHood() {
 	// 	hoodMotor.setControl(hoodRequest.withPosition(hoodTargetAngle.magnitude()));
