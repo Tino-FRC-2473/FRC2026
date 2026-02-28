@@ -45,7 +45,7 @@ public final class AutoInput extends Input {
 	 * @return the command
 	 */
 	public Command toggleButtonCommand(ButtonInput button) {
-		return new InstantCommand(() -> buttonValues.put(button, buttonValues.get(button)));
+		return new InstantCommand(() -> buttonValues.put(button, !buttonValues.get(button)));
 	}
 
 	/**
@@ -55,6 +55,16 @@ public final class AutoInput extends Input {
 	 */
 	public Command pressButtonCommand(ButtonInput button) {
 		return pressButtonCommand(button, DEFAULT_PRESS_DURATION_CYCLES);
+	}
+
+	/**
+	 * Returns an instant command that sets the button value.
+	 * @param button the button to set
+	 * @param value the button value
+	 * @return the command
+	 */
+	public Command setButtonCommand(ButtonInput button, boolean value) {
+		return new InstantCommand(() -> buttonValues.put(button, value));
 	}
 
 	/**

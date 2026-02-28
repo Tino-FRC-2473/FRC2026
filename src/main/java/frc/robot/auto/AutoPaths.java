@@ -1,5 +1,7 @@
 package frc.robot.auto;
 
+import static edu.wpi.first.units.Units.Seconds;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,16 +11,16 @@ import org.json.simple.parser.ParseException;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FileVersionException;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.input.AutoInput;
-// import frc.robot.input.InputTypes.ButtonInput;
+import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.systems.Drivetrain;
-import frc.robot.systems.FSMSystem;
-// import frc.robot.systems.Drivetrain.DrivetrainState;
+import frc.robot.systems.ShooterFSMSystem;
+import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
 
 public class AutoPaths {
 
@@ -50,37 +52,53 @@ public class AutoPaths {
 	}
 
 	/**
-	 * An auto that is only here temporarily for testing purposes.
+	 * Returns a test auto that drives with the the BlueHubNZCimb2 trajectory,
+	 * and then shoots in the direction its facing for 10 seconds.
 	 * @param input the auto input
-	 * @param drivetrainSystem a system that might be the drivetrain
-	 * @return the auto
+	 * @param drivetrain the drivetrain
+	 * @param shooter the shooter
+	 * @return the auto as a command
 	 */
-	public static Command getTestAuto(AutoInput input,
-		FSMSystem<Drivetrain.DrivetrainState> drivetrainSystem) {
-		Drivetrain drivetrain;
-		if (Drivetrain.class.isInstance(drivetrainSystem)) {
-			drivetrain = (Drivetrain) drivetrainSystem;
-		} else {
-			return new InstantCommand();
-		}
-		return new AutoComposer()
-			// .doNext(input.pressButtonCommand(ButtonInput.DRIVETRAIN_RESEED))
-			// .doNext(drivetrain.watchForStatesCommand(DrivetrainState.TELEOP))
+	public static Command getTestAuto(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter
+	) {
+		return new CommandComposer()
 			.doNext(DrivePaths.BlueHubNZCimb2.get())
+			.doNext(startShootingCommand(input, shooter))
+			.with(new WaitCommand(Seconds.of(2)))
+			.doNext(stopShootingCommand(input, shooter))
 			.close();
 	}
 
-	private static final class AutoComposer {
+	private static Command startShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
+		return new CommandComposer()
+			.with(input.pressButtonCommand(ButtonInput.SHOOTER_PREP_TOGGLE))
+			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, true))
+			.with(shooter.watchForStatesCommand(ShooterFSMState.FEED_STATE))
+			.close();
+	}
+
+	private static Command stopShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
+		return new CommandComposer()
+			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, false))
+			.with(input.setButtonCommand(ButtonInput.SHOOTER_PREP_TOGGLE, false))
+			.with(shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE))
+			.close();
+	}
+
+	private static final class CommandComposer {
 		private List<Command> commandSequence = new ArrayList<>();
 		private List<Command> currentCommandGroup = new ArrayList<>();
 
-		private AutoComposer doNext(Command command) {
+		private CommandComposer doNext(Command command) {
 			completeCommand();
 			currentCommandGroup.add(command);
 			return this;
 		}
 
-		private AutoComposer with(Command command) {
+		private CommandComposer with(Command command) {
 			currentCommandGroup.add(command);
 			return this;
 		}
