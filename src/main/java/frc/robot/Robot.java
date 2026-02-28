@@ -10,14 +10,10 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.auto.AutoPaths;
 import frc.robot.input.AutoInput;
 import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
-import frc.robot.systems.Drivetrain;
-import frc.robot.systems.IntakeFSMSystem;
-import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
 
 /**

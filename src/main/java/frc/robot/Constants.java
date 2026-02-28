@@ -100,12 +100,12 @@ public class Constants {
 
 		public static final double TEMP_FLYSPEED = 2;
 
-		private static final double JERK_MULT_CONSTANT = 100	;
+		private static final double JERK_MULT_CONSTANT = 100;
 		//constant to change the magnitude of jerk from acceleration
 		public static final Frequency UPDATE_FREQUENCY_HZ = Hertz.of(200);
 		public static final AngularAcceleration MAGIC_ACCELERATION =
 			RotationsPerSecondPerSecond.of(10000);
-		public static final double MAGIC_JERK = 
+		public static final double MAGIC_JERK =
 			MAGIC_ACCELERATION.times(JERK_MULT_CONSTANT).per(Seconds).magnitude();
 		// public static final AngularVelocity HOOD_VELOCITY = DegreesPerSecond.of(20);
 		// public static final AngularAcceleration HOOD_ACCELERATION =
@@ -128,7 +128,7 @@ public class Constants {
 		// public static final Angle HOOD_MAX_ANGLE = Degrees.of(45);
 		// public static final Angle HOOD_MIN_ANGLE = Degrees.of(20);
 		// public static final Angle HOOD_INCREMENTER = Degrees.of(5);
-		public static final Angle HOOD_ANGLE = Degrees.of(30);//from vertical
+		public static final Angle HOOD_ANGLE = Degrees.of(30); //from vertical
 
 		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(10);
 		public static final Angle FLYWHEEL_MAX_DEGREES = Degrees.of(360);
