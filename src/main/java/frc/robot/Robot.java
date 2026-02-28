@@ -62,6 +62,7 @@ public class Robot extends LoggedRobot {
 			intakeFSMSystem = intake.get();
 		} else {
 			intakeFSMSystem = new PlaceholderFSMSystem<>();
+			intake = Optional.empty();
 		}
 
 		climberFSMSystem = HardwareMap.isClimberEnabled()
