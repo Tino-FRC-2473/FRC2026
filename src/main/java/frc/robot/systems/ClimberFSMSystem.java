@@ -9,6 +9,9 @@ import edu.wpi.first.math.util.Units;
 
 import static edu.wpi.first.units.Units.Inches;
 
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
@@ -57,7 +60,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	private DIOSim limitSimLeft;
 	private DIOSim limitSimRight;
 	private MotionMagicVoltage motionRequest;
-	private FSMSystem<IntakeFSMSystem.IntakeFSMState>  intake;
+	private Optional<IntakeFSMSystem> intake;
 
 	/**
 	 * Create ClimberFSMSystem and initialize to starting state. Also perform any
@@ -65,7 +68,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	 * the constructor is called only once when the robot boots.
 	 * @param intakeFSMSystem the IntakeFSMSystem
 	 */
-	public ClimberFSMSystem(FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem) {
+	public ClimberFSMSystem(Optional<IntakeFSMSystem> intakeFSMSystem) {
 		intake = intakeFSMSystem;
 		climberMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_LEFT);
 		climberMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_RIGHT);
@@ -439,7 +442,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		// DutyCycleOut b = new DutyCycleOut(0.5);
 		// climberMotorLeft.setControl(n);
 		// climberMotorRight.setControl(b);
-		if (!((IntakeFSMSystem) intake).isIntakeDown()) {
+		if (!isIntakeDown()) {
 			climberMotorLeft.setControl(motionRequest.withPosition(
 				ClimberConstants.L1_EXTEND_POS.in(Inches)
 			));
@@ -447,7 +450,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	}
 
 	private void handleL1RetractState(Input input) {
-		if (!((IntakeFSMSystem) intake).isIntakeDown()) {
+		if (!isIntakeDown()) {
 			climberMotorLeft.setControl(motionRequest.withPosition(
 				ClimberConstants.L1_RETRACT_POS.in(Inches)
 			));
@@ -455,7 +458,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	}
 
 	private void handleResetToZero(Input input) {
-		if (!((IntakeFSMSystem) intake).isIntakeDown()) {
+		if (!isIntakeDown()) {
 			if (groundLimitSwitchLeft.get() || getClimberHeightInches() <= 0
 				|| groundLimitSwitchRight.get()) {
 				climberMotorLeft.set(0);
@@ -465,5 +468,11 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 				));
 			}
 		}
+	}
+
+	private boolean isIntakeDown() {
+		AtomicBoolean isDown = new AtomicBoolean(false);
+		intake.ifPresent((i) -> isDown.set(i.isIntakeDown()));
+		return isDown.get();
 	}
 }
