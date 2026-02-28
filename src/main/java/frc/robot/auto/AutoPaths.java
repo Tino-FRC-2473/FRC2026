@@ -34,7 +34,19 @@ public class AutoPaths {
 		BlueHubNZClimb,
 		BlueRTNZClimb,
 		RedHubNZClimb2,
-		RedRTNZClimb;
+		RedRTNZClimb,
+		BlueS1_D,
+		BlueS2_D,
+		BlueS3_D,
+		BlueHUB_T,
+		BlueD_T,
+		BlueD_HUB,
+		RedS1_D,
+		RedS2_D,
+		RedS3_D,
+		RedHUB_T,
+		RedD_T,
+		RedD_HUB,
 
 		private PathPlannerPath path;
 		DrivePaths() {
@@ -59,6 +71,8 @@ public class AutoPaths {
 	 * @param input the auto input
 	 * @param drivetrain the drivetrain
 	 * @param shooter the shooter
+	 * @param climber the climber
+	 * @param intake the intake
 	 * @return the auto as a command
 	 */
 	public static Command getBlueS1DepoShootClimb(
@@ -67,8 +81,9 @@ public class AutoPaths {
 		ShooterFSMSystem shooter,
 		ClimberFSMSystem climber,
 		IntakeFSMSystem intake
-	) {
 
+	) {
+		
 	}
 
 	/**
