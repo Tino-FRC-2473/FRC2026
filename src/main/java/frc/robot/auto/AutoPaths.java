@@ -107,23 +107,31 @@ public class AutoPaths {
 
 	}
 
-	public record DepotShootClimbSettings(
-		boolean shouldShoot, boolean isRed, StartingPositon startingPositon) {
-		public enum StartingPositon {
-			S1(DrivePaths.BlueS1_D),
-			S2(DrivePaths.BlueS2_D),
-			S3(DrivePaths.BlueS3_D);
+	public enum StartingPositon {
+		S1(DrivePaths.BlueS1_D, DrivePaths.BlueS1_HUB),
+		S2(DrivePaths.BlueS2_D, DrivePaths.BlueS2_HUB),
+		S3(DrivePaths.BlueS3_D, DrivePaths.BlueS3_HUB);
 
-			private DrivePaths depotPath;
-			StartingPositon(DrivePaths pathToDepot) {
-				depotPath = pathToDepot;
-			}
+		// ad more ___ paths as needed
+		private DrivePaths depotPath;
+		private DrivePaths hubPath;
 
-			DrivePaths getDepotPath() {
-				return depotPath;
-			}
+		StartingPositon(DrivePaths pathToDepot, DrivePaths pathToHub) {
+			depotPath = pathToDepot;
+			hubPath = pathToHub;
+		}
+
+		DrivePaths getDepotPath() {
+			return depotPath;
+		}
+
+		DrivePaths getHubPath() {
+			return hubPath;
 		}
 	}
+
+	public record DepotShootClimbSettings(
+		boolean shouldShoot, boolean isRed, StartingPositon startingPositon) { }
 
 	/**
 	 * Returns an auto command that goes from a start position to depot,
@@ -193,22 +201,7 @@ public class AutoPaths {
 	}
 
 	public record ShootClimbSettings(
-		boolean shouldShoot, boolean isRed, StartingPositon startingPositon) {
-		public enum StartingPositon {
-			S1(DrivePaths.BlueS1_HUB),
-			S2(DrivePaths.BlueS2_HUB),
-			S3(DrivePaths.BlueS3_HUB);
-
-			private DrivePaths hubPath;
-			StartingPositon(DrivePaths pathToHub) {
-				hubPath = pathToHub;
-			}
-
-			DrivePaths getHubPath() {
-				return hubPath;
-			}
-		}
-	}
+		boolean shouldShoot, boolean isRed, StartingPositon startingPositon) { }
 
 	/**
 	 * Returns an auto command that goes from a start position,
