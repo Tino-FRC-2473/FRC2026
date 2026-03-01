@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
 
 import frc.robot.HardwareMap;
@@ -313,6 +315,19 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		double height = getClimberHeightInches();
 		return height >= ClimberConstants.L1_EXTEND_POS.in(Inches)
 			- ClimberConstants.POSITION_TOLERANCE_L1.in(Inches);
+	}
+
+	/**
+	 * Returns a command that ends when isExtendedL1 is true.
+	 * @return a command that ends when isExtendedL1 is true
+	 */
+	public Command waitForExtendedL1() {
+		return new Command() {
+			@Override
+			public boolean isFinished() {
+				return super.isFinished() && isExtendedL1();
+			}
+		};
 	}
 
 	@AutoLogOutput(key = "Climber/Right Is At Bottom?")

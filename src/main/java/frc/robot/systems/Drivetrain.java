@@ -58,7 +58,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	// FSM states enum
 	public enum DrivetrainState {
 		TELEOP,
-		PATHFIND
+		PATHFIND,
+		ENTRY // so the robot isn't controlled in auto
 	}
 
 	// Max linear & angular speeds
@@ -175,7 +176,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	@Override
 	public void reset() {
-		currentState = DrivetrainState.TELEOP;
+		currentState = DrivetrainState.ENTRY;
 
 		update(null);
 	}
@@ -191,8 +192,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			case TELEOP:
 				handleTeleopState(input);
 				break;
-			case PATHFIND:
-				//No need to do anything? You only start/stop pathfinding
+			case ENTRY: case PATHFIND:
 				break;
 			default:
 				throw new IllegalStateException(
@@ -278,6 +278,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		switch (currentState) {
+			case ENTRY:
+				if (hasDriverInput(input)) {
+					return DrivetrainState.TELEOP;
+				}
+				return DrivetrainState.ENTRY;
 			case TELEOP:
 				if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
 					startPathfinding();
@@ -383,5 +388,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		//TODO: Code to be finished in a seperate branch
 		Pose2d transformPose = getPose().relativeTo(targetPose);
 		//TODO: Code to be implemented differently later
+	}
+
+	private boolean hasDriverInput(Input input) {
+		return input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X) != 0
+			|| input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y) != 0
+			|| input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE) != 0;
 	}
 }
