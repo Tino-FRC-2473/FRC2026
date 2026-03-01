@@ -57,7 +57,13 @@ public class AutoPaths {
 		RedD_HUB(BlueD_HUB),
 
 		BlueD_INTAKE,
-		RedD_INTAKE(BlueD_INTAKE);
+		RedD_INTAKE(BlueD_INTAKE),
+
+		BlueS1_HUB,
+		RedS1_HUB(BlueS1_HUB),
+
+		BlueS3_HUB,
+		RedS3_HUB(BlueS3_HUB);
 
 		private PathPlannerPath path;
 		private DrivePaths mirror;
