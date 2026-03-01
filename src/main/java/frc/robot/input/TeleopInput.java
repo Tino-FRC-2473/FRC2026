@@ -69,9 +69,9 @@ public final class TeleopInput extends Input {
 			case FOLD_OUT_BUTTON -> mechController::square;
 
 			// Climber
-			case CLIMBER_MANUAL_OVERRIDE -> mechController::triangle;
-			case CLIMBER_NEXT_STEP -> mechController::square;
-			case CLIMBER_EMERGENCY_ABORT -> mechController::cross;
+			case CLIMBER_MANUAL_OVERRIDE -> mechController::povUp;
+			case CLIMBER_NEXT_STEP -> mechController::povLeft;
+			case CLIMBER_EMERGENCY_ABORT -> mechController::povDown;
 			case CLIMBER_AUTO_UP_1 -> driveController::triangle;
 			case CLIMBER_AUTO_UP_2 -> driveController::circle;
 
