@@ -9,11 +9,18 @@ import org.json.simple.parser.ParseException;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FileVersionException;
+
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.input.AutoInput;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.systems.ClimberFSMSystem;
@@ -197,7 +204,8 @@ public class AutoPaths {
 		ShooterFSMSystem shooter
 	) {
 		return new CommandComposer()
-			.doNext(shootFor(input, shooter, 2))
+			.doNext(getS1HubCommand())
+			.doNext(shootFor(input, shooter, 10))
 			.close();
 	}
 
@@ -225,49 +233,19 @@ public class AutoPaths {
 			.close();
 	}
 
-	private static final class CommandComposer {
-		private boolean active = true;
-		private List<Command> commandSequence = new ArrayList<>();
-		private List<Command> currentCommandGroup = new ArrayList<>();
-
-		private CommandComposer keepActiveIf(boolean condition) {
-			active &= condition;
-			return this;
-		}
-
-		private CommandComposer reactivate() {
-			active = true;
-			return this;
-		}
-
-		private CommandComposer doNext(Command command) {
-			completeCommand();
-			return with(command);
-		}
-
-		private CommandComposer with(Command command) {
-			if (active) {
-				currentCommandGroup.add(command);
-			}
-			return this;
-		}
-
-		private Command close() {
-			completeCommand();
-			return new SequentialCommandGroup(commandSequence.toArray(new Command[0]));
-		}
-
-		private void completeCommand() {
-			if (currentCommandGroup.size() > 1) {
-				commandSequence.add(new ParallelCommandGroup(
-					currentCommandGroup.toArray(new Command[0])
-				));
-			} else if (currentCommandGroup.size() == 1) {
-				commandSequence.add(currentCommandGroup.get(0));
-			}
-
-			currentCommandGroup.clear();
+	private static Command getS1HubCommand() {
+		return AutoBuilder.pathfindToPoseFlipped(
+				AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded)
+				.getTagPose(DrivetrainConstants.TAG_TO_ALIGN_TO)
+				.orElse(null).toPose2d()
+				.transformBy(
+					new Transform2d(
+						DrivetrainConstants.X_TRANFORM_FROM_TAG,
+						DrivetrainConstants.Y_TRANFORM_FROM_TAG,
+						Rotation2d.kCCW_90deg
+					)
+				),
+				DrivetrainConstants.PATH_CONSTRAINTS
+			);
 		}
 	}
-
-}
