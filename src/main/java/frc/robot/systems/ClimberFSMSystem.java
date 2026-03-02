@@ -33,6 +33,7 @@ import frc.robot.Constants.ClimberConstants;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -76,6 +77,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		climberMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_RIGHT);
 		climberMotorRight.setControl(new Follower(HardwareMap.CAN_ID_CLIMBER_LEFT,
 			MotorAlignmentValue.Opposed));
+		
 
 		motionRequest = new MotionMagicVoltage(0);
 		var talonFXConfigs = getConfig();
@@ -126,6 +128,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 
 		var outputConfigs = talonFXConfigs.MotorOutput;
 		outputConfigs.NeutralMode = NeutralModeValue.Coast;
+		outputConfigs.Inverted = InvertedValue.Clockwise_Positive;
 
 		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
 		swLimitSwitch.ForwardSoftLimitEnable = true;
@@ -293,6 +296,11 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 
 	private boolean getRightLimitSwitch() {
 		return !groundLimitSwitchRight.get();
+	}
+
+	@AutoLogOutput(key = "Climber/Current State")
+	public ClimberFSMState getClimberState() {
+		return getCurrentState();
 	}
 
 	/**

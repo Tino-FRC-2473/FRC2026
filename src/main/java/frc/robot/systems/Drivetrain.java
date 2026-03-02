@@ -99,9 +99,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		.orElse(null).toPose2d();
 
 	private Transform2d offsetTransform = new Transform2d(
-				DrivetrainConstants.X_TRANFORM_FROM_TAG, // Back to Front
+				-DrivetrainConstants.X_TRANFORM_FROM_TAG, // Back to Front
 				DrivetrainConstants.Y_TRANFORM_FROM_TAG, // Side to Side
-				Rotation2d.kCW_90deg);
+				Rotation2d.kCCW_90deg);
 
 	private Pose2d pathfindTarget = test.transformBy(offsetTransform);
 	private ShooterFSMSystem shooter;
@@ -316,22 +316,22 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
-		double xSpeed = -MathUtil.applyDeadband(
-				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
+		double xSpeed = MathUtil.applyDeadband(
+				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double ySpeed = -MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
+				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
-				-input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
+				input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
 				DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
 
 		drivetrain.setControl(
 			driveFieldCentric
-				.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-				.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+				.withVelocityX(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+				.withVelocityY(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 				.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
 		);
 

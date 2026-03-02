@@ -38,7 +38,7 @@ public final class TeleopInput extends Input {
 			// Drivetrain
 			case DRIVETRAIN_DRIVE_Y -> driveController.getLeftX();
 			case DRIVETRAIN_DRIVE_X -> driveController.getLeftY();
-			case DRIVETRAIN_ROTATE -> driveController.getRightX();
+			case DRIVETRAIN_ROTATE -> driveController.getRightX(); 
 
 			// Intake
 
@@ -75,10 +75,10 @@ public final class TeleopInput extends Input {
 			case CLIMBER_AUTO_UP_1 -> driveController::triangle;
 			case CLIMBER_AUTO_UP_2 -> driveController::circle;
 
-
+			//Shooter
 			case PASSER_PREP_TOGGLE -> mechController::R1;
-			case SHOOTER_PREP_TOGGLE -> mechController::L1;
-			case MANUAL_SHOOT_TOGGLE -> mechController::L2;
+			case SHOOTER_PREP_TOGGLE -> mechController::L2;
+			case MANUAL_SHOOT_TOGGLE -> mechController::L1;
 			case REV_FEEDER -> mechController::R2;
 			case IDLE_SHOOTER_TOGGLE -> mechController::touchpad;
 

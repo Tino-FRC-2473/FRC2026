@@ -69,7 +69,7 @@ public class Constants {
 		// drive velocity limits
 		// Max linear & angular speeds
 		public static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
-		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(0.75);
+		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(1);
 
 		// pathing acceleration limits
 		public static final LinearAcceleration MAX_PATHING_LINEAR_ACCELERATION
@@ -99,9 +99,9 @@ public class Constants {
 		public static final double TRANSLATIONAL_DEADBAND = 0.1;
 		public static final double ROTATIONAL_DEADBAND = 0.1;
 
-		public static final int TAG_TO_ALIGN_TO = 8;
-		public static final double X_TRANFORM_FROM_TAG = -0.5;
-		public static final double Y_TRANFORM_FROM_TAG = 1.5;
+		public static final int TAG_TO_ALIGN_TO = 26;
+		public static final double X_TRANFORM_FROM_TAG = -2;
+		public static final double Y_TRANFORM_FROM_TAG = -1.5;
 		public static final double FACE_HUB_P = 7.0;
 		public static final double FACE_HUB_I = 0.0;
 		public static final double FACE_HUB_D = 0.0;
@@ -125,7 +125,7 @@ public class Constants {
 		public static final double DRIVE_CURRENT_LIMIT = 80;
 		public static final double STEER_CURRENT_LIMIT = 60;
 
-		public static final double STEER_P = 13;
+		public static final double STEER_P = 3;
 		public static final double STEER_I = 0.1;
 		public static final double STEER_D = 0.1;
 		public static final double STEER_V = 0.1;
@@ -149,15 +149,15 @@ public class Constants {
 		public static final double KD = 0.0;
 		public static final Distance UPPER_THRESHOLD = Units
 			.Inches.of(17);
-		public static final double CRUISE_VELO = 30;
-		public static final double TARGET_ACCEL = 30;
+		public static final double CRUISE_VELO = 1;
+		public static final double TARGET_ACCEL = 1;
 		public static final double EXPO_KV = 0;
 		public static final double ROTS_TO_INCHES = 16 / 105.5;
 		public static final Distance POSITION_TOLERANCE_L1 = Units.Inches.of(0.4);
 		public static final Distance DOWN_POSITION_TOLERANCE_L1 = Units.Inches.of(0.05);
 		public static final double JOYSTICK_DEADBAND = 0.1;
 		public static final double MANUAL_SCALE = 1;
-		public static final Distance L1_EXTEND_POS = Units.Inches.of(10.0);
+		public static final Distance L1_EXTEND_POS = Units.Inches.of(19.0);
 		public static final Distance L1_RETRACT_POS = Units.Inches.of(5.0);
 		public static final Distance GROUND = Units.Inches.of(0.0);
 		public static final Distance REVERSE_LIMIT_SWITCH_POS = Units.Inches.of(-20.0);
@@ -233,8 +233,8 @@ public class Constants {
 		// public static final double HOOD_MM_CONSTANT_G = 0.82;
 		//just an estimate, will use Recalc with measurements to calculate later
 
-		public static final double SPINDEX_CONSTANT_SPEED = 0.3; //ranges from -1 to 1
-		public static final double SPINDEX_CONSTANT_VOLTAGE = 0.3;
+		public static final double SPINDEX_CONSTANT_SPEED = 0.1; //ranges from -1 to 1
+		public static final double SPINDEX_CONSTANT_VOLTAGE = 12;
 
 		public static final double FEED_MAX_TIME = 2; //2s
 
