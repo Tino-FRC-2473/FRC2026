@@ -255,6 +255,61 @@ public class AutoPaths {
 			.close();
 	}
 
+	public record ShootNzSettings(
+		boolean shouldShoot, boolean isRed, StartingPositon startingPositon) { }
+
+	/**
+	 * Returns an auto command that goes from a start position,
+	 * goes to the hub, optionally shoots, then climbs.
+	 * @param input the auto input
+	 * @param drivetrain the drivetrain
+	 * @param shooter the shooter
+	 * @param climber the climber
+	 * @param settings the setttings, including Blue/Red,
+	 * starting postion, and whether it should shoot during auto
+	 * @return the auto as a command
+	 */
+	public static Command getShootNz(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		ClimberFSMSystem climber,
+		ShootClimbSettings settings
+
+	) {
+		boolean isRed = settings.isRed();
+		boolean shouldShoot = settings.shouldShoot();
+		return new CommandComposer()
+			//drive from starting position to hub
+			.doNext(settings.startingPositon().getHubPath().get(isRed))
+
+			// if we shouldn't shoot ...
+			.keepActiveIf(!shouldShoot)
+			// raise climber
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+			.with(climber.waitForExtendedL1())
+			// go to tower
+			.doNext(DrivePaths.BlueHUB_T.get(isRed))
+			.reactivate()
+
+			// if we should shoot ...
+			.keepActiveIf(shouldShoot)
+			// shoot for 2-3 seconds
+			.doNext(shootFor(input, shooter, 2))
+			// extend climber
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+			.with(climber.waitForExtendedL1())
+			// drive to tower
+			.doNext(DrivePaths.BlueHUB_T.get(isRed))
+			.reactivate()
+
+			// retract climber
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+
+			// finish command
+			.close();
+	}
+
 
 	/**
 	 * Returns a test auto that drives with the the BlueHubNZCimb2 trajectory,
