@@ -33,17 +33,6 @@ import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
 public class AutoPaths {
 
 	enum DrivePaths {
-		BlueHubNZCimb2,
-		RedHubNZClimb2(BlueHubNZCimb2),
-
-		BlueLTNZClimb,
-		RedLTNZClimb(BlueLTNZClimb),
-
-		BlueHubNZClimb,
-		RedHubNZClimb(BlueHubNZClimb),
-
-		BlueRTNZClimb,
-		RedRTNZClimb(BlueRTNZClimb),
 
 		BlueS1_D,
 		RedS1_D(BlueS1_D),
@@ -90,9 +79,10 @@ public class AutoPaths {
 
 		DrivePaths mirror() {
 			if (mirror == null) {
-				for (DrivePaths p : DrivePaths.values()) {
-					if (p.mirror != null && p.mirror == this) {
-						mirror = p.mirror;
+				for (DrivePaths other : DrivePaths.values()) {
+					if (other.mirror != null && other.mirror == this) {
+						mirror = other;
+						return mirror;
 					}
 				}
 			}
@@ -144,6 +134,7 @@ public class AutoPaths {
 		DepotShootClimbSettings settings
 
 	) {
+		// right now isRed = true means blue and isRed = false means red ;(
 		boolean isRed = settings.isRed();
 		boolean shouldShoot = settings.shouldShoot();
 		return new CommandComposer()
@@ -247,5 +238,5 @@ public class AutoPaths {
 				),
 				DrivetrainConstants.PATH_CONSTRAINTS
 			);
-		}
 	}
+}

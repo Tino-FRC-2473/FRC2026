@@ -228,30 +228,6 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 * @param input
 	 */
 	public void update(Input input) {
-		if (RobotBase.isSimulation()) {
-			//posRadians = Units.Radians.of(intakeSim.getAngleRads());
-
-
-			// In this method, we update our simulation of what our elevator is doing
-			// First, we set our "inputs" (voltages)
-			intakeSim.setInput(pivotMotorRight.get() * RobotController.getBatteryVoltage());
-			// Next, we update it. The standard loop time is 20ms.
-			intakeSim.update(IntakeConstants.SIM_UPDATE_SECONDS);
-			// Finally, we set our simulated encoder's readings and simulated battery voltage
-			pivotMotorRight.setPosition(intakeSim.getAngleRads());
-
-			/*
-			//update limit switch sims
-			boolean atTop = posRadians <= IntakeConstants.SIM_LIMIT_SWITCH_BUFFER;
-			boolean atBottom = posRadians >= IntakeConstants.SIM_LIMIT_SWITCH_BUFFER;
-			simGroundLimitSwitch.setValue(position);
-			simTopLimitSwitch.setValue(atTop);
-			*/
-
-			// SimBattery estimates loaded battery voltages
-			RoboRioSim.setVInVoltage(
-				BatterySim.calculateDefaultBatteryLoadedVoltage(intakeSim.getCurrentDrawAmps()));
-		}
 		if (input == null) {
 			return;
 		}
