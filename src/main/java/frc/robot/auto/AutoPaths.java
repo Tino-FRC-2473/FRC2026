@@ -66,7 +66,37 @@ public class AutoPaths {
 		RedS2_HUB(BlueS2_HUB),
 
 		BlueS3_HUB,
-		RedS3_HUB(BlueS3_HUB);
+		RedS3_HUB(BlueS3_HUB)
+		
+		BlueS1_NZ,
+		RedS1_NZ(BlueS1_NZ),
+
+		BlueS2_NZ,
+		RedS2_NZ(BlueS2_NZ),
+
+		BlueS3_NZ,
+		RedS3_NZ(BlueS3_NZ),
+
+		NZ_BlueS1,
+		NZ_RedS1(NZ_BlueS1),
+
+		NZ_BlueS2,
+		NZ_RedS2(NZ_BlueS2),
+
+		NZ_BlueS3,
+		NZ_RedS3(NZ_BlueS3),
+
+		HUB_BlueS1,
+		HUB_RedS1(HUB_BlueS1),
+
+		HUB_BlueS2,
+		HUB_RedS2(HUB_BlueS2),
+
+		HUB_BlueS3,
+		HUB_RedS3(HUB_BlueS3),
+
+		BlueNZ_INTAKE,
+		RedNZ_INTAKE(BlueNZ_INTAKE);
 
 		private PathPlannerPath path;
 		private DrivePaths mirror;
