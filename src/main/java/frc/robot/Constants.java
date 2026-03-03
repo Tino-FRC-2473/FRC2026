@@ -241,7 +241,7 @@ public class Constants {
 		public static final double PASSING_REGRESSION_CONSTANT = 15.8;
 		public static final double PASSING_REGRESSION_SLOPE = 0.233; //inches
 
-		public static final double SPINDEX_MAX_TIME = 3; //3s, needs to be tuned
+		public static final double SPINDEX_MAX_TIME = 2.0; //3s, needs to be tuned
 	}
 	public static final class IntakeConstants {
 

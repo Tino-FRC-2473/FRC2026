@@ -19,6 +19,7 @@ import edu.wpi.first.units.AngularVelocityUnit;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 
@@ -35,7 +36,7 @@ import frc.robot.Constants.ShooterConstants;
 import frc.robot.HardwareMap;
 import frc.robot.input.Input;
 // Robot Imports
-import frc.robot.input.Input;
+import frc.robot.input.TeleopInput;
 import frc.robot.motors.TalonFXWrapper;
 // import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
@@ -81,6 +82,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private Timer spindexTimer = new Timer();
 	private boolean noFuelStored = false;
 	private boolean flywheelMotorStopped = false;
+	private double spindexVoltage; //Volts
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -89,6 +91,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * the constructor is called only once when the robot boots.
 	 */
 	public ShooterFSMSystem() {
+		spindexTimer.start();
+		spindexVoltage = ShooterConstants.SPINDEX_CONSTANT_VOLTAGE; //Volts
 		curPose = new Pose2d();
 		outpostPose = ShooterConstants.OUTPOST_POSE;
 		target3Pose = ShooterConstants.TARGET3_POSE;
@@ -255,23 +259,23 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		if (getCurrentState() != null) {
 			switch (getCurrentState()) {
 				case IDLE_STATE:
-					handleIdleState(input);
+					handleIdleState((TeleopInput) input);
 					break;
 
 				case SHOOTER_PREP_STATE:
-					handleShooterPrepState(input);
+					handleShooterPrepState((TeleopInput) input);
 					break;
 
 				case PASSER_PREP_STATE:
-					handlePasserPrepState(input);
+					handlePasserPrepState((TeleopInput) input);
 					break;
 
 				case FEED_STATE:
-					handleFeedState(input);
+					handleFeedState((TeleopInput) input);
 					break;
 
 				case MANUAL_PREP_STATE:
-					handleManualPrepState(input);
+					handleManualPrepState((TeleopInput) input);
 					break;
 
 				default:
@@ -433,10 +437,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in IDLE_STATE.
-	 * @param input Global Input if robot in teleop mode or null if
+	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.
 	 */
-	private void handleIdleState(Input input) {
+	private void handleIdleState(TeleopInput input) {
 		flywheelTargetSpeed = RotationsPerSecond.of(0);
 		//updateFlywheel();
 		flywheelMotor.stopMotor();
@@ -449,10 +453,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	}
 	/**
 	 * Handle behavior in PASSER_PREP_STATE.
-	 * @param input Global Input if robot in teleop mode or null if
+	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.
 	 */
-	private void handlePasserPrepState(Input input) {
+	private void handlePasserPrepState(TeleopInput input) {
 		Pose2d correctTarget = new Pose2d();
 
 		double outpostDistance = (double) curPose.getTranslation()
@@ -469,7 +473,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
 
 		updateFlywheel();
-		// TBD: code to find the distance vector from where we are to passing targets
+		// TODO: code to find the distance vector from where we are to passing targets
 		// (preferably outpost and thelocation of outpost on the other side) (3d vector)
 	}
 	/**
@@ -523,10 +527,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	/**
 	 * Handle behavior in SHOOTER_PREP_STATE.
-	 * @param input Global Input if robot in teleop mode or null if
+	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.
 	 */
-	private void handleShooterPrepState(Input input) {
+	private void handleShooterPrepState(TeleopInput input) {
 		double flyspeed = calculateTargetShootSpeed(hubPose);
 		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
 
@@ -536,26 +540,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	/**
 	 * Handle behavior in FEED_STATE.
-	 * @param input Global Input if robot in teleop mode or null if
+	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.
 	 */
-	private void handleFeedState(Input input) {
-		// if (!spindexTimer.isRunning()) {
-		// 	spindexTimer.start();
-		// }
-		// if (spindexTimer.get() > 2 * ShooterConstants.SPINDEX_MAX_TIME) {
-		// 	SparkMaxConfig normal = new SparkMaxConfig();
-		// 	normal.inverted(false);
-		// 	spindexMotor.configure(normal,
-		// 		ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-		// 	spindexTimer.restart();
-		// } else if (spindexTimer.get() > ShooterConstants.SPINDEX_MAX_TIME) {
-		// 	SparkMaxConfig invert = new SparkMaxConfig();
-		// 	invert.inverted(true);
-		// 	spindexMotor.configure(invert,
-		// 		ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-		// }
-
+	private void handleFeedState(TeleopInput input) {
 
 		Logger.recordOutput("noFuelStored", noFuelStored);
 		Logger.recordOutput("isIntakeDown", modelIntake(input));
@@ -567,7 +555,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				//pastState should only store shooter_prep, passer_prep, and manual_prep
 			} else {
 				feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
-				spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
+				spindexMotor.setVoltage(spindexVoltage);
 			}
 
 			if (feedTimer.isRunning()) {
@@ -594,7 +582,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				//pastState should only store shooter_prep, passer_prep, and manual_prep
 			} else {
 				feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
-				spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
+				spindexMotor.setVoltage(spindexVoltage);
 			}
 		} else {
 			//condition for not having anyting stored
@@ -602,6 +590,12 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			spindexMotor.stopMotor();
 		}
 
+
+		//Switch spindexer back and forth
+		if (spindexTimer.advanceIfElapsed(ShooterConstants.SPINDEX_MAX_TIME)) {
+			spindexVoltage *= -1;
+		}
+		
 		//if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
 		// if (!input.getButtonValue(ButtonInput.REV_FEEDER)) {
 		// 	System.out.println("reach 2");
@@ -619,10 +613,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	/**
 	 * Handle behavior in MANUAL_PREP_STATE.
-	 * @param input Global Input if robot in teleop mode or null if
+	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.
 	 */
-	private void handleManualPrepState(Input input) {
+	private void handleManualPrepState(TeleopInput input) {
 
 		// FOR MANUAL ONLY: Right Bumper will be used as a deincrementer. Do not confuse this
 		// with triggering Passer Prep.
@@ -708,7 +702,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	}
 
 
-	private boolean modelIntake(Input input) {
+	private boolean modelIntake(TeleopInput input) {
 		if (input.getButtonValue(ButtonInput.SHOOTER_PREP_TOGGLE)) {
 			return true;
 		}
