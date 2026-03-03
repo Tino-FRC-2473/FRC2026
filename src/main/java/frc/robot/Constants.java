@@ -68,15 +68,15 @@ public class Constants {
 
 		// drive velocity limits
 		// Max linear & angular speeds
-		public static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
+		public static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V.times(0.05);
 		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(1);
 
 		// pathing acceleration limits
 		public static final LinearAcceleration MAX_PATHING_LINEAR_ACCELERATION
-			= MetersPerSecondPerSecond.of(5);
+			= MetersPerSecondPerSecond.of(0.1);
 
 		public static final AngularAcceleration MAX_PATHING_ROTATIONAL_ACCELERATION
-			= RotationsPerSecondPerSecond.of(5);
+			= RotationsPerSecondPerSecond.of(0.1);
 
 		public static final int PIGEON2_CAN_ID = 1;
 		public static final String CAN_BUS_NAME = "Drivetrain";
@@ -298,7 +298,7 @@ public class Constants {
 	}
 
 	public static final class VisionConstants {
-		public static final String LIMELIGHT_NAME = "limelight-four";
+		public static final String LIMELIGHT_NAME = "limelight-two";
 		//TODO: Find some actual values for this.
 		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(
 			0.02, 0.02, Math.toRadians(1));

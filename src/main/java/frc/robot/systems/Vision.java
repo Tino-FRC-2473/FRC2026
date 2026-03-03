@@ -48,7 +48,7 @@ public class Vision {
 
 		LimelightHelpers.setLEDMode_PipelineControl(limelightName);
 		LimelightHelpers.SetIMUAssistAlpha(limeLightName, 0.01);
-		LimelightHelpers.SetIMUMode(limelightName, 3);
+		LimelightHelpers.SetIMUMode(limelightName, 0);
 	}
 
 	/**
@@ -58,7 +58,7 @@ public class Vision {
 		//Rotation3d rotation = rotationSupplier.get();
 		LimelightHelpers.SetRobotOrientation(limelightName, rotation.getZ(), 0, rotation.getY(), 0, rotation.getX(), 0);
 
-		PoseEstimate visionEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
+		PoseEstimate visionEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
 
 		if (LimelightHelpers.validPoseEstimate(visionEstimate)) {
             Pose2d pose = visionEstimate.pose;
