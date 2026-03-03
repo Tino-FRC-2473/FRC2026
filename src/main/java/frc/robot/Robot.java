@@ -11,6 +11,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
+import frc.robot.auto.AutoPaths.DepotShootClimbSettings.StartingPositon;
 
 // WPILib Imports
 
@@ -107,9 +108,11 @@ public class Robot extends LoggedRobot {
 		input = autoInput;
 		input.reset();
 		if (drivetrainFSMSystem instanceof Drivetrain drive
-			&& shooterFSMSystem instanceof ShooterFSMSystem shooter) {
+			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
+			&& climberFSMSystem instanceof ClimberFSMSystem climber
+			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
 			CommandScheduler.getInstance().schedule(
-				AutoPaths.getTestAuto(autoInput, drive, shooter)
+				AutoPaths.getDepotShootClimb(autoInput, drive, shooter, climber, intake, new AutoPaths.DepotShootClimbSettings(false, false, StartingPositon.S1))
 			);
 		}
 	}

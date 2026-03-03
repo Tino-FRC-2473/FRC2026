@@ -35,7 +35,7 @@ import frc.robot.Constants.ShooterConstants;
 import frc.robot.HardwareMap;
 import frc.robot.input.Input;
 // Robot Imports
-import frc.robot.input.TeleopInput;
+import frc.robot.input.Input;
 import frc.robot.motors.TalonFXWrapper;
 // import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
@@ -255,23 +255,23 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		if (getCurrentState() != null) {
 			switch (getCurrentState()) {
 				case IDLE_STATE:
-					handleIdleState((TeleopInput) input);
+					handleIdleState(input);
 					break;
 
 				case SHOOTER_PREP_STATE:
-					handleShooterPrepState((TeleopInput) input);
+					handleShooterPrepState(input);
 					break;
 
 				case PASSER_PREP_STATE:
-					handlePasserPrepState((TeleopInput) input);
+					handlePasserPrepState(input);
 					break;
 
 				case FEED_STATE:
-					handleFeedState((TeleopInput) input);
+					handleFeedState(input);
 					break;
 
 				case MANUAL_PREP_STATE:
-					handleManualPrepState((TeleopInput) input);
+					handleManualPrepState(input);
 					break;
 
 				default:
@@ -433,10 +433,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handle behavior in IDLE_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.
 	 */
-	private void handleIdleState(TeleopInput input) {
+	private void handleIdleState(Input input) {
 		flywheelTargetSpeed = RotationsPerSecond.of(0);
 		//updateFlywheel();
 		flywheelMotor.stopMotor();
@@ -449,10 +449,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	}
 	/**
 	 * Handle behavior in PASSER_PREP_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.
 	 */
-	private void handlePasserPrepState(TeleopInput input) {
+	private void handlePasserPrepState(Input input) {
 		Pose2d correctTarget = new Pose2d();
 
 		double outpostDistance = (double) curPose.getTranslation()
@@ -523,10 +523,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	/**
 	 * Handle behavior in SHOOTER_PREP_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.
 	 */
-	private void handleShooterPrepState(TeleopInput input) {
+	private void handleShooterPrepState(Input input) {
 		double flyspeed = calculateTargetShootSpeed(hubPose);
 		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
 
@@ -536,10 +536,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	/**
 	 * Handle behavior in FEED_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.
 	 */
-	private void handleFeedState(TeleopInput input) {
+	private void handleFeedState(Input input) {
 		// if (!spindexTimer.isRunning()) {
 		// 	spindexTimer.start();
 		// }
@@ -619,10 +619,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 	/**
 	 * Handle behavior in MANUAL_PREP_STATE.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
+	 * @param input Global Input if robot in teleop mode or null if
 	 *		the robot is in autonomous mode.
 	 */
-	private void handleManualPrepState(TeleopInput input) {
+	private void handleManualPrepState(Input input) {
 
 		// FOR MANUAL ONLY: Right Bumper will be used as a deincrementer. Do not confuse this
 		// with triggering Passer Prep.
@@ -708,7 +708,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	}
 
 
-	private boolean modelIntake(TeleopInput input) {
+	private boolean modelIntake(Input input) {
 		if (input.getButtonValue(ButtonInput.SHOOTER_PREP_TOGGLE)) {
 			return true;
 		}
