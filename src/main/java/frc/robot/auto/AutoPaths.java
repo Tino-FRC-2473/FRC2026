@@ -66,8 +66,8 @@ public class AutoPaths {
 		RedS2_HUB(BlueS2_HUB),
 
 		BlueS3_HUB,
-		RedS3_HUB(BlueS3_HUB)
-		
+		RedS3_HUB(BlueS3_HUB),
+
 		BlueS1_NZ,
 		RedS1_NZ(BlueS1_NZ),
 
@@ -138,17 +138,26 @@ public class AutoPaths {
 	}
 
 	public enum StartingPositon {
-		S1(DrivePaths.BlueS1_D, DrivePaths.BlueS1_HUB),
-		S2(DrivePaths.BlueS2_D, DrivePaths.BlueS2_HUB),
-		S3(DrivePaths.BlueS3_D, DrivePaths.BlueS3_HUB);
-
+		S1(DrivePaths.BlueS1_D, DrivePaths.BlueS1_HUB, DrivePaths.BlueS1_NZ, DrivePaths.NZ_BlueS1,
+				DrivePaths.HUB_BlueS1),
+		S2(DrivePaths.BlueS2_D, DrivePaths.BlueS2_HUB, DrivePaths.BlueS2_NZ, DrivePaths.NZ_BlueS2,
+				DrivePaths.HUB_BlueS2),
+		S3(DrivePaths.BlueS3_D, DrivePaths.BlueS3_HUB, DrivePaths.BlueS3_NZ, DrivePaths.NZ_BlueS3,
+				DrivePaths.HUB_BlueS2);
 		// ad more ___ paths as needed
 		private DrivePaths depotPath;
 		private DrivePaths hubPath;
+		private DrivePaths nZPath;
+		private DrivePaths nZtoStartPath;
+		private DrivePaths hubToStartPath;
 
-		StartingPositon(DrivePaths pathToDepot, DrivePaths pathToHub) {
+		StartingPositon(DrivePaths pathToDepot, DrivePaths pathToHub, DrivePaths pathToNz,
+				DrivePaths pathNzToStart, DrivePaths pathHubToStart) {
 			depotPath = pathToDepot;
 			hubPath = pathToHub;
+			nZPath = pathToNz;
+			nZtoStartPath = pathNzToStart;
+			hubToStartPath = pathHubToStart;
 		}
 
 		DrivePaths getDepotPath() {
@@ -157,6 +166,18 @@ public class AutoPaths {
 
 		DrivePaths getHubPath() {
 			return hubPath;
+		}
+
+		DrivePaths getNzPath() {
+			return nZPath;
+		}
+
+		DrivePaths getNzToStartPath() {
+			return nZtoStartPath;
+		}
+
+		DrivePaths getHubToStartPath() {
+			return hubToStartPath;
 		}
 	}
 
@@ -295,6 +316,7 @@ public class AutoPaths {
 	 * @param drivetrain the drivetrain
 	 * @param shooter the shooter
 	 * @param climber the climber
+	 * @param intake the intake
 	 * @param settings the setttings, including Blue/Red,
 	 * starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
@@ -304,37 +326,38 @@ public class AutoPaths {
 		Drivetrain drivetrain,
 		ShooterFSMSystem shooter,
 		ClimberFSMSystem climber,
-		ShootClimbSettings settings
-
+		IntakeFSMSystem intake,
+		ShootNzSettings settings
 	) {
 		boolean isRed = settings.isRed();
 		boolean shouldShoot = settings.shouldShoot();
 		return new CommandComposer()
-			//drive from starting position to hub
-			.doNext(settings.startingPositon().getHubPath().get(isRed))
 
 			// if we shouldn't shoot ...
-			.keepActiveIf(!shouldShoot)
-			// raise climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
-			.with(climber.waitForExtendedL1())
-			// go to tower
-			.doNext(DrivePaths.BlueHUB_T.get(isRed))
+			// go to nz
+			.doNext(settings.startingPositon().getNzPath().get(isRed))
+			//start intake
+			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
+			.with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
+			//drive thru NZ
+			.doNext(DrivePaths.BlueNZ_INTAKE.get(isRed))
+			//stop intake and fold in
+			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
+			.with(input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON))
+			//go back to starting pose
+			.doNext(settings.startingPositon().getNzToStartPath().get(isRed))
 			.reactivate()
 
 			// if we should shoot ...
+			//go to hub
+			.doNext(settings.startingPositon().getHubPath().get(isRed))
+			//shoot
 			.keepActiveIf(shouldShoot)
 			// shoot for 2-3 seconds
 			.doNext(shootFor(input, shooter, 2))
-			// extend climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
-			.with(climber.waitForExtendedL1())
-			// drive to tower
-			.doNext(DrivePaths.BlueHUB_T.get(isRed))
+			// drive to starting pose
+			.doNext(settings.startingPositon().getHubToStartPath().get(isRed))
 			.reactivate()
-
-			// retract climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
 
 			// finish command
 			.close();
