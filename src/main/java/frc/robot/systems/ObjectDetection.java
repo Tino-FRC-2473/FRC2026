@@ -58,8 +58,9 @@ public class ObjectDetection {
 		for (RetroreflectiveTape result : retroReflectives) {
 			double radX = Math.abs(Math.toRadians(result.tx));
 			double radY = Math.abs(Math.toRadians(result.ty));
+			double addedY = radY + Constants.LimelightConstants.LIMELIGHT_ANGLE.in(Degrees);
 			double distanceY =
-				Constants.LimelightConstants.LIMELIGHT_HEIGHT.in(Inches) / Math.tan(radY);
+				Constants.LimelightConstants.LIMELIGHT_HEIGHT.in(Inches) / Math.tan(addedY);
 			double distanceX = distanceY * Math.tan(radX);
 			double[] distances = {distanceX, distanceY};
 			return distances;
