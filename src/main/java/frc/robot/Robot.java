@@ -107,14 +107,22 @@ public class Robot extends LoggedRobot {
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
 		input.reset();
-		if (drivetrainFSMSystem instanceof Drivetrain drive
-			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
-			&& climberFSMSystem instanceof ClimberFSMSystem climber
-			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
-			CommandScheduler.getInstance().schedule(
-				AutoPaths.getDepotShootClimb(autoInput, drive, shooter, climber, intake, new AutoPaths.DepotShootClimbSettings(true, true, StartingPositon.S1))
-			);
-		}
+		drivetrainFSMSystem.reset();
+		climberFSMSystem.reset();
+		intakeFSMSystem.reset();
+		shooterFSMSystem.reset();
+		// if (drivetrainFSMSystem instanceof Drivetrain drive
+		// 	&& shooterFSMSystem instanceof ShooterFSMSystem shooter
+		// 	&& climberFSMSystem instanceof ClimberFSMSystem climber
+		// 	&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
+			// CommandScheduler.getInstance().schedule(
+			// 	AutoPaths.getDepotShootClimb(autoInput, drive, shooter, climber, intake, new AutoPaths.DepotShootClimbSettings(true, false, StartingPositon.S1))
+			// );
+		// }
+		CommandScheduler.getInstance().schedule(
+			AutoPaths.getDepotShootClimb(autoInput, (Drivetrain) drivetrainFSMSystem, new AutoPaths.DepotShootClimbSettings(true, true, StartingPositon.S1))
+		);
+
 	}
 
 	@Override
@@ -137,9 +145,10 @@ public class Robot extends LoggedRobot {
 		input = new TeleopInput();
 		input.reset();
 		CommandScheduler.getInstance().cancelAll();
-		//drivetrain.reset();
+		drivetrainFSMSystem.reset();
 		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
+		shooterFSMSystem.reset();
 	}
 
 	@Override
@@ -165,7 +174,7 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void disabledPeriodic() {
-
+		CommandScheduler.getInstance().cancelAll();
 	}
 
 	@Override
