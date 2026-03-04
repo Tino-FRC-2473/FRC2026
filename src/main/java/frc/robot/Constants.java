@@ -63,7 +63,7 @@ public class Constants {
 
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
 		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speed, and so on
-		public static final double TRANSLATIONAL_DAMP = 1;
+		public static final double TRANSLATIONAL_DAMP = 0.2;
 		public static final double ROTATIONAL_DAMP = 1;
 
 		// drive velocity limits
