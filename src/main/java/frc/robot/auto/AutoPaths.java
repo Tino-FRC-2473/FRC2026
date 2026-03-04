@@ -306,7 +306,6 @@ public class AutoPaths {
 	/**
 	 * Returns an auto command that goes from a start position,
 	 * goes to the hub, optionally shoots, then climbs.
-	 * 
 	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
 	 * @param shooter    the shooter
@@ -349,7 +348,7 @@ public class AutoPaths {
 				.keepActiveIf(shouldShoot)
 				// shoot for 2-3 seconds
 				.doNext(shootFor(input, shooter, 2))
-				// drive to starting pose
+				// drive back to starting pose
 				.doNext(settings.startingPositon().getHubToStartPath().get(isRed))
 				.reactivate()
 
@@ -360,7 +359,6 @@ public class AutoPaths {
 	/**
 	 * Returns a test auto that drives with the the BlueHubNZCimb2 trajectory,
 	 * and then shoots in the direction its facing for 10 seconds.
-	 * 
 	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
 	 * @param shooter    the shooter
