@@ -26,18 +26,6 @@ import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
 public class AutoPaths {
 
 	enum DrivePaths {
-		BlueHubNZCimb2,
-		RedHubNZClimb2(BlueHubNZCimb2),
-
-		BlueLTNZClimb,
-		RedLTNZClimb(BlueLTNZClimb),
-
-		BlueHubNZClimb,
-		RedHubNZClimb(BlueHubNZClimb),
-
-		BlueRTNZClimb,
-		RedRTNZClimb(BlueRTNZClimb),
-
 		BlueS1_D,
 		RedS1_D(BlueS1_D),
 
@@ -116,8 +104,8 @@ public class AutoPaths {
 
 		Command get() {
 			return (path == null || !AutoBuilder.isConfigured())
-				? new InstantCommand()
-				: AutoBuilder.followPath(path);
+					? new InstantCommand()
+					: AutoBuilder.followPath(path);
 		}
 
 		DrivePaths mirror() {
@@ -144,6 +132,7 @@ public class AutoPaths {
 				DrivePaths.HUB_BlueS2),
 		S3(DrivePaths.BlueS3_D, DrivePaths.BlueS3_HUB, DrivePaths.BlueS3_NZ, DrivePaths.NZ_BlueS3,
 				DrivePaths.HUB_BlueS2);
+
 		// ad more ___ paths as needed
 		private DrivePaths depotPath;
 		private DrivePaths hubPath;
@@ -182,228 +171,232 @@ public class AutoPaths {
 	}
 
 	public record DepotShootClimbSettings(
-		boolean shouldShoot, boolean isRed, StartingPositon startingPositon) { }
+			boolean shouldShoot, boolean isRed, StartingPositon startingPositon) {
+	}
 
 	/**
 	 * Returns an auto command that goes from a start position to depot,
 	 * intakes, optionally shoots into the hub, then climbs.
-	 * @param input the auto input
+	 * 
+	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
-	 * @param shooter the shooter
-	 * @param climber the climber
-	 * @param intake the intake
-	 * @param settings the setttings, including Blue/Red,
-	 * starting postion, and whether it should shoot during auto
+	 * @param shooter    the shooter
+	 * @param climber    the climber
+	 * @param intake     the intake
+	 * @param settings   the setttings, including Blue/Red,
+	 *                   starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
 	public static Command getDepotShootClimb(
-		AutoInput input,
-		Drivetrain drivetrain,
-		ShooterFSMSystem shooter,
-		ClimberFSMSystem climber,
-		IntakeFSMSystem intake,
-		DepotShootClimbSettings settings
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			ClimberFSMSystem climber,
+			IntakeFSMSystem intake,
+			DepotShootClimbSettings settings
 
 	) {
 		boolean isRed = settings.isRed();
 		boolean shouldShoot = settings.shouldShoot();
 		return new CommandComposer()
 
-			// drive from start to blue depo
-			.doNext(settings.startingPositon().getDepotPath().get(isRed))
-			//start intake
-			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
-			.with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
+				// drive from start to blue depo
+				.doNext(settings.startingPositon().getDepotPath().get(isRed))
+				// start intake
+				.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
+				.with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
 
-			// drive through depo
-			.doNext(DrivePaths.BlueD_INTAKE.get(isRed))
+				// drive through depo
+				.doNext(DrivePaths.BlueD_INTAKE.get(isRed))
 
-			//stop intake and fold in
-			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
-			.with(input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON))
+				// stop intake and fold in
+				.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
+				.with(input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON))
 
-			// if we shouldn't shoot ...
-			.keepActiveIf(!shouldShoot)
-			// raise climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
-			.with(climber.waitForExtendedL1())
-			// go to climber
-			.doNext(DrivePaths.BlueD_T.get(isRed))
-			.reactivate()
+				// if we shouldn't shoot ...
+				.keepActiveIf(!shouldShoot)
+				// raise climber
+				.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+				.with(climber.waitForExtendedL1())
+				// go to climber
+				.doNext(DrivePaths.BlueD_T.get(isRed))
+				.reactivate()
 
-			// if we should shoot ...
-			.keepActiveIf(shouldShoot)
-			//drive to hub
-			.doNext(DrivePaths.BlueD_HUB.get(isRed))
-			// shoot for 2-3 seconds
-			.doNext(shootFor(input, shooter, 2))
-			// extend climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
-			.with(climber.waitForExtendedL1())
-			// drive to tower
-			.doNext(DrivePaths.BlueHUB_T.get(isRed))
-			.reactivate()
+				// if we should shoot ...
+				.keepActiveIf(shouldShoot)
+				// drive to hub
+				.doNext(DrivePaths.BlueD_HUB.get(isRed))
+				// shoot for 2-3 seconds
+				.doNext(shootFor(input, shooter, 2))
+				// extend climber
+				.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+				.with(climber.waitForExtendedL1())
+				// drive to tower
+				.doNext(DrivePaths.BlueHUB_T.get(isRed))
+				.reactivate()
 
-			// retract climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+				// retract climber
+				.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
 
-			// finish command
-			.close();
+				// finish command
+				.close();
 	}
 
 	public record ShootClimbSettings(
-		boolean shouldShoot, boolean isRed, StartingPositon startingPositon) { }
+			boolean shouldShoot, boolean isRed, StartingPositon startingPositon) {
+	}
 
 	/**
 	 * Returns an auto command that goes from a start position,
 	 * goes to the hub, optionally shoots, then climbs.
-	 * @param input the auto input
+	 * 
+	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
-	 * @param shooter the shooter
-	 * @param climber the climber
-	 * @param settings the setttings, including Blue/Red,
-	 * starting postion, and whether it should shoot during auto
+	 * @param shooter    the shooter
+	 * @param climber    the climber
+	 * @param settings   the setttings, including Blue/Red,
+	 *                   starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
 	public static Command getShootClimb(
-		AutoInput input,
-		Drivetrain drivetrain,
-		ShooterFSMSystem shooter,
-		ClimberFSMSystem climber,
-		ShootClimbSettings settings
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			ClimberFSMSystem climber,
+			ShootClimbSettings settings
 
 	) {
 		boolean isRed = settings.isRed();
 		boolean shouldShoot = settings.shouldShoot();
 		return new CommandComposer()
-			//drive from starting position to hub
-			.doNext(settings.startingPositon().getHubPath().get(isRed))
+				// drive from starting position to hub
+				.doNext(settings.startingPositon().getHubPath().get(isRed))
 
-			// if we shouldn't shoot ...
-			.keepActiveIf(!shouldShoot)
-			// raise climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
-			.with(climber.waitForExtendedL1())
-			// go to tower
-			.doNext(DrivePaths.BlueHUB_T.get(isRed))
-			.reactivate()
+				// if we shouldn't shoot ...
+				.keepActiveIf(!shouldShoot)
+				// raise climber
+				.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+				.with(climber.waitForExtendedL1())
+				// go to tower
+				.doNext(DrivePaths.BlueHUB_T.get(isRed))
+				.reactivate()
 
-			// if we should shoot ...
-			.keepActiveIf(shouldShoot)
-			// shoot for 2-3 seconds
-			.doNext(shootFor(input, shooter, 2))
-			// extend climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
-			.with(climber.waitForExtendedL1())
-			// drive to tower
-			.doNext(DrivePaths.BlueHUB_T.get(isRed))
-			.reactivate()
+				// if we should shoot ...
+				.keepActiveIf(shouldShoot)
+				// shoot for 2-3 seconds
+				.doNext(shootFor(input, shooter, 2))
+				// extend climber
+				.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+				.with(climber.waitForExtendedL1())
+				// drive to tower
+				.doNext(DrivePaths.BlueHUB_T.get(isRed))
+				.reactivate()
 
-			// retract climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+				// retract climber
+				.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
 
-			// finish command
-			.close();
+				// finish command
+				.close();
 	}
 
 	public record ShootNzSettings(
-		boolean shouldShoot, boolean isRed, StartingPositon startingPositon) { }
+			boolean shouldShoot, boolean isRed, StartingPositon startingPositon) {
+	}
 
 	/**
 	 * Returns an auto command that goes from a start position,
 	 * goes to the hub, optionally shoots, then climbs.
-	 * @param input the auto input
+	 * 
+	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
-	 * @param shooter the shooter
-	 * @param climber the climber
-	 * @param intake the intake
-	 * @param settings the setttings, including Blue/Red,
-	 * starting postion, and whether it should shoot during auto
+	 * @param shooter    the shooter
+	 * @param climber    the climber
+	 * @param intake     the intake
+	 * @param settings   the setttings, including Blue/Red,
+	 *                   starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
 	public static Command getShootNz(
-		AutoInput input,
-		Drivetrain drivetrain,
-		ShooterFSMSystem shooter,
-		ClimberFSMSystem climber,
-		IntakeFSMSystem intake,
-		ShootNzSettings settings
-	) {
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			ClimberFSMSystem climber,
+			IntakeFSMSystem intake,
+			ShootNzSettings settings) {
 		boolean isRed = settings.isRed();
 		boolean shouldShoot = settings.shouldShoot();
 		return new CommandComposer()
 
-			// if we shouldn't shoot ...
-			// go to nz
-			.doNext(settings.startingPositon().getNzPath().get(isRed))
-			//start intake
-			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
-			.with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
-			//drive thru NZ
-			.doNext(DrivePaths.BlueNZ_INTAKE.get(isRed))
-			//stop intake and fold in
-			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
-			.with(input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON))
-			//go back to starting pose
-			.doNext(settings.startingPositon().getNzToStartPath().get(isRed))
-			.reactivate()
+				// if we shouldn't shoot ...
+				// go to nz
+				.doNext(settings.startingPositon().getNzPath().get(isRed))
+				// start intake
+				.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
+				.with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
+				// drive thru NZ
+				.doNext(DrivePaths.BlueNZ_INTAKE.get(isRed))
+				// stop intake and fold in
+				.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
+				.with(input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON))
+				// go back to starting pose
+				.doNext(settings.startingPositon().getNzToStartPath().get(isRed))
+				.reactivate()
 
-			// if we should shoot ...
-			//go to hub
-			.doNext(settings.startingPositon().getHubPath().get(isRed))
-			//shoot
-			.keepActiveIf(shouldShoot)
-			// shoot for 2-3 seconds
-			.doNext(shootFor(input, shooter, 2))
-			// drive to starting pose
-			.doNext(settings.startingPositon().getHubToStartPath().get(isRed))
-			.reactivate()
+				// if we should shoot ...
+				// go to hub
+				.doNext(settings.startingPositon().getHubPath().get(isRed))
+				// shoot
+				.keepActiveIf(shouldShoot)
+				// shoot for 2-3 seconds
+				.doNext(shootFor(input, shooter, 2))
+				// drive to starting pose
+				.doNext(settings.startingPositon().getHubToStartPath().get(isRed))
+				.reactivate()
 
-			// finish command
-			.close();
+				// finish command
+				.close();
 	}
-
 
 	/**
 	 * Returns a test auto that drives with the the BlueHubNZCimb2 trajectory,
 	 * and then shoots in the direction its facing for 10 seconds.
-	 * @param input the auto input
+	 * 
+	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
-	 * @param shooter the shooter
+	 * @param shooter    the shooter
 	 * @return the auto as a command
 	 */
 	public static Command getTestAuto(
-		AutoInput input,
-		Drivetrain drivetrain,
-		ShooterFSMSystem shooter
-	) {
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter) {
 		return new CommandComposer()
-			.doNext(shootFor(input, shooter, 2))
-			.close();
+				.doNext(shootFor(input, shooter, 2))
+				.close();
 	}
 
 	private static Command startShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return new CommandComposer()
-			.with(input.pressButtonCommand(ButtonInput.SHOOTER_PREP_TOGGLE))
-			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, true))
-			.with(shooter.watchForStatesCommand(ShooterFSMState.FEED_STATE))
-			.close();
+				.with(input.pressButtonCommand(ButtonInput.SHOOTER_PREP_TOGGLE))
+				.with(input.setButtonCommand(ButtonInput.REV_FEEDER, true))
+				.with(shooter.watchForStatesCommand(ShooterFSMState.FEED_STATE))
+				.close();
 	}
 
 	private static Command stopShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return new CommandComposer()
-			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, false))
-			.with(input.setButtonCommand(ButtonInput.SHOOTER_PREP_TOGGLE, false))
-			.with(shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE))
-			.close();
+				.with(input.setButtonCommand(ButtonInput.REV_FEEDER, false))
+				.with(input.setButtonCommand(ButtonInput.SHOOTER_PREP_TOGGLE, false))
+				.with(shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE))
+				.close();
 	}
 
 	private static Command shootFor(AutoInput input, ShooterFSMSystem shooter, double time) {
 		return new CommandComposer()
-			.with(startShootingCommand(input, shooter))
-			.with(new WaitCommand(time))
-			.doNext(stopShootingCommand(input, shooter))
-			.close();
+				.with(startShootingCommand(input, shooter))
+				.with(new WaitCommand(time))
+				.doNext(stopShootingCommand(input, shooter))
+				.close();
 	}
 
 	private static final class CommandComposer {
@@ -441,8 +434,7 @@ public class AutoPaths {
 		private void completeCommand() {
 			if (currentCommandGroup.size() > 1) {
 				commandSequence.add(new ParallelCommandGroup(
-					currentCommandGroup.toArray(new Command[0])
-				));
+						currentCommandGroup.toArray(new Command[0])));
 			} else if (currentCommandGroup.size() == 1) {
 				commandSequence.add(currentCommandGroup.get(0));
 			}
