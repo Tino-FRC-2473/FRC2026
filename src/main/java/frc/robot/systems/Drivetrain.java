@@ -102,7 +102,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private Transform2d offsetTransform = new Transform2d(
 				-DrivetrainConstants.X_TRANFORM_FROM_TAG, // Back to Front
 				DrivetrainConstants.Y_TRANFORM_FROM_TAG, // Side to Side
-				Rotation2d.kCCW_90deg);
+				Rotation2d.kZero);
 
 	private Pose2d pathfindTarget = test.transformBy(offsetTransform);
 	private ShooterFSMSystem shooter;
@@ -135,9 +135,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					return drivetrain.getState().Speeds;
 				}, /*ChassisSpeeds supplier. MUST BE ROBOT RELATIVE */
 				(speeds, feedforwards) -> {
+
+					ChassisSpeeds speedINeedThis = new ChassisSpeeds(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, -speeds.omegaRadiansPerSecond);
+
 					drivetrain.setControl(
 						applyRobotSpeeds
-							.withSpeeds(speeds.times(Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
+							.withSpeeds(speedINeedThis.times(Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
 							.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
 							.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
 					);

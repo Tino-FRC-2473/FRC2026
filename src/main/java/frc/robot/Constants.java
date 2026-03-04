@@ -63,20 +63,20 @@ public class Constants {
 
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
 		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speed, and so on
-		public static final double TRANSLATIONAL_DAMP = 0.2;
+		public static final double TRANSLATIONAL_DAMP = 1;
 		public static final double ROTATIONAL_DAMP = 1;
 
 		// drive velocity limits
 		// Max linear & angular speeds
-		public static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V.times(0.05);
+		public static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
 		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(1);
 
 		// pathing acceleration limits
 		public static final LinearAcceleration MAX_PATHING_LINEAR_ACCELERATION
-			= MetersPerSecondPerSecond.of(0.1);
+			= MetersPerSecondPerSecond.of(4);
 
 		public static final AngularAcceleration MAX_PATHING_ROTATIONAL_ACCELERATION
-			= RotationsPerSecondPerSecond.of(0.1);
+			= RotationsPerSecondPerSecond.of(4);
 
 		public static final int PIGEON2_CAN_ID = 1;
 		public static final String CAN_BUS_NAME = "Drivetrain";
@@ -99,9 +99,9 @@ public class Constants {
 		public static final double TRANSLATIONAL_DEADBAND = 0.1;
 		public static final double ROTATIONAL_DEADBAND = 0.1;
 
-		public static final int TAG_TO_ALIGN_TO = 26;
+		public static final int TAG_TO_ALIGN_TO = 10;
 		public static final double X_TRANFORM_FROM_TAG = -2;
-		public static final double Y_TRANFORM_FROM_TAG = -1.5;
+		public static final double Y_TRANFORM_FROM_TAG = 0;
 		public static final double FACE_HUB_P = 7.0;
 		public static final double FACE_HUB_I = 0.0;
 		public static final double FACE_HUB_D = 0.0;
@@ -118,16 +118,16 @@ public class Constants {
 
 	public static final class ModuleConstants {
 		public static final double DRIVE_P = 7;
-		public static final double DRIVE_I = 1.75;
-		public static final double DRIVE_D = 0.1;
+		public static final double DRIVE_I = 0.1;
+		public static final double DRIVE_D = 0.4;
 		public static final double DRIVE_V = 0.124;
 
 		public static final double DRIVE_CURRENT_LIMIT = 80;
 		public static final double STEER_CURRENT_LIMIT = 60;
 
-		public static final double STEER_P = 3;
+		public static final double STEER_P = 7;
 		public static final double STEER_I = 0.1;
-		public static final double STEER_D = 0.1;
+		public static final double STEER_D = 0.4;
 		public static final double STEER_V = 0.1;
 		public static final double STEER_S = 0;
 	}
