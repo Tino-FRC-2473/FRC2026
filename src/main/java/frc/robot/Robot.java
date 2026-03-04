@@ -107,6 +107,10 @@ public class Robot extends LoggedRobot {
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
 		input.reset();
+		drivetrainFSMSystem.reset();
+		climberFSMSystem.reset();
+		intakeFSMSystem.reset();
+		shooterFSMSystem.reset();
 		// if (drivetrainFSMSystem instanceof Drivetrain drive
 		// 	&& shooterFSMSystem instanceof ShooterFSMSystem shooter
 		// 	&& climberFSMSystem instanceof ClimberFSMSystem climber
@@ -141,9 +145,10 @@ public class Robot extends LoggedRobot {
 		input = new TeleopInput();
 		input.reset();
 		CommandScheduler.getInstance().cancelAll();
-		//drivetrain.reset();
+		drivetrainFSMSystem.reset();
 		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
+		shooterFSMSystem.reset();
 	}
 
 	@Override
@@ -169,7 +174,7 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void disabledPeriodic() {
-
+		CommandScheduler.getInstance().cancelAll();
 	}
 
 	@Override
