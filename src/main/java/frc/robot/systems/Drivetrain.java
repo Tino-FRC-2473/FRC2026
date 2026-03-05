@@ -34,6 +34,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -321,12 +322,19 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
-		double xSpeed = -MathUtil.applyDeadband(
+
+		//TODO: Clean this jawn up it's for testing
+		double flip = 1;
+		var alliance = DriverStation.getAlliance();
+		if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue) {
+			flip = -1.0;
+		}
+		double xSpeed = flip * -MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-		double ySpeed = MathUtil.applyDeadband(
-				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
+		double ySpeed = flip * -MathUtil.applyDeadband(
+				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
