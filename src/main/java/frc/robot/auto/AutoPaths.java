@@ -134,7 +134,7 @@ public class AutoPaths {
 		DepotShootClimbSettings settings
 
 	) {
-		// right now isRed = true means blue and isRed = false means red ;(
+		// right now isRed = true means blue and isRed = false means red :(
 		boolean isRed = settings.isRed();
 		boolean shouldShoot = settings.shouldShoot();
 		return new CommandComposer()
