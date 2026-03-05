@@ -38,19 +38,19 @@ public final class TeleopInput extends Input {
 			// Drivetrain
 			case DRIVETRAIN_DRIVE_Y -> driveController.getLeftX();
 			case DRIVETRAIN_DRIVE_X -> driveController.getLeftY();
-			case DRIVETRAIN_ROTATE -> driveController.getRightX(); 
+			case DRIVETRAIN_ROTATE -> driveController.getRightX();
 
 			// Intake
 
 			// Climber
 			case CLIMBER_MANUAL_CONTROL -> mechController.getLeftX();
 
-			default -> throw new IllegalArgumentException("Unknown axis input");
+			default -> 0.0;
 		};
 	}
 
 	@Override
-	public Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
+	public Function<EventLoop, BooleanEvent> getButtonEvent(ButtonInput key) {
 		System.out.println(key);
 		return switch (key) {
 
@@ -72,8 +72,7 @@ public final class TeleopInput extends Input {
 			case CLIMBER_MANUAL_OVERRIDE -> mechController::povUp;
 			case CLIMBER_NEXT_STEP -> mechController::povLeft;
 			case CLIMBER_EMERGENCY_ABORT -> mechController::povDown;
-			case CLIMBER_AUTO_UP_1 -> driveController::triangle;
-			case CLIMBER_AUTO_UP_2 -> driveController::circle;
+
 
 			//Shooter
 			case PASSER_PREP_TOGGLE -> mechController::R1;
@@ -82,7 +81,7 @@ public final class TeleopInput extends Input {
 			case REV_FEEDER -> mechController::R2;
 			case IDLE_SHOOTER_TOGGLE -> mechController::touchpad;
 
-			default -> throw new IllegalArgumentException("Unknown button input");
+			default -> (e) -> new BooleanEvent(e, () -> false);
 		};
 	}
 

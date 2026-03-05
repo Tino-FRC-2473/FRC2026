@@ -321,11 +321,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
-		double xSpeed = MathUtil.applyDeadband(
+		double xSpeed = -MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-		double ySpeed = -MathUtil.applyDeadband(
+		double ySpeed = MathUtil.applyDeadband(
 				-input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 

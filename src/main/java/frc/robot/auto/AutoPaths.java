@@ -146,7 +146,7 @@ public class AutoPaths {
 			// .with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
 
 			// drive through depo
-			.doNext(DrivePaths.BlueD_INTAKE.get(isRed))
+			.doNext(DrivePaths.RedD_INTAKE.get(isRed))
 
 			//stop intake and fold in
 			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
@@ -158,20 +158,20 @@ public class AutoPaths {
 			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
 			// .with(climber.waitForExtendedL1())
 			// go to climber
-			.doNext(DrivePaths.BlueD_T.get(isRed))
+			.doNext(DrivePaths.RedD_T.get(isRed))
 			.reactivate()
 
 			// if we should shoot ...
 			.keepActiveIf(shouldShoot)
 			//drive to hub
-			.doNext(DrivePaths.BlueD_HUB.get(isRed))
+			.doNext(DrivePaths.RedD_HUB.get(isRed))
 			// shoot for 2-3 seconds
 			// .doNext(shootFor(input, shooter, 2))
 			// extend climber
 			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
 			// .with(climber.waitForExtendedL1())
 			// drive to tower
-			.doNext(DrivePaths.BlueHUB_T.get(isRed))
+			.doNext(DrivePaths.RedHUB_T.get(isRed))
 			.reactivate()
 
 			// retract climber
