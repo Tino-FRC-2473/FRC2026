@@ -121,10 +121,6 @@ public class Robot extends LoggedRobot {
 					new AutoPaths.DepotShootClimbSettings(true, false, StartingPositon.S1))
 			);
 		}
-		// CommandScheduler.getInstance().schedule(
-		// 	AutoPaths.getDepotShootClimb(autoInput, (Drivetrain) drivetrainFSMSystem, new AutoPaths.DepotShootClimbSettings(true, false, StartingPositon.S1))
-		// );
-
 	}
 
 	@Override
