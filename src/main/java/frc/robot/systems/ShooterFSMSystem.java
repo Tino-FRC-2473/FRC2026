@@ -66,7 +66,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private Pose2d target3Pose; //probably going to be the mirrored side of the outpost
 	private TalonFX flywheelMotor;
 	private TalonFX feederMotor;
-	private SparkMax spindexMotor;
+	//private SparkMax spindexMotor;
 	private Measure<AngularVelocityUnit> flywheelSpeed; //Units.RotationsPerSecond
 	private Measure<AngularVelocityUnit> flywheelTargetSpeed; //Units.RotationsPerSecond
 	private Measure<AngleUnit> hoodAngle; //Units.Degrees
@@ -91,8 +91,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * the constructor is called only once when the robot boots.
 	 */
 	public ShooterFSMSystem() {
-		spindexTimer.start();
-		spindexVoltage = ShooterConstants.SPINDEX_CONSTANT_VOLTAGE; //Volts
+		//spindexTimer.start();
+		//spindexVoltage = ShooterConstants.SPINDEX_CONSTANT_VOLTAGE; //Volts
 		curPose = new Pose2d();
 		outpostPose = ShooterConstants.OUTPOST_POSE;
 		target3Pose = ShooterConstants.TARGET3_POSE;
@@ -107,8 +107,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feederMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_FEEDER
 		);
-		spindexMotor = new SparkMax(HardwareMap.CAN_ID_SPINDEXER,
-			MotorType.kBrushless);
+		// spindexMotor = new SparkMax(HardwareMap.CAN_ID_SPINDEXER,
+		// 	MotorType.kBrushless);
 
 		var limitConfigs = new CurrentLimitsConfigs();
 
@@ -431,7 +431,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feedTimer.reset();
 		feedTimer.stop();
 		noFuelStored = false;
-		spindexTimer.reset();
+		//spindexTimer.reset();
 	}
 
 	/* ------------------------ FSM state handlers ------------------------ */
@@ -551,11 +551,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		//if (!noFuelStored && !modelIntake(input)) {
 			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
 				feederMotor.stopMotor();
-				spindexMotor.stopMotor();
+				//spindexMotor.stopMotor();
 				//pastState should only store shooter_prep, passer_prep, and manual_prep
 			} else {
 				feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
-				spindexMotor.setVoltage(spindexVoltage);
+				//spindexMotor.setVoltage(spindexVoltage);
 			}
 
 			if (feedTimer.isRunning()) {
@@ -578,23 +578,23 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			noFuelStored = false;
 			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
 				feederMotor.stopMotor();
-				spindexMotor.stopMotor();
+				//spindexMotor.stopMotor();
 				//pastState should only store shooter_prep, passer_prep, and manual_prep
 			} else {
 				feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
-				spindexMotor.setVoltage(spindexVoltage);
+				//spindexMotor.setVoltage(spindexVoltage);
 			}
 		} else {
 			//condition for not having anyting stored
 			feederMotor.stopMotor();
-			spindexMotor.stopMotor();
+			//spindexMotor.stopMotor();
 		}
 
 
 		//Switch spindexer back and forth
-		if (spindexTimer.advanceIfElapsed(ShooterConstants.SPINDEX_MAX_TIME)) {
-			spindexVoltage *= -1;
-		}
+		// if (spindexTimer.advanceIfElapsed(ShooterConstants.SPINDEX_MAX_TIME)) {
+		// 	spindexVoltage *= -1;
+		// }
 		
 		//if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
 		// if (!input.getButtonValue(ButtonInput.REV_FEEDER)) {

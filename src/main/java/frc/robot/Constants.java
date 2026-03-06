@@ -18,7 +18,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
-import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import	 static edu.wpi.first.units.Units.KilogramSquareMeters;
 
 import com.pathplanner.lib.path.PathConstraints;
 
@@ -68,7 +68,7 @@ public class Constants {
 
 		// drive velocity limits
 		// Max linear & angular speeds
-		public static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
+		public static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
 		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(1);
 
 		// pathing acceleration limits
