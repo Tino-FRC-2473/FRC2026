@@ -149,16 +149,16 @@ public class Constants {
 		public static final double KD = 0.0;
 		public static final Distance UPPER_THRESHOLD = Units
 			.Inches.of(17);
-		public static final double CRUISE_VELO = 1;
-		public static final double TARGET_ACCEL = 1;
+		public static final double CRUISE_VELO = 15; // 30 max
+		public static final double TARGET_ACCEL = 15; // 30 max
 		public static final double EXPO_KV = 0;
 		public static final double ROTS_TO_INCHES = 16 / 105.5;
 		public static final Distance POSITION_TOLERANCE_L1 = Units.Inches.of(0.4);
 		public static final Distance DOWN_POSITION_TOLERANCE_L1 = Units.Inches.of(0.05);
 		public static final double JOYSTICK_DEADBAND = 0.1;
 		public static final double MANUAL_SCALE = 1;
-		public static final Distance L1_EXTEND_POS = Units.Inches.of(19.0);
-		public static final Distance L1_RETRACT_POS = Units.Inches.of(5.0);
+		public static final Distance L1_EXTEND_POS = Units.Inches.of(17.0);
+		public static final Distance L1_RETRACT_POS = Units.Inches.of(6.0);
 		public static final Distance GROUND = Units.Inches.of(0.0);
 		public static final Distance REVERSE_LIMIT_SWITCH_POS = Units.Inches.of(-20.0);
 		public static final int CONTROL_REQUEST_SUBSTRING_START_INDEX = 9;
@@ -198,7 +198,7 @@ public class Constants {
 		// 	HOOD_ACCELERATION.times(JERK_MULT_CONSTANT).per(Seconds).magnitude();
 
 		public static final AngularVelocity FLYWHEEL_MOE =
-			RotationsPerSecond.of(0.5); //margin of error, subject to change
+			RotationsPerSecond.of(3); //margin of error, subject to change
 		// public static final Angle HOOD_MOE = Degrees.of(0.1);
 		//margin of error, subject to change
 

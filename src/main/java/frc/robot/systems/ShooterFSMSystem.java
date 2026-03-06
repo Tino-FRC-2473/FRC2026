@@ -547,48 +547,48 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 		Logger.recordOutput("noFuelStored", noFuelStored);
 		Logger.recordOutput("isIntakeDown", modelIntake(input));
-		if (!noFuelStored && !intake.isIntakeDownRunning()) {
-		//if (!noFuelStored && !modelIntake(input)) {
-			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
-				feederMotor.stopMotor();
-				//spindexMotor.stopMotor();
-				//pastState should only store shooter_prep, passer_prep, and manual_prep
-			} else {
-				feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
-				//spindexMotor.setVoltage(spindexVoltage);
-			}
+		// if (!noFuelStored && !intake.isIntakeDownRunning()) {
+		// //if (!noFuelStored && !modelIntake(input)) {
+		// 	if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
+		// 		feederMotor.stopMotor();
+		// 		//spindexMotor.stopMotor();
+		// 		//pastState should only store shooter_prep, passer_prep, and manual_prep
+		// 	} else {
+		// 		feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
+		// 		//spindexMotor.setVoltage(spindexVoltage);
+		// 	}
 
-			if (feedTimer.isRunning()) {
-				if (!breakBeam.get()) {
-					feedTimer.restart();
-				} else {
-					if (feedTimer.get() >= ShooterConstants.FEED_MAX_TIME) {
-						noFuelStored = true; //we don't have fuel
-					}
-				}
+		// 	if (feedTimer.isRunning()) {
+		// 		if (!breakBeam.get()) {
+		// 			feedTimer.restart();
+		// 		} else {
+		// 			if (feedTimer.get() >= ShooterConstants.FEED_MAX_TIME) {
+		// 				noFuelStored = true; //we don't have fuel
+		// 			}
+		// 		}
 
-			} else {
-				feedTimer.start();
-			}
+		// 	} else {
+		// 		feedTimer.start();
+		// 	}
 
 
-		} else if (intake.isIntakeDownRunning()) {
-		//} else if (modelIntake(input)) {
-			feedTimer.reset();
-			noFuelStored = false;
-			if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
-				feederMotor.stopMotor();
-				//spindexMotor.stopMotor();
-				//pastState should only store shooter_prep, passer_prep, and manual_prep
-			} else {
-				feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
-				//spindexMotor.setVoltage(spindexVoltage);
-			}
-		} else {
-			//condition for not having anyting stored
-			feederMotor.stopMotor();
-			//spindexMotor.stopMotor();
-		}
+		// } else if (intake.isIntakeDownRunning()) {
+		// //} else if (modelIntake(input)) {
+		// 	feedTimer.reset();
+		// 	noFuelStored = false;
+		// 	if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
+		// 		feederMotor.stopMotor();
+		// 		//spindexMotor.stopMotor();
+		// 		//pastState should only store shooter_prep, passer_prep, and manual_prep
+		// 	} else {
+		// 		feederMotor.setControl(feederRequest.withVelocity(flywheelTargetSpeed.magnitude()));
+		// 		//spindexMotor.setVoltage(spindexVoltage);
+		// 	}
+		// } else {
+		// 	//condition for not having anyting stored
+		// 	feederMotor.stopMotor();
+		// 	//spindexMotor.stopMotor();
+		// }
 
 
 		//Switch spindexer back and forth
@@ -596,18 +596,18 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// 	spindexVoltage *= -1;
 		// }
 		
-		//if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
-		// if (!input.getButtonValue(ButtonInput.REV_FEEDER)) {
-		// 	System.out.println("reach 2");
-		// 	feederMotor.stopMotor();
-		// 		//spindexMotor.stopMotor();
-		// 		//pastState should only store shooter_prep, passer_prep, and manual_prep
-		// } else {
-		// 	System.out.println("reach 1");
-		// 	feederMotor.setControl(feederRequest.withVelocity(ShooterConstants.
-		// 		FEEDER_CONSTANT_SPEED));
-		// 		//spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
-		// }
+		if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
+		//if (!input.getButtonValue(ButtonInput.REV_FEEDER)) {
+			System.out.println("reach 2");
+			feederMotor.stopMotor();
+				//spindexMotor.stopMotor();
+				//pastState should only store shooter_prep, passer_prep, and manual_prep
+		} else {
+			System.out.println("reach 1");
+			feederMotor.setControl(feederRequest.withVelocity(ShooterConstants.
+				FEEDER_CONSTANT_SPEED));
+				//spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
+		}
 		Logger.recordOutput("BreakBeam Timer: ", feedTimer.get());
 	}
 

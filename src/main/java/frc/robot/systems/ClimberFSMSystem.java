@@ -6,7 +6,9 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 
 import java.util.Optional;
@@ -127,7 +129,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		var talonFXConfigs = new TalonFXConfiguration();
 
 		var outputConfigs = talonFXConfigs.MotorOutput;
-		outputConfigs.NeutralMode = NeutralModeValue.Coast;
+		outputConfigs.NeutralMode = NeutralModeValue.Brake;
 		outputConfigs.Inverted = InvertedValue.Clockwise_Positive;
 
 		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
@@ -182,6 +184,12 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	 */
 	@Override
 	public void update(Input input) {
+
+		boolean atBottom2 = (getLeftLimitSwitch() || getRightLimitSwitch());
+		if (atBottom2) {
+			climberMotorLeft.setPosition(Angle.ofBaseUnits(0, Degrees));
+			climberMotorRight.setPosition(Angle.ofBaseUnits(0, Degrees));
+		}
 
 		if (RobotBase.isSimulation()) {
 			sim.setInputVoltage(climberMotorLeft.getSimState().getMotorVoltage());
@@ -386,7 +394,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 				}
 				return ClimberFSMState.IDLE;
 			case MANUAL_DIRECT_CONTROL:
-				if (input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP)) {
+				if (input.getButtonPressed(ButtonInput.CLIMBER_EMERGENCY_ABORT)) {
 					return ClimberFSMState.IDLE;
 				}
 				return ClimberFSMState.MANUAL_DIRECT_CONTROL;
@@ -449,6 +457,11 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 
 		boolean atBottom = (getLeftLimitSwitch() || getRightLimitSwitch());
 		boolean atTop = (getClimberHeightInches() >= ClimberConstants.UPPER_THRESHOLD.in(Inches));
+
+		if (atBottom) {
+			climberMotorLeft.setPosition(Angle.ofBaseUnits(0, Degrees));
+			climberMotorRight.setPosition(Angle.ofBaseUnits(0, Degrees));
+		}
 
 		boolean isUnsafe = ((manualControlValue < 0 && atBottom)
 			|| (manualControlValue > 0 && atTop));
