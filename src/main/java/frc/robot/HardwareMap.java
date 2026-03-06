@@ -55,7 +55,7 @@ public final class HardwareMap {
 	 * @return if the hardware for the climber is present
 	 */
 	public static boolean isClimberEnabled() {
-		return false;
+		return true;
 	}
 
 	/**
@@ -63,7 +63,7 @@ public final class HardwareMap {
 	 * @return if the hardware for the intake is present
 	 */
 	public static boolean isIntakeEnabled() {
-		return false;
+		return true;
 	}
 
 	/**
@@ -71,6 +71,6 @@ public final class HardwareMap {
 	 * @return if the hardware for the shooter is present
 	 */
 	public static boolean isShooterEnabled() {
-		return false;
+		return true;
 	}
 }

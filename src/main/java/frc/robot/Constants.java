@@ -148,9 +148,9 @@ public class Constants {
 		public static final double KI = 0.0;
 		public static final double KD = 0.0;
 		public static final Distance UPPER_THRESHOLD = Units
-			.Inches.of(17);
-		public static final double CRUISE_VELO = 1;
-		public static final double TARGET_ACCEL = 1;
+			.Inches.of(21);
+		public static final double CRUISE_VELO = 60;
+		public static final double TARGET_ACCEL = 60;
 		public static final double EXPO_KV = 0;
 		public static final double ROTS_TO_INCHES = 16 / 105.5;
 		public static final Distance POSITION_TOLERANCE_L1 = Units.Inches.of(0.4);
@@ -198,7 +198,7 @@ public class Constants {
 		// 	HOOD_ACCELERATION.times(JERK_MULT_CONSTANT).per(Seconds).magnitude();
 
 		public static final AngularVelocity FLYWHEEL_MOE =
-			RotationsPerSecond.of(0.5); //margin of error, subject to change
+			RotationsPerSecond.of(2); //margin of error, subject to change
 		// public static final Angle HOOD_MOE = Degrees.of(0.1);
 		//margin of error, subject to change
 

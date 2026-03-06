@@ -29,6 +29,7 @@ import frc.robot.systems.Drivetrain;
 import frc.robot.systems.ShooterFSMSystem;
 import frc.robot.systems.IntakeFSMSystem.IntakeFSMState;
 import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
+import frc.robot.systems.ClimberFSMSystem.ClimberFSMState;
 
 public class AutoPaths {
 
@@ -125,12 +126,12 @@ public class AutoPaths {
 	 * starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
-	public static Command getDepotShootClimb(
+	public static Command getBlueDepotShootClimb(
 		AutoInput input,
 		Drivetrain drivetrain,
-		// ShooterFSMSystem shooter,
-		// ClimberFSMSystem climber,
-		// IntakeFSMSystem intake,
+		ShooterFSMSystem shooter,
+		ClimberFSMSystem climber,
+		IntakeFSMSystem intake,
 		DepotShootClimbSettings settings
 
 	) {
@@ -139,43 +140,122 @@ public class AutoPaths {
 		boolean shouldShoot = settings.shouldShoot();
 		return new CommandComposer()
 
-			// drive from start to blue depo
+			// drive from start to blue depo while fold out and start intake
 			.doNext(settings.startingPositon().getDepotPath().get(isRed))
+			.with(
+				new CommandComposer()
+				.doNext(input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON))
+				.with(intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE))
+				.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
+				.with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
+				.close()
+			)
+
 			//start intake
-			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
-			// .with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
+
 
 			// drive through depo
 			.doNext(DrivePaths.RedD_INTAKE.get(isRed))
 
 			//stop intake and fold in
 			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
-			.with(input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON))
+			.with(intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE))
+			.doNext(input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON))
+			.with(intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE))
 
-			// if we shouldn't shoot ...
-			.keepActiveIf(!shouldShoot)
-			// raise climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
-			// .with(climber.waitForExtendedL1())
-			// go to climber
-			.doNext(DrivePaths.RedD_T.get(isRed))
-			.reactivate()
-
-			// if we should shoot ...
-			.keepActiveIf(shouldShoot)
 			//drive to hub
 			.doNext(DrivePaths.RedD_HUB.get(isRed))
-			// shoot for 2-3 seconds
-			// .doNext(shootFor(input, shooter, 2))
-			// extend climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
-			// .with(climber.waitForExtendedL1())
-			// drive to tower
-			.doNext(DrivePaths.RedHUB_T.get(isRed))
+
+			// shoot for 2-3 seconds if we should shoot
+			.keepActiveIf(shouldShoot)
+			.doNext(shootFor(input, shooter, 2))
 			.reactivate()
 
+			// extend climber
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
+			.with(climber.watchForStatesCommand(
+				ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)
+			)
+
+			// drive to tower
+			.doNext(DrivePaths.RedHUB_T.get(isRed))
+
 			// retract climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_NEXT_STEP))
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2))
+
+			// finish command
+			.close();
+	}
+
+
+	/**
+	 * Returns an auto command that goes from a start position to depot,
+	 * intakes, optionally shoots into the hub, then climbs.
+	 * @param input the auto input
+	 * @param drivetrain the drivetrain
+	 * @param shooter the shooter
+	 * @param climber the climber
+	 * @param intake the intake
+	 * @param settings the setttings, including Blue/Red,
+	 * starting postion, and whether it should shoot during auto
+	 * @return the auto as a command
+	 */
+	public static Command getRedDepotShootClimb(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		ClimberFSMSystem climber,
+		IntakeFSMSystem intake,
+		DepotShootClimbSettings settings
+
+	) {
+		// right now isRed = true means blue and isRed = false means red ;(
+		boolean isRed = settings.isRed();
+		boolean shouldShoot = settings.shouldShoot();
+		return new CommandComposer()
+
+			// drive from start to blue depo while fold out and start intake
+			.doNext(settings.startingPositon().getDepotPath().get(isRed))
+			.with(
+				new CommandComposer()
+				.doNext(input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON))
+				.with(intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE))
+				.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
+				.with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
+				.close()
+			)
+
+			//start intake
+
+
+			// drive through depo
+			.doNext(DrivePaths.RedD_INTAKE.get(isRed))
+
+			//stop intake and fold in
+			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
+			.with(intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE))
+			.doNext(input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON))
+			.with(intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE))
+
+			//drive to hub
+			.doNext(DrivePaths.RedD_HUB.get(isRed))
+
+			// shoot for 2-3 seconds if we should shoot
+			.keepActiveIf(shouldShoot)
+			.doNext(shootFor(input, shooter, 2))
+			.reactivate()
+
+			// extend climber
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
+			.with(climber.watchForStatesCommand(
+				ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)
+			)
+
+			// drive to tower
+			.doNext(DrivePaths.RedHUB_T.get(isRed))
+
+			// retract climber
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2))
 
 			// finish command
 			.close();
@@ -211,15 +291,16 @@ public class AutoPaths {
 	private static Command stopShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return new CommandComposer()
 			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, false))
-			.with(input.setButtonCommand(ButtonInput.SHOOTER_PREP_TOGGLE, false))
-			.with(shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE))
+			.with(input.setButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE, true))
+			.doNext(shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE))
+			.with(input.setButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE, false))
 			.close();
 	}
 
 	private static Command shootFor(AutoInput input, ShooterFSMSystem shooter, double time) {
 		return new CommandComposer()
 			.with(startShootingCommand(input, shooter))
-			.with(new WaitCommand(time))
+			.doNext(new WaitCommand(time))
 			.doNext(stopShootingCommand(input, shooter))
 			.close();
 	}
