@@ -1,5 +1,7 @@
 package frc.robot.systems;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 // Libary imports
 import edu.wpi.first.wpilibj2.command.Command;
 
@@ -85,7 +87,7 @@ public abstract class FSMSystem<S> {
 			if (getCurrentState() == targetSequence[sequenceProgress]) {
 				sequenceProgress++;
 			} else if (sequenceProgress > 0
-					&& getCurrentState() == targetSequence[sequenceProgress - 1]) {
+					&& getCurrentState() != targetSequence[sequenceProgress - 1]) {
 				sequenceProgress = 0;
 			}
 		}

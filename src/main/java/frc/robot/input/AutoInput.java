@@ -45,7 +45,7 @@ public final class AutoInput extends Input {
 	 * @return the command
 	 */
 	public Command toggleButtonCommand(ButtonInput button) {
-		return new InstantCommand(() -> buttonValues.put(button, getButtonValue(button)));
+		return new InstantCommand(() -> buttonValues.put(button, !getButtonValue(button)));
 	}
 
 	/**
