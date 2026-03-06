@@ -109,7 +109,7 @@ public class AutoPaths {
 			}
 
 			DrivePaths getDepotPath() {
-				return depotPath;
+				return depotPath.mirror();
 			}
 		}
 	}
@@ -155,7 +155,7 @@ public class AutoPaths {
 
 
 			// drive through depo
-			.doNext(DrivePaths.RedD_INTAKE.get(isRed))
+			.doNext(DrivePaths.BlueD_INTAKE.get(isRed))
 
 			//stop intake and fold in
 			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
@@ -164,7 +164,7 @@ public class AutoPaths {
 			.with(intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE))
 
 			//drive to hub
-			.doNext(DrivePaths.RedD_HUB.get(isRed))
+			.doNext(DrivePaths.BlueD_HUB.get(isRed))
 
 			// shoot for 2-3 seconds if we should shoot
 			.keepActiveIf(shouldShoot)
@@ -178,7 +178,7 @@ public class AutoPaths {
 			)
 
 			// drive to tower
-			.doNext(DrivePaths.RedHUB_T.get(isRed))
+			.doNext(DrivePaths.BlueHUB_T.get(isRed))
 
 			// retract climber
 			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2))
@@ -201,7 +201,7 @@ public class AutoPaths {
 		ShooterFSMSystem shooter
 	) {
 		return new CommandComposer()
-			.doNext(getS1HubCommand())
+			//.doNext(getS1HubCommand())
 			.doNext(shootFor(input, shooter, 10))
 			.close();
 	}
