@@ -164,10 +164,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				// This will flip the path being followed to the red side of the field.
 				// THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
-				var alliance = DriverStation.getAlliance();
-				if (alliance.isPresent()) {
-					return alliance.get() == DriverStation.Alliance.Red;
-				}
+				// var alliance = DriverStation.getAlliance();
+				// if (alliance.isPresent()) {
+				// 	return alliance.get() == DriverStation.Alliance.Red;
+				// }
 				return false;
 				},
 				drivetrain // Reference to the subsystem to set requirements
@@ -324,16 +324,16 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 
 		//TODO: Clean this jawn up it's for testing
-		double flip = 1;
+		double flip = -1;
 		var alliance = DriverStation.getAlliance();
 		if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue) {
-			flip = -1.0;
+			flip = 1.0;
 		}
-		double xSpeed = flip * -MathUtil.applyDeadband(
+		double xSpeed = flip * MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-		double ySpeed = flip * -MathUtil.applyDeadband(
+		double ySpeed = flip * MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 

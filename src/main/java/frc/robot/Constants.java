@@ -99,8 +99,8 @@ public class Constants {
 		public static final double TRANSLATIONAL_DEADBAND = 0.1;
 		public static final double ROTATIONAL_DEADBAND = 0.1;
 
-		public static final int TAG_TO_ALIGN_TO = 10;
-		public static final double X_TRANFORM_FROM_TAG = -2;
+		public static final int TAG_TO_ALIGN_TO = 26;
+		public static final double X_TRANFORM_FROM_TAG = -1;
 		public static final double Y_TRANFORM_FROM_TAG = 0;
 		public static final double FACE_HUB_P = 7.0;
 		public static final double FACE_HUB_I = 0.0;
