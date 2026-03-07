@@ -169,6 +169,55 @@ public class AutoPaths {
 		}
 	}
 
+	/**
+	 * Returns an auto command that goes from a start position to depot,
+	 * intakes, optionally shoots into the hub, then climbs.
+	 * @param input the auto input
+	 * @param drivetrain the drivetrain
+	 * @param shooter the shooter
+	 * @param climber the climber
+	 * @param intake the intake
+	 * @param isRed is it red
+	 * @param startPos the start pos (S1, S2, S3)
+	 * starting postion, and whether it should shoot during auto
+	 * @return the auto as a command
+	 */
+	public static Command getShootClimbCommand(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		ClimberFSMSystem climber,
+		IntakeFSMSystem intake,
+		boolean isRed,
+		Start startPos
+
+	) {
+		// right now isRed = true means blue and isRed = false means red ;(
+		return new CommandComposer()
+
+			//drive to hub
+			.doNext(startPos.hubPath.get(isRed))
+
+			// shoot for 2-3 seconds
+			.doNext(shootFor(input, shooter, 2))
+
+			// extend climber
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
+			.with(climber.watchForStatesCommand(
+				ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)
+			)
+
+			// drive to tower
+			.doNext(DrivePaths.BlueHUB_T.get(isRed))
+
+			// retract climber
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2))
+
+			// finish command
+			.close();
+	}
+
+
 	public record NZShootClimbSettings(
 		boolean shouldShoot, boolean isRed, Start startingPositon) { }
 
@@ -245,8 +294,8 @@ public class AutoPaths {
 			.close();
 	}
 
-		/**
-	 * Returns an auto command that goes from a start position to depot,
+	/**
+	 * Returns an auto command that goes from a start position to neutral zone,
 	 * intakes, optionally shoots into the hub, then climbs.
 	 * @param input the auto input
 	 * @param drivetrain the drivetrain
