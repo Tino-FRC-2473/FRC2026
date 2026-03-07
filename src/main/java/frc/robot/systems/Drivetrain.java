@@ -82,6 +82,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private final SwerveRequest.ApplyRobotSpeeds
 			applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+	
+	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle =
+		new SwerveRequest.FieldCentricFacingAngle()
+		.withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
+		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
 	/* ======================== Private variables ======================== */
 
@@ -268,11 +273,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	/* ======================== Private methods ======================== */
 
-	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle =
-		new SwerveRequest.FieldCentricFacingAngle()
-		.withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
-		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-
 	@Override
 	protected DrivetrainState nextState(Input input) {
 		if (input == null) {
@@ -371,6 +371,74 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
 			drivetrain.seedFieldCentric();
+		}
+
+		if (input.getButtonValue(ButtonInput.FACE_HUB)) {
+			Pose2d hubPose;
+			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red){
+				hubPose = DrivetrainConstants.RED_HUB_POSE;
+			} else {
+				hubPose = DrivetrainConstants.BLUE_HUB_POSE;
+			}
+			double angle = Math.atan2(
+				hubPose.getY() - getPose().getY(),
+				hubPose.getX() - getPose().getX()
+			);
+			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red){
+				angle *= -1;
+			}
+			drivetrain.setControl(
+				driveFacingAngle
+					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
+					.withHeadingPID(7, 0, 0)
+			);
+		}
+
+		if (input.getButtonValue(ButtonInput.FACE_PASS)){
+			double outpostDistance;
+			double target3Distance;
+			boolean isRed = true;
+			Pose2d correctTarget;
+			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red){
+				outpostDistance = (double) getPose().getTranslation()
+				.getDistance(DrivetrainConstants.RED_OUTPOST_POSE.getTranslation());
+				target3Distance = (double) getPose().getTranslation()
+				.getDistance(DrivetrainConstants.RED_POSE3_POSE.getTranslation());
+			} else {
+				outpostDistance = (double) getPose().getTranslation()
+				.getDistance(DrivetrainConstants.BLUE_OUTPOST_POSE.getTranslation());
+				target3Distance = (double) getPose().getTranslation()
+				.getDistance(DrivetrainConstants.BLUE_POSE3_POSE.getTranslation());
+				isRed = false;
+			}
+
+			if (outpostDistance < target3Distance) {
+				if (isRed){
+					correctTarget = DrivetrainConstants.RED_OUTPOST_POSE;
+				} else {
+					correctTarget = DrivetrainConstants.BLUE_OUTPOST_POSE;
+				}
+			} else {
+				if (isRed){
+					correctTarget = DrivetrainConstants.RED_POSE3_POSE;
+				} else {
+					correctTarget = DrivetrainConstants.BLUE_POSE3_POSE;
+				}
+			}
+
+			double angle = Math.atan2(
+				correctTarget.getY() - getPose().getY(),
+				correctTarget.getX() - getPose().getX()
+			);
+			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red){
+				angle *= -1;
+			}
+			
+			drivetrain.setControl(
+				driveFacingAngle
+					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
+					.withHeadingPID(7, 0, 0)
+			);
 		}
 	}
 
