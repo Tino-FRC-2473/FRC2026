@@ -96,6 +96,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private CommandSwerveDrivetrain drivetrain;
 	//Pathfind command
 	private Command pathfindCommand = null;
+	//Flip controls if needed
+	private double invertControls = 1;
 
 	private AprilTagFieldLayout field = AprilTagFieldLayout
 			.loadField(AprilTagFields.k2026RebuiltWelded);
@@ -279,6 +281,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return DrivetrainState.TELEOP;
 		}
 
+		if (input.getButtonPressed(ButtonInput.INVERT_DRIVETRAIN_CONTROLS)) {
+			invertControls *= -1;
+		}
+
 		switch (currentState) {
 			case ENTRY:
 				if (hasDriverInput(input)) {
@@ -303,7 +309,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 						DrivetrainConstants.TAG_TO_ALIGN_TO = 10;
 					}
 
-					Pose2d test = field.getTagPose(DrivetrainConstants.TAG_TO_ALIGN_TO) .orElse(null).toPose2d();
+					Pose2d test = field.getTagPose(DrivetrainConstants.TAG_TO_ALIGN_TO).orElse(null).toPose2d();
 
 					Transform2d offsetTransform = new Transform2d(
 							-DrivetrainConstants.X_TRANFORM_FROM_TAG, // Back to Front
@@ -345,16 +351,16 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		//TODO: Clean this jawn up it's for testing
-		double flip = -1;
+		double flipAlliance = -1;
 		var alliance = DriverStation.getAlliance();
 		if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue) {
-			flip = 1.0;
+			flipAlliance = 1.0;
 		}
-		double xSpeed = flip * MathUtil.applyDeadband(
+		double xSpeed = invertControls * flipAlliance * MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-		double ySpeed = flip * MathUtil.applyDeadband(
+		double ySpeed = invertControls * flipAlliance * MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 

@@ -196,7 +196,7 @@ public class AutoPaths {
 		return new CommandComposer()
 
 			//drive to hub
-			.doNext(startPos.hubPath.get(isRed))
+			.doNext(startPos.hubPath.get(!isRed))
 
 			// shoot for 2-3 seconds
 			.doNext(shootFor(input, shooter, 2))
@@ -251,7 +251,7 @@ public class AutoPaths {
 		return new CommandComposer()
 
 			// drive from start to blue depo while fold out and start intake
-			.doNext(settings.startingPositon().depotPath.get(isRed))
+			.doNext(settings.startingPositon().depotPath.get(!isRed))
 			.with(
 				new CommandComposer()
 				.doNext(input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON))
@@ -321,7 +321,7 @@ public class AutoPaths {
 		return new CommandComposer()
 
 			// drive from start to NZ
-			.doNext(settings.startingPositon().nzPath.get(isRed))
+			.doNext(settings.startingPositon().nzPath.get(!isRed))
 
 			// fold out intake and start intaking
 			.doNext(
