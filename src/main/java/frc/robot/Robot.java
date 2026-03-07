@@ -125,9 +125,9 @@ public class Robot extends LoggedRobot {
 			&& climberFSMSystem instanceof ClimberFSMSystem climber
 			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
 			CommandScheduler.getInstance().schedule(
-				AutoPaths.getDepotShootClimb(
+				AutoPaths.getNZShootClimbCommand(
 					autoInput, drive, shooter, climber, intake,
-					new AutoPaths.DepotShootClimbSettings(true, false, Start.S1))
+					new AutoPaths.NZShootClimbSettings(true, false, Start.S2))
 			);
 		}
 	}
