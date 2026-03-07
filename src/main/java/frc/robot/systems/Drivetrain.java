@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import java.util.Optional;
+import java.util.Queue;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -91,12 +92,15 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	//Pathfind command
 	private Command pathfindCommand = null;
 
+	private AprilTagFieldLayout field = AprilTagFieldLayout
+			.loadField(AprilTagFields.k2026RebuiltWelded);
+
 	//TODO: Need to clean this stuff up and put it in constants
 	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method
 	//instead of the drivetrain's periodic?
 	//Pathfind targeting stuff
 
-	private Pose2d pathfindTarget;
+	//private Pose2d pathfindTarget;
 	private ShooterFSMSystem shooter;
 
 	/**
@@ -110,33 +114,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		SmartDashboard.putData(CommandScheduler.getInstance());
 
 		//System.out.println(DriverStation.getAlliance());
-
-		if (DriverStation.getAlliance().isPresent()) {
-
-			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-				DrivetrainConstants.TAG_TO_ALIGN_TO = 10;
-				System.out.println("RED ALLIANCE TAG 10");
-			} else {
-				DrivetrainConstants.TAG_TO_ALIGN_TO = 26;
-				System.out.println("BLUE ALLIANCE TAG 26");
-			}
-
-		} else {
-			System.out.println("Defaulting to red. Good luck");
-			DrivetrainConstants.TAG_TO_ALIGN_TO = 10;
-		}
-
-		AprilTagFieldLayout field = AprilTagFieldLayout
-			.loadField(AprilTagFields.k2026RebuiltWelded);
-		Pose2d test = field.getTagPose(DrivetrainConstants.TAG_TO_ALIGN_TO)
-			.orElse(null).toPose2d();
-
-		Transform2d offsetTransform = new Transform2d(
-				-DrivetrainConstants.X_TRANFORM_FROM_TAG, // Back to Front
-				DrivetrainConstants.Y_TRANFORM_FROM_TAG, // Side to Side
-				Rotation2d.kZero);
-
-		pathfindTarget = test.transformBy(offsetTransform);
 
 
 		RobotConfig config;
@@ -212,8 +189,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public void update(Input input) {
 		drivetrain.periodic();
 		CommandScheduler.getInstance().run();
-
-		Logger.recordOutput("Vision/AlignmentPose", pathfindTarget);
 
 		switch (currentState) {
 			case TELEOP:
@@ -312,7 +287,30 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				return DrivetrainState.ENTRY;
 			case TELEOP:
 				if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
-					startPathfinding();
+
+					if (DriverStation.getAlliance().isPresent()) {
+
+						if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+							DrivetrainConstants.TAG_TO_ALIGN_TO = 10;
+							System.out.println("RED ALLIANCE TAG 10");
+						} else {
+							DrivetrainConstants.TAG_TO_ALIGN_TO = 26;
+							System.out.println("BLUE ALLIANCE TAG 26");
+						}
+
+					} else {
+						System.out.println("Defaulting to red. Good luck");
+						DrivetrainConstants.TAG_TO_ALIGN_TO = 10;
+					}
+
+					Pose2d test = field.getTagPose(DrivetrainConstants.TAG_TO_ALIGN_TO) .orElse(null).toPose2d();
+
+					Transform2d offsetTransform = new Transform2d(
+							-DrivetrainConstants.X_TRANFORM_FROM_TAG, // Back to Front
+							DrivetrainConstants.Y_TRANFORM_FROM_TAG, // Side to Side
+							Rotation2d.kZero);
+
+					startPathfinding(test.transformBy(offsetTransform));
 					return DrivetrainState.PATHFIND;
 				} else {
 					return DrivetrainState.TELEOP;
@@ -332,8 +330,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 	}
 
-	private void startPathfinding() {
-		pathfindCommand = AutoBuilder.pathfindToPose(pathfindTarget,
+	private void startPathfinding(Pose2d target) {
+
+		Logger.recordOutput("Vision/AlignmentPose", target);
+
+		pathfindCommand = AutoBuilder.pathfindToPose(target,
 					PATH_CONSTRAINTS);
 		CommandScheduler.getInstance().schedule(pathfindCommand);
 	}
@@ -342,7 +343,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		if (input == null) {
 			return;
 		}
-
 
 		//TODO: Clean this jawn up it's for testing
 		double flip = -1;
