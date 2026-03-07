@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.simulation.DIOSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
+import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 
@@ -518,6 +519,12 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 			return pivotMotorRight.getPosition().getValueAsDouble()
 				<= IntakeConstants.GROUND_TARGET_ANGLE.in(Radians);
 		}
+
+		if (groundLimitSwitch.get()) {
+			pivotMotorRight.setPosition(Angle.ofBaseUnits(0, Degree));
+			pivotMotorLeft.setPosition(Angle.ofBaseUnits(0, Degree));
+		}
+
 		return groundLimitSwitch.get(); // switch is normally open
 	}
 

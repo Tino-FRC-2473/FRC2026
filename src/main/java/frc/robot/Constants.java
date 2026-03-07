@@ -154,7 +154,7 @@ public class Constants {
 		public static final double KD = 0.0;
 		public static final Distance UPPER_THRESHOLD = Units
 			.Inches.of(17);
-		public static final double CRUISE_VELO = 15; // 30 max
+		public static final double CRUISE_VELO = 30; // 30 max
 		public static final double TARGET_ACCEL = 15; // 30 max
 		public static final double EXPO_KV = 0;
 		public static final double ROTS_TO_INCHES = 16 / 105.5;
