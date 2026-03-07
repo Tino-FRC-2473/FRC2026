@@ -35,6 +35,7 @@ import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
 
+
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation.
@@ -65,11 +66,15 @@ public class Robot extends LoggedRobot {
 		Logger.start();
 
 		// Creates UsbCamera and MjpegServer [1] and connects them
-		CameraServer.startAutomaticCapture();
+		CameraServer.startAutomaticCapture(0);
 		// Creates the CvSink and connects it to the UsbCamera
 		CvSink cvSink = CameraServer.getVideo();
 		// Creates the CvSource and MjpegServer [2] and connects them
-		CvSource outputStream = CameraServer.putVideo("Driver Camera", 640, 480);	
+		CvSource outputStream = CameraServer.putVideo("DriverCamera", 640, 480);
+
+		
+
+
 
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
@@ -125,9 +130,9 @@ public class Robot extends LoggedRobot {
 			&& climberFSMSystem instanceof ClimberFSMSystem climber
 			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
 			CommandScheduler.getInstance().schedule(
-				AutoPaths.getDepotShootClimb(
+				AutoPaths.getShootClimbCommand(
 					autoInput, drive, shooter, climber, intake,
-					new AutoPaths.DepotShootClimbSettings(true, false, Start.S1))
+					new AutoPaths.getShootClimbSettings(true, false, Start.S1))
 			);
 		}
 	}

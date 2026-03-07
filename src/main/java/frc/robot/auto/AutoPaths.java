@@ -169,6 +169,9 @@ public class AutoPaths {
 		}
 	}
 
+	public record getShootClimbSettings(
+		boolean shouldShoot, boolean isRed, Start startingPositon) { }
+
 	/**
 	 * Returns an auto command that goes from a start position to depot,
 	 * intakes, optionally shoots into the hub, then climbs.
@@ -188,30 +191,32 @@ public class AutoPaths {
 		ShooterFSMSystem shooter,
 		ClimberFSMSystem climber,
 		IntakeFSMSystem intake,
-		boolean isRed,
-		Start startPos
+		getShootClimbSettings settings
 
 	) {
+
+		boolean isRed = settings.isRed();
+
 		// right now isRed = true means blue and isRed = false means red ;(
 		return new CommandComposer()
 
 			//drive to hub
-			.doNext(startPos.hubPath.get(!isRed))
+			.doNext(DrivePaths.BlueS1_HUB.get(isRed))
 
 			// shoot for 2-3 seconds
-			.doNext(shootFor(input, shooter, 2))
+			.doNext(shootFor(input, shooter, 5))
 
 			// extend climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
-			.with(climber.watchForStatesCommand(
-				ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)
-			)
+			//.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
+			//.with(climber.watchForStatesCommand(
+				//ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)
+			//)
 
 			// drive to tower
-			.doNext(DrivePaths.BlueHUB_T.get(isRed))
+			//.doNext(DrivePaths.BlueHUB_T.get(isRed))
 
 			// retract climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2))
+			//.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2))
 
 			// finish command
 			.close();

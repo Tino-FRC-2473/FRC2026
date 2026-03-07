@@ -120,7 +120,7 @@ public class Constants {
 		public static final Pose2d BLUE_OUTPOST_POSE =
 			new Pose2d(2.54, 2.0346376, new Rotation2d());
 		public static final Pose2d RED_POSE3_POSE = new Pose2d(2.54, 6.0346376, new Rotation2d());
-		public static final Pose2d BLUE_POSE3_POSE = new Pose2d(8.2741742, 6.0346376, new Rotation2d()));
+		public static final Pose2d BLUE_POSE3_POSE = new Pose2d(8.2741742, 6.0346376, new Rotation2d());
 	}
 
 	public static final class ModuleConstants {
@@ -166,7 +166,7 @@ public class Constants {
 		public static final double MANUAL_SCALE = 1;
 		public static final Distance L1_EXTEND_POS = Units.Inches.of(17.0);
 		public static final Distance L1_RETRACT_POS = Units.Inches.of(6.0);
-		public static final Distance GROUND = Units.Inches.of(0.0);
+		public static final Distance GROUND = Units.Inches.of(-2.0);
 		public static final Distance REVERSE_LIMIT_SWITCH_POS = Units.Inches.of(-20.0);
 		public static final int CONTROL_REQUEST_SUBSTRING_START_INDEX = 9;
 		public static final double CLIMBER_ANGLE_RAD = Math.toRadians(48.0);

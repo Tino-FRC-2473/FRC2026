@@ -478,7 +478,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		// DutyCycleOut b = new DutyCycleOut(0.5);
 		// climberMotorLeft.setControl(n);
 		// climberMotorRight.setControl(b);
-		if (!isIntakeDown()) {
+		if (true) {
 			climberMotorLeft.setControl(motionRequest.withPosition(
 				ClimberConstants.L1_EXTEND_POS.in(Inches)
 			));
@@ -486,7 +486,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	}
 
 	private void handleL1RetractState(Input input) {
-		if (!isIntakeDown()) {
+		if (true) {
 			climberMotorLeft.setControl(motionRequest.withPosition(
 				ClimberConstants.L1_RETRACT_POS.in(Inches)
 			));
@@ -494,9 +494,10 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	}
 
 	private void handleResetToZero(Input input) {
-		if (!isIntakeDown()) {
-			if (groundLimitSwitchLeft.get() || getClimberHeightInches() <= 0
-				|| groundLimitSwitchRight.get()) {
+		if (true)
+		 {
+			if (getLeftLimitSwitch() ||
+				 getRightLimitSwitch()) {
 				climberMotorLeft.set(0);
 			} else {
 				climberMotorLeft.setControl(motionRequest.withPosition(

@@ -520,10 +520,10 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				<= IntakeConstants.GROUND_TARGET_ANGLE.in(Radians);
 		}
 
-		if (groundLimitSwitch.get()) {
-			pivotMotorRight.setPosition(Angle.ofBaseUnits(0, Degree));
-			pivotMotorLeft.setPosition(Angle.ofBaseUnits(0, Degree));
-		}
+		// if (groundLimitSwitch.get()) {
+		// 	pivotMotorRight.setPosition(Angle.ofBaseUnits(0, Degree));
+		// 	pivotMotorLeft.setPosition(Angle.ofBaseUnits(0, Degree));
+		// }
 
 		return groundLimitSwitch.get(); // switch is normally open
 	}

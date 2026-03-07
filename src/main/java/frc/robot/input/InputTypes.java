@@ -22,6 +22,7 @@ public class InputTypes {
 		DRIVETRAIN_PATHFIND,
 		FACE_PASS,
 		FACE_HUB,
+		INVERT_DRIVETRAIN_CONTROLS,
 
 
 		// Climber
