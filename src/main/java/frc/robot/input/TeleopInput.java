@@ -2,6 +2,7 @@ package frc.robot.input;
 import java.util.function.Function;
 
 import edu.wpi.first.wpilibj.PS4Controller;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.event.BooleanEvent;
 import edu.wpi.first.wpilibj.event.EventLoop;
 import frc.robot.input.InputTypes.AxialInput;
@@ -20,15 +21,15 @@ public final class TeleopInput extends Input {
 	public static final int DRIVE_CONTROLLER_PORT = 0;
 	public static final int MECH_CONTROLLER_PORT = 1;
 
-	private final PS4Controller driveController;
-	private final PS4Controller mechController;
+	private final XboxController driveController;
+	private final XboxController mechController;
 
 	/**
 	 * Constructs a TeleopInput using the constants defined in this file.
 	 */
 	public TeleopInput() {
-		driveController = new PS4Controller(DRIVE_CONTROLLER_PORT);
-		mechController = new PS4Controller(MECH_CONTROLLER_PORT);
+		driveController = new XboxController(DRIVE_CONTROLLER_PORT);
+		mechController = new XboxController(MECH_CONTROLLER_PORT);
 	}
 
 	@Override
@@ -55,18 +56,18 @@ public final class TeleopInput extends Input {
 		return switch (key) {
 
 			// Drivetrain
-			case DRIVETRAIN_RESEED -> driveController::options;
-			case DRIVETRAIN_PATHFIND -> driveController::square;
+			case DRIVETRAIN_RESEED -> driveController::start;
+			case DRIVETRAIN_PATHFIND -> driveController::x;
 
-			case FACE_HUB -> driveController::R2;
-			case FACE_SHOOTER -> driveController::L2;
+			case FACE_HUB -> driveController::rightTrigger;
+			case FACE_SHOOTER -> driveController::leftTrigger;
 
 			// Intake
-			case PARTIAL_OUT_BUTTON -> mechController::share;
-			case INTAKE_BUTTON -> mechController::circle;
-			case OUTTAKE_BUTTON -> mechController::cross;
-			case FOLD_IN_BUTTON -> mechController::triangle;
-			case FOLD_OUT_BUTTON -> mechController::square;
+			case PARTIAL_OUT_BUTTON -> mechController::start;
+			case INTAKE_BUTTON -> mechController::b;
+			case OUTTAKE_BUTTON -> mechController::a;
+			case FOLD_IN_BUTTON -> mechController::y;
+			case FOLD_OUT_BUTTON -> mechController::x;
 
 			// Climber
 			case CLIMBER_MANUAL_OVERRIDE -> mechController::povUp;
@@ -75,14 +76,15 @@ public final class TeleopInput extends Input {
 
 
 			//Shooter
-			case PASSER_PREP_TOGGLE -> mechController::R1;
-			case SHOOTER_PREP_TOGGLE -> mechController::L2;
-			case MANUAL_SHOOT_TOGGLE -> mechController::L1;
-			case REV_FEEDER -> mechController::R2;
-			case IDLE_SHOOTER_TOGGLE -> mechController::touchpad;
+			case PASSER_PREP_TOGGLE -> mechController::rightBumper;
+			case SHOOTER_PREP_TOGGLE -> mechController::leftTrigger;
+			case MANUAL_SHOOT_TOGGLE -> mechController::leftBumper;
+			case REV_FEEDER -> mechController::rightTrigger;
+			case IDLE_SHOOTER_TOGGLE -> mechController::back;
 
 			default -> (e) -> new BooleanEvent(e, () -> false);
 		};
 	}
 
 }
+
