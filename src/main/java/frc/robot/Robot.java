@@ -11,7 +11,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
-import frc.robot.auto.AutoPaths.DepotShootClimbSettings.StartingPositon;
+import frc.robot.auto.AutoPaths.Start;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
@@ -127,7 +127,7 @@ public class Robot extends LoggedRobot {
 			CommandScheduler.getInstance().schedule(
 				AutoPaths.getDepotShootClimb(
 					autoInput, drive, shooter, climber, intake,
-					new AutoPaths.DepotShootClimbSettings(true, false, StartingPositon.S1))
+					new AutoPaths.DepotShootClimbSettings(true, false, Start.S1))
 			);
 		}
 	}
