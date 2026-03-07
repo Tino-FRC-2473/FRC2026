@@ -40,7 +40,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants;
 import frc.robot.Constants.DrivetrainConstants;
-
+import frc.robot.Constants.LimelightConstants;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.DrivetrainConstants;
@@ -95,17 +95,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method
 	//instead of the drivetrain's periodic?
 	//Pathfind targeting stuff
-	private AprilTagFieldLayout field = AprilTagFieldLayout
-		.loadField(AprilTagFields.k2026RebuiltWelded);
-	private Pose2d test = field.getTagPose(DrivetrainConstants.TAG_TO_ALIGN_TO)
-		.orElse(null).toPose2d();
 
-	private Transform2d offsetTransform = new Transform2d(
-				-DrivetrainConstants.X_TRANFORM_FROM_TAG, // Back to Front
-				DrivetrainConstants.Y_TRANFORM_FROM_TAG, // Side to Side
-				Rotation2d.kZero);
-
-	private Pose2d pathfindTarget = test.transformBy(offsetTransform);
+	private Pose2d pathfindTarget;
 	private ShooterFSMSystem shooter;
 
 	/**
@@ -117,6 +108,36 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		//updateLimelightYaw();
 
 		SmartDashboard.putData(CommandScheduler.getInstance());
+
+		//System.out.println(DriverStation.getAlliance());
+
+		if (DriverStation.getAlliance().isPresent()) {
+
+			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+				DrivetrainConstants.TAG_TO_ALIGN_TO = 10;
+				System.out.println("RED ALLIANCE TAG 10");
+			} else {
+				DrivetrainConstants.TAG_TO_ALIGN_TO = 26;
+				System.out.println("BLUE ALLIANCE TAG 26");
+			}
+
+		} else {
+			System.out.println("Defaulting to red. Good luck");
+			DrivetrainConstants.TAG_TO_ALIGN_TO = 10;
+		}
+
+		AprilTagFieldLayout field = AprilTagFieldLayout
+			.loadField(AprilTagFields.k2026RebuiltWelded);
+		Pose2d test = field.getTagPose(DrivetrainConstants.TAG_TO_ALIGN_TO)
+			.orElse(null).toPose2d();
+
+		Transform2d offsetTransform = new Transform2d(
+				-DrivetrainConstants.X_TRANFORM_FROM_TAG, // Back to Front
+				DrivetrainConstants.Y_TRANFORM_FROM_TAG, // Side to Side
+				Rotation2d.kZero);
+
+		pathfindTarget = test.transformBy(offsetTransform);
+
 
 		RobotConfig config;
 		try {

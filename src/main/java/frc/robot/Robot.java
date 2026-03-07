@@ -12,6 +12,10 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
 import frc.robot.auto.AutoPaths.DepotShootClimbSettings.StartingPositon;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.CvSink;
+import edu.wpi.first.cscore.CvSource;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // WPILib Imports
 
@@ -60,7 +64,12 @@ public class Robot extends LoggedRobot {
 		Logger.addDataReceiver(new NT4Publisher());
 		Logger.start();
 
-		
+		// Creates UsbCamera and MjpegServer [1] and connects them
+		CameraServer.startAutomaticCapture();
+		// Creates the CvSink and connects it to the UsbCamera
+		CvSink cvSink = CameraServer.getVideo();
+		// Creates the CvSource and MjpegServer [2] and connects them
+		CvSource outputStream = CameraServer.putVideo("Driver Camera", 640, 480);	
 
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
