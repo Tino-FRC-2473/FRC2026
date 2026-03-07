@@ -350,6 +350,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue) {
 			flip = 1.0;
 		}
+
+		
 		double xSpeed = flip * MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);

@@ -203,11 +203,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @param driveSystem The drive system to be used by our bot
 	 * @param intakeSystem The intake system to be used by our bot
 	 */
-	public ShooterFSMSystem(Drivetrain driveSystem, IntakeFSMSystem intakeSystem) {
+	public ShooterFSMSystem(IntakeFSMSystem intakeSystem) {
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
 		this();
-		drivetrain = driveSystem;
+		//drivetrain = driveSystem;
 		curPose = drivetrain.getPose();
 		intake = intakeSystem;
 	}
