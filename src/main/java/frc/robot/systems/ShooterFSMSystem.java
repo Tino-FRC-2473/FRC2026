@@ -328,7 +328,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 					}
 
 				case PASSER_PREP_STATE:
-					if (input != null && input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
+					if (input != null && input.getButtonValue(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
 						pastState = getCurrentState();
 						return ShooterFSMState.IDLE_STATE;
 					} else if (input != null
@@ -353,6 +353,30 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						return getCurrentState();
 					}
 
+					case SHOOTER_PREP_STATE:
+					if (input != null && input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
+						pastState = getCurrentState();
+						return ShooterFSMState.IDLE_STATE;
+					} else if (input != null
+						&& input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
+						stopFlywheel();
+						pastState = getCurrentState();
+						return ShooterFSMState.PASSER_PREP_STATE;
+					} else if (input != null
+						&& input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
+						stopFlywheel();
+						pastState = getCurrentState();
+						return ShooterFSMState.MANUAL_PREP_STATE;
+					} else if (input != null && isAtSpeed()
+						&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
+						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
+						pastState = getCurrentState();
+						resetStorage();
+						return ShooterFSMState.FEED_STATE;
+					} else {
+						return getCurrentState();
+					}
+					
 				case FEED_STATE:
 					if (!isAtSpeed() || input == null
 						|| !input.getButtonValue(ButtonInput.REV_FEEDER)) {
@@ -378,29 +402,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						return getCurrentState();
 					}
 
-				case SHOOTER_PREP_STATE:
-					if (input != null && input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
-						pastState = getCurrentState();
-						return ShooterFSMState.IDLE_STATE;
-					} else if (input != null
-						&& input.getButtonPressed(ButtonInput.PASSER_PREP_TOGGLE)) {
-						stopFlywheel();
-						pastState = getCurrentState();
-						return ShooterFSMState.PASSER_PREP_STATE;
-					} else if (input != null
-						&& input.getButtonPressed(ButtonInput.MANUAL_SHOOT_TOGGLE)) {
-						stopFlywheel();
-						pastState = getCurrentState();
-						return ShooterFSMState.MANUAL_PREP_STATE;
-					} else if (input != null && isAtSpeed()
-						&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
-						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
-						pastState = getCurrentState();
-						resetStorage();
-						return ShooterFSMState.FEED_STATE;
-					} else {
-						return getCurrentState();
-					}
+				
 
 				case MANUAL_PREP_STATE:
 					// Manual can only go to idle (we need the button inputs for right and left

@@ -326,7 +326,7 @@ public class AutoPaths {
 		return new CommandComposer()
 
 			// drive from start to NZ
-			.doNext(settings.startingPositon().nzPath.get(!isRed))
+			.doNext(settings.startingPositon().nzPath.get(isRed))
 
 			// fold out intake and start intaking
 			.doNext(
@@ -349,12 +349,12 @@ public class AutoPaths {
 
 			//drive to start, then shoot
 			.doNext(settings.startingPositon().nzPathBack.get(isRed))
-			.doNext(settings.startingPositon().hubPath.get(isRed))
+			.doNext(settings.startingPositon().hubPath.get(	isRed))
 
 			// shoot for 2-3 seconds if we should shoot
 			.keepActiveIf(shouldShoot)
 			.doNext(shootFor(input, shooter, 2))
-			.reactivate()
+
 
 			// extend climber
 			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
@@ -401,10 +401,10 @@ public class AutoPaths {
 
 	private static Command stopShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return new CommandComposer()
-			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, false))
-			.with(input.setButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE, true))
+			//.with(input.setButtonCommand(ButtonInput.REV_FEEDER, false))
+			.with(input.pressButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE))
 			.doNext(shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE))
-			.with(input.setButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE, false))
+			//.with(input.setButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE, false))
 			.close();
 	}
 
