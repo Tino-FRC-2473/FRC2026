@@ -243,7 +243,7 @@ public class AutoPaths {
 
 
 			// shoot for 2-3 seconds
-			.doNext(shootFor(input, shooter, 10))
+			// .doNext(shootFor(input, shooter, 10))
 			// extend climber
 			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
 			.with(climber.watchForStatesCommand(
