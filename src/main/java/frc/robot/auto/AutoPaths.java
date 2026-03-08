@@ -387,7 +387,7 @@ public class AutoPaths {
 
 			//drive to start, then shoot
 			.doNext(settings.startingPositon().nzPathBack.get(isRed))
-			.doNext(settings.startingPositon().hubPath.get(	isRed))
+			.doNext(settings.startingPositon().hubPath.get(isRed))
 
 			// shoot for 2-3 seconds if we should shoot
 			.keepActiveIf(shouldShoot)
@@ -440,7 +440,8 @@ public class AutoPaths {
 	private static Command stopShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return new CommandComposer()
 			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, false))
-			.with(input.pressButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE))
+			.with(new WaitCommand(0.1))
+			.doNext(input.pressButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE))
 			.doNext(shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE))
 			.close();
 	}

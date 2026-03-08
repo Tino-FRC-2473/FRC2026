@@ -125,6 +125,7 @@ public class Robot extends LoggedRobot {
 		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
+		
 		System.out.println("Reach 2");
 		if (drivetrainFSMSystem instanceof Drivetrain drive
 			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
