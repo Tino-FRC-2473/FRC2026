@@ -55,7 +55,7 @@ public final class HardwareMap {
 	 * @return if the hardware for the climber is present
 	 */
 	public static boolean isClimberEnabled() {
-		return false;
+		return true;
 	}
 
 	/**

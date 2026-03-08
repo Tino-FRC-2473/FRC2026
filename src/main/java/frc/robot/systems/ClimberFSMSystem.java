@@ -115,7 +115,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 			limitSimRight = new DIOSim(groundLimitSwitchRight);
 		}
 		climberMotorLeft.setPosition(0);
-		setCurrentState(ClimberFSMState.IDLE);
+		setCurrentState(ClimberFSMState.AUTO_IDLE);
 
 		reset();
 	}
@@ -171,7 +171,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	 */
 	@Override
 	public void reset() {
-		setCurrentState(ClimberFSMState.IDLE);
+		setCurrentState(ClimberFSMState.AUTO_IDLE);
 		update(null);
 	}
 
