@@ -200,18 +200,18 @@ public class AutoPaths {
 		// right now isRed = true means blue and isRed = false means red ;(
 		System.out.println("Reach 1");
 		return new CommandComposer()
-			.doNext(settings.startingPositon().depotPath.get(!isRed))
+			//.doNext(settings.startingPositon().depotPath.get(!isRed))
 			//drive to hub
 			.doNext(DrivePaths.BlueS2_HUB.get(isRed))
 
-			// shoot for 2-3 seconds
-			.doNext(shootFor(input, shooter, 5))
 
+			// shoot for 2-3 seconds
+			.doNext(shootFor(input, shooter, 10))
 			// extend climber
-			//.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
-			//.with(climber.watchForStatesCommand(
-				//ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)
-			//)
+			// .doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
+			// .with(climber.watchForStatesCommand(
+			// 	ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)
+			// )
 
 			// drive to tower
 			//.doNext(DrivePaths.BlueHUB_T.get(isRed))

@@ -134,7 +134,7 @@ public class Robot extends LoggedRobot {
 			CommandScheduler.getInstance().schedule(
 				AutoPaths.getShootClimbCommand(
 					autoInput, drive, shooter, climber, intake,
-					new AutoPaths.getShootClimbSettings(true, true, Start.S2))
+					new AutoPaths.getShootClimbSettings(true, false, Start.S2))
 			);
 		}
 	}
