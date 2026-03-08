@@ -4,6 +4,7 @@ package frc.robot.systems;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
+import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.Queue;
 
@@ -37,6 +38,7 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants;
@@ -104,6 +106,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private AprilTagFieldLayout field = AprilTagFieldLayout
 			.loadField(AprilTagFields.k2026RebuiltWelded);
 
+	private Field2d elasticfield = new Field2d();
+
 	//TODO: Need to clean this stuff up and put it in constants
 	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method
 	//instead of the drivetrain's periodic?
@@ -121,6 +125,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		//updateLimelightYaw();
 
 		SmartDashboard.putData(CommandScheduler.getInstance());
+		SmartDashboard.putData(elasticfield);
 
 		//System.out.println(DriverStation.getAlliance());
 
@@ -198,6 +203,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public void update(Input input) {
 		drivetrain.periodic();
 		CommandScheduler.getInstance().run();
+		elasticfield.setRobotPose(getPose());
 
 		switch (currentState) {
 			case TELEOP:

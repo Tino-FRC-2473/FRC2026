@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.input.AutoInput;
+import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.IntakeFSMSystem;
@@ -171,6 +172,41 @@ public class AutoPaths {
 
 	public record getShootClimbSettings(
 		boolean shouldShoot, boolean isRed, Start startingPositon) { }
+	public record getShootSettings() { }
+
+	/**
+	 * Returns an auto command that goes from a start position to depot,
+	 * intakes, optionally shoots into the hub, then climbs.
+	 * @param input the auto input
+	 * @param drivetrain the drivetrain
+	 * @param shooter the shooter
+	 * @param climber the climber
+	 * @param intake the intake
+	 * @param isRed is it red
+	 * @param startPos the start pos (S1, S2, S3)
+	 * starting postion, and whether it should shoot during auto
+	 * @return the auto as a command
+	 */
+	public static Command getShootCommand(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		ClimberFSMSystem climber,
+		IntakeFSMSystem intake,
+		getShootSettings settings
+
+	) {
+		
+
+		return new CommandComposer()
+			.doNext(input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0.5))
+			.doNext(new WaitCommand(2))
+			.doNext(input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0))
+			.doNext(shootFor(input, shooter, 5))
+			.close();
+
+	}
+
 
 	/**
 	 * Returns an auto command that goes from a start position to depot,

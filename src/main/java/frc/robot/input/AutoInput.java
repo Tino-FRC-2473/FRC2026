@@ -76,9 +76,20 @@ public final class AutoInput extends Input {
 	public Command pressButtonCommand(ButtonInput button, int duration) {
 		return new SequentialCommandGroup(
 			toggleButtonCommand(button),
-			new WaitCommand(duration * Robot.defaultPeriodSecs),
+			//new WaitCommand(duration * Robot.defaultPeriodSecs),
+			new WaitCommand(duration),
 			toggleButtonCommand(button)
 		);
+	}
+
+	/**
+	 * Returns an instant command that sets the button value.
+	 * @param button the button to set
+	 * @param value the button value
+	 * @return the command
+	 */
+	public Command setAxisCommand(AxialInput axis, double value) {
+		return new InstantCommand(() -> axesValues.put(axis, value));
 	}
 
 	/**
