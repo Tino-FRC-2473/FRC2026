@@ -488,11 +488,13 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @return A double holding the target's needed flywheel speed
 	 */
 	public double calculateTargetPassSpeed(Pose2d target) {
-		Transform2d transform = curPose.minus(target);
-		double distance = Math.sqrt(Math.pow(transform.getX(), 2) + Math.pow(transform.getY(), 2));
-		double flyspeed = ShooterConstants.PASSING_REGRESSION_CONSTANT
-			+ ShooterConstants.PASSING_REGRESSION_SLOPE * Units.metersToInches(distance);
-		return flyspeed;
+		// Transform2d transform = curPose.minus(target);
+		// double distance = Math.sqrt(Math.pow(transform.getX(), 2) + Math.pow(transform.getY(), 2));
+		// double flyspeed = ShooterConstants.PASSING_REGRESSION_CONSTANT
+		// 	+ ShooterConstants.PASSING_REGRESSION_SLOPE * Units.metersToInches(distance);
+		// return flyspeed;
+
+		return 50;
 		//code to be determined based off of regression model
 	}
 

@@ -132,9 +132,9 @@ public class Robot extends LoggedRobot {
 			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
 			System.out.println("Reach 3");
 			CommandScheduler.getInstance().schedule(
-				AutoPaths.getShootCommand(
+				AutoPaths.getShootClimbCommand(
 					autoInput, drive, shooter, climber, intake,
-					new AutoPaths.getShootSettings())
+					new AutoPaths.getShootClimbSettings(true))
 			);
 		}
 	}

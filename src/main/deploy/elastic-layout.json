@@ -8,19 +8,6 @@
         "layouts": [],
         "containers": [
           {
-            "title": "DriverCamera",
-            "x": 1024.0,
-            "y": 0.0,
-            "width": 256.0,
-            "height": 256.0,
-            "type": "Camera Stream",
-            "properties": {
-              "topic": "/CameraPublisher/DriverCamera",
-              "period": 0.06,
-              "rotation_turns": 0
-            }
-          },
-          {
             "title": "BrownedOut",
             "x": 512.0,
             "y": 128.0,
@@ -57,9 +44,9 @@
           },
           {
             "title": "FMSInfo",
-            "x": 128.0,
-            "y": 0.0,
-            "width": 384.0,
+            "x": 0.0,
+            "y": 384.0,
+            "width": 512.0,
             "height": 128.0,
             "type": "FMSInfo",
             "properties": {
@@ -107,7 +94,7 @@
           },
           {
             "title": "Field",
-            "x": 768.0,
+            "x": 512.0,
             "y": 256.0,
             "width": 512.0,
             "height": 256.0,
@@ -124,6 +111,44 @@
               "robot_color": 4294198070,
               "trajectory_color": 4294967295,
               "show_robot_outside_widget": true
+            }
+          },
+          {
+            "title": "limelight-four",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 512.0,
+            "height": 384.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/limelight-four",
+              "period": 0.06,
+              "rotation_turns": 0,
+              "compression": 21,
+              "fps": 15,
+              "resolution": [
+                640.0,
+                480.0
+              ]
+            }
+          },
+          {
+            "title": "USB Camera 0",
+            "x": 1024.0,
+            "y": 0.0,
+            "width": 512.0,
+            "height": 512.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/USB Camera 0",
+              "period": 0.06,
+              "rotation_turns": 1,
+              "compression": 24,
+              "fps": 15,
+              "resolution": [
+                640.0,
+                480.0
+              ]
             }
           }
         ]

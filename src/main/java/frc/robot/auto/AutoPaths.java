@@ -171,7 +171,8 @@ public class AutoPaths {
 	}
 
 	public record getShootClimbSettings(
-		boolean shouldShoot, boolean isRed, Start startingPositon) { }
+		boolean shouldShoot, boolean isRed) { }
+
 	public record getShootSettings() { }
 
 	/**
@@ -191,7 +192,7 @@ public class AutoPaths {
 		AutoInput input,
 		Drivetrain drivetrain,
 		ShooterFSMSystem shooter,
-		ClimberFSMSystem climber,
+		// ClimberFSMSystem climber,
 		IntakeFSMSystem intake,
 		getShootSettings settings
 
@@ -200,9 +201,9 @@ public class AutoPaths {
 
 		return new CommandComposer()
 			.doNext(input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0.5))
-			.doNext(new WaitCommand(2))
+			.doNext(new WaitCommand(1.35))
 			.doNext(input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0))
-			.doNext(shootFor(input, shooter, 5))
+			.doNext(shootFor(input, shooter, 10))
 			.close();
 
 	}
@@ -244,16 +245,16 @@ public class AutoPaths {
 			// shoot for 2-3 seconds
 			.doNext(shootFor(input, shooter, 10))
 			// extend climber
-			// .doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
-			// .with(climber.watchForStatesCommand(
-			// 	ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)
-			// )
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
+			.with(climber.watchForStatesCommand(
+				ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)
+			)
 
 			// drive to tower
-			//.doNext(DrivePaths.BlueHUB_T.get(isRed))
+			.doNext(DrivePaths.BlueHUB_T.get(isRed))
 
 			// retract climber
-			//.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2))
+			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2))
 
 			// finish command
 			.close();
@@ -430,7 +431,7 @@ public class AutoPaths {
 
 	private static Command startShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return new CommandComposer()
-			.with(input.pressButtonCommand(ButtonInput.SHOOTER_PREP_TOGGLE))
+			.with(input.pressButtonCommand(ButtonInput.PASSER_PREP_TOGGLE))
 			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, true))
 			.with(shooter.watchForStatesCommand(ShooterFSMState.FEED_STATE))
 			.close();

@@ -61,8 +61,8 @@ public class Constants {
 		public static final int NUM_MODULES = 4;
 		public static final double SYS_ID_VOLT_DAMP = 6;
 
-		public static final double TRANSLATION_DEADBAND = 0.1;
-		public static final double ROTATION_DEADBAND = 0.1;
+		public static final double TRANSLATION_DEADBAND = 0.05;
+		public static final double ROTATION_DEADBAND = 0.05;
 
 
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
@@ -73,7 +73,7 @@ public class Constants {
 		// drive velocity limits
 		// Max linear & angular speeds
 		public static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
-		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(1);
+		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(1.5);
 
 		// pathing acceleration limits
 		public static final LinearAcceleration MAX_PATHING_LINEAR_ACCELERATION

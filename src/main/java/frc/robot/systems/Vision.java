@@ -59,7 +59,6 @@ public class Vision {
 		LimelightHelpers.SetRobotOrientation(limelightName, rotation.getZ(), 0, rotation.getY(), 0, rotation.getX(), 0);
 
 		PoseEstimate visionEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
-
 		if (LimelightHelpers.validPoseEstimate(visionEstimate)) {
             Pose2d pose = visionEstimate.pose;
             Logger.recordOutput("Vision/MT2Pose", pose);

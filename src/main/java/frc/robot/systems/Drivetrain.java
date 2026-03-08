@@ -203,7 +203,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public void update(Input input) {
 		drivetrain.periodic();
 		CommandScheduler.getInstance().run();
-		elasticfield.setRobotPose(getPose());
+		elasticfield.setRobotPose(drivetrain.getState().Pose);
 
 		switch (currentState) {
 			case TELEOP:
