@@ -86,6 +86,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle =
 		new SwerveRequest.FieldCentricFacingAngle()
 		.withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
+		.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
+					* DrivetrainConstants.ROTATIONAL_DEADBAND)
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
 	/* ======================== Private variables ======================== */
@@ -356,11 +358,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue) {
 			flipAlliance = 1.0;
 		}
-		double xSpeed = invertControls * flipAlliance * MathUtil.applyDeadband(
+		double xSpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-		double ySpeed = invertControls * flipAlliance * MathUtil.applyDeadband(
+		double ySpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
@@ -397,6 +399,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				driveFacingAngle
 					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
 					.withHeadingPID(7, 0, 0)
+					.withVelocityX(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityY(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 			);
 		}
 
@@ -444,6 +448,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				driveFacingAngle
 					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
 					.withHeadingPID(7, 0, 0)
+					.withVelocityX(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityY(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 			);
 		}
 	}

@@ -115,7 +115,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 			limitSimRight = new DIOSim(groundLimitSwitchRight);
 		}
 		climberMotorLeft.setPosition(0);
-		setCurrentState(ClimberFSMState.AUTO_IDLE);
+		setCurrentState(ClimberFSMState.IDLE);
 
 		reset();
 	}
@@ -130,7 +130,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 
 		var outputConfigs = talonFXConfigs.MotorOutput;
 		outputConfigs.NeutralMode = NeutralModeValue.Brake;
-		outputConfigs.Inverted = InvertedValue.Clockwise_Positive;
+		outputConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
 
 		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
 		swLimitSwitch.ForwardSoftLimitEnable = true;
@@ -171,7 +171,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	 */
 	@Override
 	public void reset() {
-		setCurrentState(ClimberFSMState.AUTO_IDLE);
+		setCurrentState(ClimberFSMState.IDLE);
 		update(null);
 	}
 

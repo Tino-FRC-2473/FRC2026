@@ -282,11 +282,16 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 					+ getCurrentState().toString());
 			}
 		}
-		Logger.recordOutput("Shooter State", getCurrentState());
+		Logger.recordOutput("Shooter/Shooter State", getCurrentState());
 		if (flywheelMotor.getVelocity() != null) {
 			double curSpeed = flywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
 			flywheelSpeed = RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
-			Logger.recordOutput("Actual Motor Speed", flywheelSpeed.in(RotationsPerSecond));
+			Logger.recordOutput("Shooter/Actual Motor Speed", flywheelSpeed.in(RotationsPerSecond));
+			if (flywheelSpeed.in(RotationsPerSecond) <= 1){
+				Logger.recordOutput("Shooter/Flywheel at speed?", false);
+			} else {
+				Logger.recordOutput("Shooter/Flywheel at speed?", isAtSpeed());
+			}
 		}
 		setCurrentState(nextState(input));
 	}
@@ -328,7 +333,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 					}
 
 				case PASSER_PREP_STATE:
-					if (input != null && input.getButtonValue(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
+					if (input != null && input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
 						pastState = getCurrentState();
 						return ShooterFSMState.IDLE_STATE;
 					} else if (input != null

@@ -125,14 +125,16 @@ public class Robot extends LoggedRobot {
 		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
+		System.out.println("Reach 2");
 		if (drivetrainFSMSystem instanceof Drivetrain drive
 			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
 			&& climberFSMSystem instanceof ClimberFSMSystem climber
 			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
+			System.out.println("Reach 3");
 			CommandScheduler.getInstance().schedule(
 				AutoPaths.getShootClimbCommand(
 					autoInput, drive, shooter, climber, intake,
-					new AutoPaths.getShootClimbSettings(true, false, Start.S1))
+					new AutoPaths.getShootClimbSettings(true, true, Start.S2))
 			);
 		}
 	}

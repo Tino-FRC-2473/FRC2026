@@ -198,10 +198,11 @@ public class AutoPaths {
 		boolean isRed = settings.isRed();
 
 		// right now isRed = true means blue and isRed = false means red ;(
+		System.out.println("Reach 1");
 		return new CommandComposer()
-
+			.doNext(settings.startingPositon().depotPath.get(!isRed))
 			//drive to hub
-			.doNext(DrivePaths.BlueS1_HUB.get(isRed))
+			.doNext(DrivePaths.BlueS2_HUB.get(isRed))
 
 			// shoot for 2-3 seconds
 			.doNext(shootFor(input, shooter, 5))
@@ -401,10 +402,9 @@ public class AutoPaths {
 
 	private static Command stopShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return new CommandComposer()
-			//.with(input.setButtonCommand(ButtonInput.REV_FEEDER, false))
+			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, false))
 			.with(input.pressButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE))
 			.doNext(shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE))
-			//.with(input.setButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE, false))
 			.close();
 	}
 

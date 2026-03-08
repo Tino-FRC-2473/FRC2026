@@ -377,7 +377,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				}
 
 			case FOLD_OUT_STATE:
-				if (isBottomLimitReached()) {
+				if (isBottomLimitReached()){
 					return IntakeFSMState.IDLE_OUT_STATE;
 				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
 					return IntakeFSMState.FOLD_IN_STATE;
@@ -386,7 +386,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				} else {
 					return IntakeFSMState.FOLD_OUT_STATE;
 				}
-
+				
 			case PARTIAL_OUT_STATE:
 				if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
 					return IntakeFSMState.FOLD_OUT_STATE;
