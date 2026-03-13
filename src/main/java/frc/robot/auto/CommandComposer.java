@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 
-public final class CommandComposer {
+final class CommandComposer {
 	private boolean active = true;
 	private List<Command> commandSequence = new ArrayList<>();
 	private List<Command> currentCommandGroup = new ArrayList<>();
