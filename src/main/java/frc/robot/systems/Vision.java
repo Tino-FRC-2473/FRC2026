@@ -1,11 +1,5 @@
 package frc.robot.systems;
 
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-
-import java.util.Optional;
-import java.util.function.Supplier;
-
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.Matrix;
@@ -25,7 +19,6 @@ import frc.robot.Constants.VisionConstants;
 // import limelight.networktables.PoseEstimate;
 import frc.robot.limelight.LimelightHelpers;
 import frc.robot.limelight.LimelightHelpers.PoseEstimate;
-import limelight.networktables.LimelightPoseEstimator.BotPose;
 
 public class Vision {
 	private String limelightName;
