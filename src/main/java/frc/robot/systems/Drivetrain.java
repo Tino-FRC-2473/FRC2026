@@ -103,6 +103,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			.loadField(AprilTagFields.k2026RebuiltWelded);
 
 	private Field2d elasticfield = new Field2d();
+	private Pose2d hubPose;
 
 	//TODO: Need to clean this stuff up and put it in constants
 	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method
@@ -360,6 +361,13 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
+		if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+			hubPose = DrivetrainConstants.RED_HUB_POSE;
+		} else {
+			hubPose = DrivetrainConstants.BLUE_HUB_POSE;
+		}
+		Logger.recordOutput("Hub Pose Alignment", hubPose);
+
 		//TODO: Clean this jawn up it's for testing
 		double flipAlliance = -1;
 		var alliance = DriverStation.getAlliance();
@@ -367,11 +375,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			flipAlliance = 1.0;
 		}
 		double xSpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
+				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double ySpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
+				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
@@ -380,8 +388,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		drivetrain.setControl(
 			driveFieldCentric
-				.withVelocityX(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-				.withVelocityY(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+				.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+				.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 				.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
 		);
 
@@ -390,25 +398,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		if (input.getButtonValue(ButtonInput.FACE_HUB)) {
-			Pose2d hubPose;
-			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-				hubPose = DrivetrainConstants.RED_HUB_POSE;
-			} else {
-				hubPose = DrivetrainConstants.BLUE_HUB_POSE;
-			}
-			double angle = Math.atan2(
-				hubPose.getY() - getPose().getY(),
-				hubPose.getX() - getPose().getX()
-			);
-			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-				angle *= -1;
-			}
+			Transform2d distance = getPose().minus(hubPose);
+			double angle = Math.atan2(distance.getY(), distance.getX());
 			drivetrain.setControl(
 				driveFacingAngle
 					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
 					.withHeadingPID(N7.instance.getNum(), 0, 0)
-					.withVelocityX(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-					.withVelocityY(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 			);
 		}
 
@@ -418,15 +415,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			boolean isRed = true;
 			Pose2d correctTarget;
 			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-				outpostDistance = (double) getPose().getTranslation()
-				.getDistance(DrivetrainConstants.RED_OUTPOST_POSE.getTranslation());
-				target3Distance = (double) getPose().getTranslation()
-				.getDistance(DrivetrainConstants.RED_POSE3_POSE.getTranslation());
+				outpostDistance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getY(),2));
+				targetDistance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getY(),2));
+				
 			} else {
-				outpostDistance = (double) getPose().getTranslation()
-				.getDistance(DrivetrainConstants.BLUE_OUTPOST_POSE.getTranslation());
-				target3Distance = (double) getPose().getTranslation()
-				.getDistance(DrivetrainConstants.BLUE_POSE3_POSE.getTranslation());
+				outpostDistance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getY(),2));
+				targetDistance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getY(),2));
 				isRed = false;
 			}
 
@@ -444,20 +438,15 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				}
 			}
 
-			double angle = Math.atan2(
-				correctTarget.getY() - getPose().getY(),
-				correctTarget.getX() - getPose().getX()
-			);
-			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-				angle *= -1;
-			}
+			Transform2d distance = getPose().minus(correctTarget);
+			double angle = Math.atan2(distance.getY(), distance.getX());
 
 			drivetrain.setControl(
 				driveFacingAngle
 					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
 					.withHeadingPID(N7.instance.getNum(), 0, 0)
-					.withVelocityX(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-					.withVelocityY(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 			);
 		}
 	}
