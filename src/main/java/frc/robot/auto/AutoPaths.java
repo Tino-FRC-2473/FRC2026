@@ -14,8 +14,8 @@ import edu.wpi.first.math.numbers.N10;
 // import edu.wpi.first.math.geometry.Transform2d;
 // import frc.robot.Constants.DrivetrainConstants;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.input.AutoInput;
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
@@ -26,6 +26,7 @@ import frc.robot.systems.ShooterFSMSystem;
 import frc.robot.systems.IntakeFSMSystem.IntakeFSMState;
 import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
 import frc.robot.systems.ClimberFSMSystem.ClimberFSMState;
+import frc.robot.Constants.AutoPathsConstants;
 
 public class AutoPaths {
 
@@ -109,8 +110,8 @@ public class AutoPaths {
 
 		Command get() {
 			return (path == null || !AutoBuilder.isConfigured())
-				? new InstantCommand()
-				: AutoBuilder.followPath(path);
+					? new InstantCommand()
+					: AutoBuilder.followPath(path);
 		}
 
 		DrivePaths mirror() {
@@ -133,34 +134,31 @@ public class AutoPaths {
 
 	public enum Start {
 		S1(
-			DrivePaths.BlueS1_D,
-			DrivePaths.BlueS1_NZ,
-			DrivePaths.NZ_BlueS1,
-			DrivePaths.BlueS1_HUB
-		),
+				DrivePaths.BlueS1_D,
+				DrivePaths.BlueS1_NZ,
+				DrivePaths.NZ_BlueS1,
+				DrivePaths.BlueS1_HUB),
 		S2(
-			DrivePaths.BlueS2_D,
-			DrivePaths.BlueS2_NZ,
-			DrivePaths.NZ_BlueS2,
-			DrivePaths.BlueS2_HUB
-		),
+				DrivePaths.BlueS2_D,
+				DrivePaths.BlueS2_NZ,
+				DrivePaths.NZ_BlueS2,
+				DrivePaths.BlueS2_HUB),
 		S3(
-			DrivePaths.BlueS3_D,
-			DrivePaths.BlueS3_NZ,
-			DrivePaths.NZ_BlueS3,
-			DrivePaths.BlueS3_HUB
-		);
+				DrivePaths.BlueS3_D,
+				DrivePaths.BlueS3_NZ,
+				DrivePaths.NZ_BlueS3,
+				DrivePaths.BlueS3_HUB);
 
 		private DrivePaths depotPath;
 		private DrivePaths nzPath;
 		private DrivePaths nzPathBack;
 		private DrivePaths hubPath;
+
 		Start(
-			DrivePaths pathToDepot,
-			DrivePaths pathToNZ,
-			DrivePaths pathFromNZ,
-			DrivePaths pathToHub
-		) {
+				DrivePaths pathToDepot,
+				DrivePaths pathToNZ,
+				DrivePaths pathFromNZ,
+				DrivePaths pathToHub) {
 			// mirror matches what we tested on the bot
 			// not sure why/if this works and whether I should mirror the others
 			depotPath = pathToDepot.mirror();
@@ -172,62 +170,64 @@ public class AutoPaths {
 	}
 
 	public record GetShootClimbSettings(
-		boolean shouldShoot, boolean isRed) { }
+			boolean shouldShoot, boolean isRed) {
+	}
 
-	public record GetShootSettings() { }
+	public record GetShootSettings() {
+	}
 
 	/**
 	 * Returns an auto command that goes from a start position to depot,
 	 * intakes, optionally shoots into the hub, then climbs.
-	 * @param input the auto input
+	 *
+	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
-	 * @param shooter the shooter
-	//  * @param climber the climber
-	 * @param intake the intake
-	 * @param settings some settings
-	 * starting postion, and whether it should shoot during auto
+	 * @param shooter    the shooter
+	 *                   // * @param climber the climber
+	 * @param intake     the intake
+	 * @param settings   some settings
+	 *                   starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
 	public static Command getShootCommand(
-		AutoInput input,
-		Drivetrain drivetrain,
-		ShooterFSMSystem shooter,
-		// ClimberFSMSystem climber,
-		IntakeFSMSystem intake,
-		GetShootSettings settings
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			// ClimberFSMSystem climber,
+			IntakeFSMSystem intake,
+			GetShootSettings settings
 
 	) {
 
-
-		return new CommandComposer()
-			.doNext(input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 1 / 2))
-			.doNext(new WaitCommand(1 + 1 / (2 * 2)))
-			.doNext(input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0))
-			.doNext(shootFor(input, shooter, N10.instance.getNum()))
-			.close();
+		return Commands
+				.sequence(
+						Commands.waitSeconds(AutoPathsConstants.SHOOT_WAIT_TIME_SECONDS),
+						input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0),
+						shootFor(input, shooter, N10.instance.getNum()),
+						input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 1 / 2));
 
 	}
-
 
 	/**
 	 * Returns an auto command that goes from a start position to depot,
 	 * intakes, optionally shoots into the hub, then climbs.
-	 * @param input the auto input
+	 *
+	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
-	 * @param shooter the shooter
-	 * @param climber the climber
-	 * @param intake the intake
-	 * @param settings settings
-	 * starting postion, and whether it should shoot during auto
+	 * @param shooter    the shooter
+	 * @param climber    the climber
+	 * @param intake     the intake
+	 * @param settings   settings
+	 *                   starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
 	public static Command getShootClimbCommand(
-		AutoInput input,
-		Drivetrain drivetrain,
-		ShooterFSMSystem shooter,
-		ClimberFSMSystem climber,
-		IntakeFSMSystem intake,
-		GetShootClimbSettings settings
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			ClimberFSMSystem climber,
+			IntakeFSMSystem intake,
+			GetShootClimbSettings settings
 
 	) {
 
@@ -235,238 +235,194 @@ public class AutoPaths {
 
 		// right now isRed = true means blue and isRed = false means red ;(
 		System.out.println("Reach 1");
-		return new CommandComposer()
-			//.doNext(settings.startingPositon().depotPath.get(!isRed))
-			//drive to hub
-			.doNext(DrivePaths.BlueS2_HUB.get(isRed))
 
+		return Commands
+				.sequence(
+						shootFor(input, shooter, AutoPathsConstants.SHOOT_CLIMB_SECONDS),
+						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
+						climber.watchForStatesCommand(ClimberFSMState.AUTO_UP_1,
+								ClimberFSMState.AUTO_IDLE),
+						DrivePaths.BlueHUB_T.get(isRed),
+						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2),
+						DrivePaths.BlueS2_HUB.get(isRed));
 
-			// shoot for 2-3 seconds
-			// .doNext(shootFor(input, shooter, 10))
-			// extend climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
-			.with(climber.watchForStatesCommand(
-				ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)
-			)
-
-			// drive to tower
-			.doNext(DrivePaths.BlueHUB_T.get(isRed))
-
-			// retract climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2))
-
-			// finish command
-			.close();
 	}
 
-
 	public record NZShootClimbSettings(
-		boolean shouldShoot, boolean isRed, Start startingPositon) { }
+			boolean shouldShoot, boolean isRed, Start startingPositon) {
+	}
 
 	public record DepotShootClimbSettings(
-		boolean shouldShoot, boolean isRed, Start startingPositon) { }
+			boolean shouldShoot, boolean isRed, Start startingPositon) {
+	}
 
 	/**
 	 * Returns an auto command that goes from a start position to depot,
 	 * intakes, optionally shoots into the hub, then climbs.
-	 * @param input the auto input
+	 *
+	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
-	 * @param shooter the shooter
-	 * @param climber the climber
-	 * @param intake the intake
-	 * @param settings the setttings, including Blue/Red,
-	 * starting postion, and whether it should shoot during auto
+	 * @param shooter    the shooter
+	 * @param climber    the climber
+	 * @param intake     the intake
+	 * @param settings   the setttings, including Blue/Red,
+	 *                   starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
 	public static Command getDepotShootClimb(
-		AutoInput input,
-		Drivetrain drivetrain,
-		ShooterFSMSystem shooter,
-		ClimberFSMSystem climber,
-		IntakeFSMSystem intake,
-		DepotShootClimbSettings settings
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			ClimberFSMSystem climber,
+			IntakeFSMSystem intake,
+			DepotShootClimbSettings settings
 
 	) {
 		// right now isRed = true means blue and isRed = false means red ;(
 		boolean isRed = settings.isRed();
 		boolean shouldShoot = settings.shouldShoot();
-		return new CommandComposer()
 
-			// drive from start to blue depo while fold out and start intake
-			.doNext(settings.startingPositon().depotPath.get(!isRed))
-			.with(
-				new CommandComposer()
-				.doNext(input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON))
-				.with(intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE))
-				.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
-				.with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
-				.close()
-			)
-
-			// drive through depo
-			.doNext(DrivePaths.BlueD_INTAKE.get(isRed))
-
-			//stop intake and fold in
-			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
-			.with(intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE))
-			.doNext(input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON))
-			.with(intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE))
-
-			//drive to hub
-			.doNext(DrivePaths.BlueD_HUB.get(isRed))
-
-			// shoot for 2-3 seconds if we should shoot
-			.keepActiveIf(shouldShoot)
-			.doNext(shootFor(input, shooter, 2))
-			.reactivate()
-
-			// extend climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
-			.with(climber.watchForStatesCommand(
-				ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)
-			)
-
-			// drive to tower
-			.doNext(DrivePaths.BlueHUB_T.get(isRed))
-
-			// retract climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2))
-
-			// finish command
-			.close();
+		return Commands
+				.sequence(
+						Commands.parallel(
+								settings.startingPositon().depotPath.get(!isRed),
+								startIntakeCommand(input, intake)),
+						DrivePaths.BlueD_INTAKE.get(isRed),
+						stopIntakeCommand(input, intake),
+						Commands.either(
+								shootFor(input, shooter, 2),
+								Commands.none(),
+								() -> shouldShoot),
+						Commands.parallel(
+								input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
+								climber.watchForStatesCommand(
+										ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)),
+						DrivePaths.BlueHUB_T.get(isRed),
+						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2));
 	}
 
 	/**
 	 * Returns an auto command that goes from a start position to neutral zone,
 	 * intakes, optionally shoots into the hub, then climbs.
-	 * @param input the auto input
+	 *
+	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
-	 * @param shooter the shooter
-	 * @param climber the climber
-	 * @param intake the intake
-	 * @param settings the setttings, including Blue/Red,
-	 * starting postion, and whether it should shoot during auto
+	 * @param shooter    the shooter
+	 * @param climber    the climber
+	 * @param intake     the intake
+	 * @param settings   the setttings, including Blue/Red,
+	 *                   starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
 	public static Command getNZShootClimbCommand(
-		AutoInput input,
-		Drivetrain drivetrain,
-		ShooterFSMSystem shooter,
-		ClimberFSMSystem climber,
-		IntakeFSMSystem intake,
-		NZShootClimbSettings settings
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			ClimberFSMSystem climber,
+			IntakeFSMSystem intake,
+			NZShootClimbSettings settings
 
 	) {
 		// right now isRed = true means blue and isRed = false means red ;(
 		boolean isRed = settings.isRed();
 		boolean shouldShoot = settings.shouldShoot();
-		return new CommandComposer()
 
-			// drive from start to NZ
-			.doNext(settings.startingPositon().nzPath.get(isRed))
-
-			// fold out intake and start intaking
-			.doNext(
-				new CommandComposer()
-				.doNext(input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON))
-				.with(intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE))
-				.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true))
-				.with(intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE))
-				.close()
-			)
-
-			// drive through NZ
-			.doNext(DrivePaths.BlueNZ_INTAKE.get(shouldShoot))
-
-			//stop intake and fold in
-			.doNext(input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false))
-			.with(intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE))
-			.doNext(input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON))
-			.with(intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE))
-
-			//drive to start, then shoot
-			.doNext(settings.startingPositon().nzPathBack.get(isRed))
-			.doNext(settings.startingPositon().hubPath.get(isRed))
-
-			// shoot for 2-3 seconds if we should shoot
-			.keepActiveIf(shouldShoot)
-			.doNext(shootFor(input, shooter, 2))
-
-
-			// extend climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1))
-			.with(climber.watchForStatesCommand(
-				ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)
-			)
-
-			// drive to tower
-			.doNext(DrivePaths.BlueHUB_T.get(isRed))
-
-			// retract climber
-			.doNext(input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2))
-
-			// finish command
-			.close();
+		return Commands
+				.sequence(
+						settings.startingPositon().nzPath.get(isRed),
+						startIntakeCommand(input, intake),
+						DrivePaths.BlueNZ_INTAKE.get(shouldShoot),
+						stopIntakeCommand(input, intake),
+						settings.startingPositon().nzPathBack.get(isRed),
+						settings.startingPositon().hubPath.get(isRed),
+						Commands.either(
+								shootFor(input, shooter, 2),
+								Commands.none(),
+								() -> shouldShoot),
+						Commands.parallel(
+								input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
+								climber.watchForStatesCommand(
+										ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)),
+						DrivePaths.BlueHUB_T.get(isRed),
+						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2));
 	}
 
 	/**
 	 * Returns a test auto that drives with the the BlueHubNZCimb2 trajectory,
 	 * and then shoots in the direction its facing for 10 seconds.
-	 * @param input the auto input
+	 *
+	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
-	 * @param shooter the shooter
+	 * @param shooter    the shooter
 	 * @return the auto as a command
 	 */
 	public static Command getTestAuto(
-		AutoInput input,
-		Drivetrain drivetrain,
-		ShooterFSMSystem shooter
-	) {
-		return new CommandComposer()
-			//.doNext(getS1HubCommand())
-			.doNext(shootFor(input, shooter, N10.instance.getNum()))
-			.close();
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter) {
+		return Commands
+				.sequence(shootFor(input, shooter, N10.instance.getNum()));
 	}
 
 	private static Command startShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
-		return new CommandComposer()
-			.with(input.pressButtonCommand(ButtonInput.PASSER_PREP_TOGGLE))
-			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, true))
-			.with(shooter.watchForStatesCommand(ShooterFSMState.FEED_STATE))
-			.close();
+		return Commands
+				.sequence(
+						input.pressButtonCommand(ButtonInput.PASSER_PREP_TOGGLE),
+						input.setButtonCommand(ButtonInput.REV_FEEDER, true),
+						shooter.watchForStatesCommand(ShooterFSMState.FEED_STATE));
+	}
+
+	private static Command startIntakeCommand(AutoInput input, IntakeFSMSystem intake) {
+		return Commands
+				.sequence(
+						Commands.parallel(
+								input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON),
+								intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE)),
+						Commands.parallel(
+								input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true),
+								intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE)));
+	}
+
+	private static Command stopIntakeCommand(AutoInput input, IntakeFSMSystem intake) {
+		return Commands
+				.sequence(
+						input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false),
+						intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE),
+						input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON),
+						intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE));
 	}
 
 	private static Command stopShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
-		return new CommandComposer()
-			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, false))
-			.with(new WaitCommand(1 / N10.instance.getNum()))
-			.doNext(input.pressButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE))
-			.doNext(shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE))
-			.close();
+		return Commands
+				.sequence(
+						input.setButtonCommand(ButtonInput.REV_FEEDER, false),
+						Commands.waitSeconds(1 / N10.instance.getNum()),
+						input.pressButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE),
+						shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE));
 	}
 
 	private static Command shootFor(AutoInput input, ShooterFSMSystem shooter, double time) {
-		return new CommandComposer()
-			.with(startShootingCommand(input, shooter))
-			.doNext(new WaitCommand(time))
-			.doNext(stopShootingCommand(input, shooter))
-			.close();
+		return Commands
+				.sequence(
+						startShootingCommand(input, shooter),
+						Commands.waitSeconds(time),
+						stopShootingCommand(input, shooter));
 	}
 
 	// on the fly path example
 	// private static Command getS1HubCommand() {
-	// 	return AutoBuilder.pathfindToPoseFlipped(
-	// 			AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded)
-	// 			.getTagPose(DrivetrainConstants.TAG_TO_ALIGN_TO)
-	// 			.orElse(null).toPose2d()
-	// 			.transformBy(
-	// 				new Transform2d(
-	// 					DrivetrainConstants.X_TRANFORM_FROM_TAG,
-	// 					DrivetrainConstants.Y_TRANFORM_FROM_TAG,
-	// 					Rotation2d.kCCW_90deg
-	// 				)
-	// 			),
-	// 			DrivetrainConstants.PATH_CONSTRAINTS
-	// 		);
+	// return AutoBuilder.pathfindToPoseFlipped(
+	// AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded)
+	// .getTagPose(DrivetrainConstants.TAG_TO_ALIGN_TO)
+	// .orElse(null).toPose2d()
+	// .transformBy(
+	// new Transform2d(
+	// DrivetrainConstants.X_TRANFORM_FROM_TAG,
+	// DrivetrainConstants.Y_TRANFORM_FROM_TAG,
+	// Rotation2d.kCCW_90deg
+	// )
+	// ),
+	// DrivetrainConstants.PATH_CONSTRAINTS
+	// );
 	// }
 }

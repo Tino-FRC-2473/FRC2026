@@ -41,6 +41,11 @@ public class Constants {
 		public static final long AUTO_UPDATE_INTERVAL_MS = 20L;
 	}
 
+	public static final class AutoPathsConstants {
+		public static final double SHOOT_CLIMB_SECONDS = 10;
+		public static final double SHOOT_WAIT_TIME_SECONDS = 1.35;
+	}
+
 	public static final class DrivetrainConstants {
 		public static final int NUM_MODULES = 4;
 		public static final double SYS_ID_VOLT_DAMP = 6;
@@ -305,6 +310,8 @@ public class Constants {
 	public static final class VisionConstants {
 		public static final int RESOLUTION_X = 640;
 		public static final int RESOLUTION_Y = 480;
+		public static final double IMU_ASSIST_ALPHA = 0.01;
+		public static final int IMU_MODE = 3;
 		public static final String LIMELIGHT_NAME = "limelight-four";
 		//TODO: Find some actual values for this.
 		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(
