@@ -1,14 +1,14 @@
 //LimelightHelpers v1.14 (REQUIRES LLOS 2026.0 OR LATER)
 
-package frc.robot.limelight;
+package frc.robot.imported;
 
 import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.TimestampedDoubleArray;
-import frc.robot.limelight.LimelightHelpers.LimelightResults;
-import frc.robot.limelight.LimelightHelpers.PoseEstimate;
+import frc.robot.imported.LimelightHelpers.LimelightResults;
+import frc.robot.imported.LimelightHelpers.PoseEstimate;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -41,7 +41,7 @@ public class LimelightHelpers {
 
     /**
      * Represents a Color/Retroreflective Target Result extracted from JSON Output
-     */
+     */ 
     public static class LimelightTarget_Retro {
 
         @JsonProperty("t6c_ts")

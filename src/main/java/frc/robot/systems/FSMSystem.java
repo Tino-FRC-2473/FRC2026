@@ -1,7 +1,5 @@
 package frc.robot.systems;
 
-import org.littletonrobotics.junction.AutoLogOutput;
-
 // Libary imports
 import edu.wpi.first.wpilibj2.command.Command;
 

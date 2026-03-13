@@ -118,7 +118,8 @@ public class Constants {
 		public static final Pose2d BLUE_OUTPOST_POSE =
 			new Pose2d(2.54, 2.0346376, new Rotation2d());
 		public static final Pose2d RED_POSE3_POSE = new Pose2d(2.54, 6.0346376, new Rotation2d());
-		public static final Pose2d BLUE_POSE3_POSE = new Pose2d(8.2741742, 6.0346376, new Rotation2d());
+		public static final Pose2d BLUE_POSE3_POSE =
+			new Pose2d(8.2741742, 6.0346376, new Rotation2d());
 	}
 
 	public static final class ModuleConstants {
