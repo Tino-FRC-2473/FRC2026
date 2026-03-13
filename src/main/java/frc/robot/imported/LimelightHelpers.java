@@ -41,7 +41,7 @@ public class LimelightHelpers {
 
     /**
      * Represents a Color/Retroreflective Target Result extracted from JSON Output
-     */ 
+     */
     public static class LimelightTarget_Retro {
 
         @JsonProperty("t6c_ts")
