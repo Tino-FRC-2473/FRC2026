@@ -41,6 +41,11 @@ public class Constants {
 		public static final long AUTO_UPDATE_INTERVAL_MS = 20L;
 	}
 
+	public static final class AutoPathsConstants {
+		public static final double SHOOT_CLIMB_SECONDS = 10;
+		public static final double SHOOT_WAIT_TIME_SECONDS = 1.35;
+	}
+
 	public static final class DrivetrainConstants {
 		public static final int NUM_MODULES = 4;
 		public static final double SYS_ID_VOLT_DAMP = 6;
