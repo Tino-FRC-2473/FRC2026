@@ -172,9 +172,6 @@ public class Robot extends LoggedRobot {
 		shooterFSMSystem.update(input);
 
 		input.update();
-		climberFSMSystem.update((TeleopInput) input);
-		intakeFSMSystem.update((TeleopInput) input);
-		shooterFSMSystem.update((TeleopInput) input);
 
 		// logs motor values
 		MotorManager.update();
