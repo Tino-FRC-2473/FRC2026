@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.input.InputTypes.AxialInput;
-import frc.robot.Robot;
 import frc.robot.input.InputTypes.ButtonInput;
 
 public final class AutoInput extends Input {
@@ -84,7 +83,7 @@ public final class AutoInput extends Input {
 
 	/**
 	 * Returns an instant command that sets the button value.
-	 * @param button the button to set
+	 * @param axis the axis to set
 	 * @param value the button value
 	 * @return the command
 	 */

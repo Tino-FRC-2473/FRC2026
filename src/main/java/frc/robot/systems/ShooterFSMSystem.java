@@ -6,30 +6,18 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
-import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.AngularVelocityUnit;
 
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
-
-
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-
 
 
 import frc.robot.Constants.ShooterConstants;
@@ -287,7 +275,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			double curSpeed = flywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
 			flywheelSpeed = RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
 			Logger.recordOutput("Shooter/Actual Motor Speed", flywheelSpeed.in(RotationsPerSecond));
-			if (flywheelSpeed.in(RotationsPerSecond) <= 1){
+			if (flywheelSpeed.in(RotationsPerSecond) <= 1) {
 				Logger.recordOutput("Shooter/Flywheel at speed?", false);
 			} else {
 				Logger.recordOutput("Shooter/Flywheel at speed?", isAtSpeed());
@@ -358,7 +346,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						return getCurrentState();
 					}
 
-					case SHOOTER_PREP_STATE:
+				case SHOOTER_PREP_STATE:
 					if (input != null && input.getButtonPressed(ButtonInput.IDLE_SHOOTER_TOGGLE)) {
 						pastState = getCurrentState();
 						return ShooterFSMState.IDLE_STATE;
@@ -381,7 +369,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 					} else {
 						return getCurrentState();
 					}
-					
+
 				case FEED_STATE:
 					if (!isAtSpeed() || input == null
 						|| !input.getButtonValue(ButtonInput.REV_FEEDER)) {
@@ -407,7 +395,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						return getCurrentState();
 					}
 
-				
+
 
 				case MANUAL_PREP_STATE:
 					// Manual can only go to idle (we need the button inputs for right and left
@@ -482,6 +470,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// TODO: code to find the distance vector from where we are to passing targets
 		// (preferably outpost and thelocation of outpost on the other side) (3d vector)
 	}
+
+	public static final double TARGET_PASS_SPEED = 50;
 	/**
 	 * Calculate needed values to pass  in specific targets.
 	 * @param target The pose we are targetting towards
@@ -489,12 +479,13 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 */
 	public double calculateTargetPassSpeed(Pose2d target) {
 		// Transform2d transform = curPose.minus(target);
-		// double distance = Math.sqrt(Math.pow(transform.getX(), 2) + Math.pow(transform.getY(), 2));
+		// double distance =
+		// 	Math.sqrt(Math.pow(transform.getX(), 2) + Math.pow(transform.getY(), 2));
 		// double flyspeed = ShooterConstants.PASSING_REGRESSION_CONSTANT
 		// 	+ ShooterConstants.PASSING_REGRESSION_SLOPE * Units.metersToInches(distance);
 		// return flyspeed;
 
-		return 50;
+		return TARGET_PASS_SPEED;
 		//code to be determined based off of regression model
 	}
 
@@ -603,7 +594,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// if (spindexTimer.advanceIfElapsed(ShooterConstants.SPINDEX_MAX_TIME)) {
 		// 	spindexVoltage *= -1;
 		// }
-		
+
 		if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
 		//if (!input.getButtonValue(ButtonInput.REV_FEEDER)) {
 			System.out.println("reach 2");

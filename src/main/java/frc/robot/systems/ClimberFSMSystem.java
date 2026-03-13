@@ -18,7 +18,6 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
 
 import frc.robot.HardwareMap;
@@ -79,7 +78,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		climberMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_RIGHT);
 		climberMotorRight.setControl(new Follower(HardwareMap.CAN_ID_CLIMBER_LEFT,
 			MotorAlignmentValue.Opposed));
-		
+
 
 		motionRequest = new MotionMagicVoltage(0);
 		var talonFXConfigs = getConfig();
@@ -306,6 +305,9 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		return !groundLimitSwitchRight.get();
 	}
 
+	/**
+	 * @return the current state
+	 */
 	@AutoLogOutput(key = "Climber/Current State")
 	public ClimberFSMState getClimberState() {
 		return getCurrentState();

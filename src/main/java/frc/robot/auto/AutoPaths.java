@@ -7,6 +7,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FileVersionException;
 
+import edu.wpi.first.math.numbers.N10;
 // import edu.wpi.first.apriltag.AprilTagFieldLayout;
 // import edu.wpi.first.apriltag.AprilTagFields;
 // import edu.wpi.first.math.geometry.Rotation2d;
@@ -170,10 +171,10 @@ public class AutoPaths {
 		}
 	}
 
-	public record getShootClimbSettings(
+	public record GetShootClimbSettings(
 		boolean shouldShoot, boolean isRed) { }
 
-	public record getShootSettings() { }
+	public record GetShootSettings() { }
 
 	/**
 	 * Returns an auto command that goes from a start position to depot,
@@ -181,10 +182,9 @@ public class AutoPaths {
 	 * @param input the auto input
 	 * @param drivetrain the drivetrain
 	 * @param shooter the shooter
-	 * @param climber the climber
+	//  * @param climber the climber
 	 * @param intake the intake
-	 * @param isRed is it red
-	 * @param startPos the start pos (S1, S2, S3)
+	 * @param settings some settings
 	 * starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
@@ -194,16 +194,16 @@ public class AutoPaths {
 		ShooterFSMSystem shooter,
 		// ClimberFSMSystem climber,
 		IntakeFSMSystem intake,
-		getShootSettings settings
+		GetShootSettings settings
 
 	) {
-		
+
 
 		return new CommandComposer()
-			.doNext(input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0.5))
-			.doNext(new WaitCommand(1.35))
+			.doNext(input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 1 / 2))
+			.doNext(new WaitCommand(1 + 1 / (2 * 2)))
 			.doNext(input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0))
-			.doNext(shootFor(input, shooter, 10))
+			.doNext(shootFor(input, shooter, N10.instance.getNum()))
 			.close();
 
 	}
@@ -217,8 +217,7 @@ public class AutoPaths {
 	 * @param shooter the shooter
 	 * @param climber the climber
 	 * @param intake the intake
-	 * @param isRed is it red
-	 * @param startPos the start pos (S1, S2, S3)
+	 * @param settings settings
 	 * starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
@@ -228,7 +227,7 @@ public class AutoPaths {
 		ShooterFSMSystem shooter,
 		ClimberFSMSystem climber,
 		IntakeFSMSystem intake,
-		getShootClimbSettings settings
+		GetShootClimbSettings settings
 
 	) {
 
@@ -425,7 +424,7 @@ public class AutoPaths {
 	) {
 		return new CommandComposer()
 			//.doNext(getS1HubCommand())
-			.doNext(shootFor(input, shooter, 10))
+			.doNext(shootFor(input, shooter, N10.instance.getNum()))
 			.close();
 	}
 
@@ -440,7 +439,7 @@ public class AutoPaths {
 	private static Command stopShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return new CommandComposer()
 			.with(input.setButtonCommand(ButtonInput.REV_FEEDER, false))
-			.with(new WaitCommand(0.1))
+			.with(new WaitCommand(1 / N10.instance.getNum()))
 			.doNext(input.pressButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE))
 			.doNext(shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE))
 			.close();

@@ -11,18 +11,16 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
-import frc.robot.auto.AutoPaths.Start;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 
 // WPILib Imports
 
 // Systems
 
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.auto.AutoPaths;
 import frc.robot.input.AutoInput;
 import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
@@ -70,11 +68,9 @@ public class Robot extends LoggedRobot {
 		// Creates the CvSink and connects it to the UsbCamera
 		CvSink cvSink = CameraServer.getVideo();
 		// Creates the CvSource and MjpegServer [2] and connects them
-		CvSource outputStream = CameraServer.putVideo("DriverCamera", 640, 480);
-
-		
-
-
+		CvSource outputStream = CameraServer.putVideo("Driver Camera",
+			VisionConstants.RESOLUTION_X,
+			VisionConstants.RESOLUTION_Y);
 
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
@@ -101,7 +97,11 @@ public class Robot extends LoggedRobot {
 
 		Optional<ShooterFSMSystem> shooter;
 		if (HardwareMap.isShooterEnabled()) {
-			shooter = Optional.of(new ShooterFSMSystem((Drivetrain)drivetrainFSMSystem, (IntakeFSMSystem)intakeFSMSystem));
+			shooter = Optional.of(
+				new ShooterFSMSystem(
+					(Drivetrain) drivetrainFSMSystem,
+					(IntakeFSMSystem) intakeFSMSystem)
+				);
 			shooterFSMSystem = shooter.get();
 		} else {
 			shooterFSMSystem = new PlaceholderFSMSystem<>();
@@ -125,8 +125,6 @@ public class Robot extends LoggedRobot {
 		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
-		
-		System.out.println("Reach 2");
 		if (drivetrainFSMSystem instanceof Drivetrain drive
 			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
 			&& climberFSMSystem instanceof ClimberFSMSystem climber
@@ -135,7 +133,7 @@ public class Robot extends LoggedRobot {
 			CommandScheduler.getInstance().schedule(
 				AutoPaths.getShootClimbCommand(
 					autoInput, drive, shooter, climber, intake,
-					new AutoPaths.getShootClimbSettings(true, true))
+					new AutoPaths.GetShootClimbSettings(true, true))
 			);
 		}
 	}

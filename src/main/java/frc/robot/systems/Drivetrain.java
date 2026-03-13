@@ -4,10 +4,6 @@ package frc.robot.systems;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
-import java.lang.reflect.Field;
-import java.util.Optional;
-import java.util.Queue;
-
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -31,22 +27,22 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N10;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.N6;
+import edu.wpi.first.math.numbers.N7;
 import edu.wpi.first.units.measure.AngularVelocity;
 
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants;
 import frc.robot.Constants.DrivetrainConstants;
-import frc.robot.Constants.LimelightConstants;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.input.Input;
@@ -84,7 +80,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private final SwerveRequest.ApplyRobotSpeeds
 			applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-	
+
 	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle =
 		new SwerveRequest.FieldCentricFacingAngle()
 		.withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
@@ -118,7 +114,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	/**
 	 * Constructs the drivetrain subsystem.
-	 * @param shooterFSMSystem the shooter FSM system, used for targeting the hub in FACE_HUB state
 	 */
 	public Drivetrain() {
 		drivetrain = TunerConstants.createDrivetrain();
@@ -149,11 +144,15 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				}, /*ChassisSpeeds supplier. MUST BE ROBOT RELATIVE */
 				(speeds, feedforwards) -> {
 
-					ChassisSpeeds speedINeedThis = new ChassisSpeeds(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, -speeds.omegaRadiansPerSecond);
+					ChassisSpeeds speedINeedThis = new ChassisSpeeds(
+						speeds.vxMetersPerSecond,
+						speeds.vyMetersPerSecond,
+						-speeds.omegaRadiansPerSecond);
 
 					drivetrain.setControl(
 						applyRobotSpeeds
-							.withSpeeds(speedINeedThis.times(Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
+							.withSpeeds(speedINeedThis.times(
+								Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
 							.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
 							.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
 					);
@@ -305,19 +304,22 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					if (DriverStation.getAlliance().isPresent()) {
 
 						if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-							DrivetrainConstants.TAG_TO_ALIGN_TO = 10;
+							DrivetrainConstants.setTagToAlignTo(N10.instance.getNum());
 							System.out.println("RED ALLIANCE TAG 10");
 						} else {
-							DrivetrainConstants.TAG_TO_ALIGN_TO = 26;
+							DrivetrainConstants.setTagToAlignTo(N10.instance.getNum()
+								+ N10.instance.getNum()
+								+ N6.instance.getNum());
 							System.out.println("BLUE ALLIANCE TAG 26");
 						}
 
 					} else {
 						System.out.println("Defaulting to red. Good luck");
-						DrivetrainConstants.TAG_TO_ALIGN_TO = 10;
+						DrivetrainConstants.setTagToAlignTo(N10.instance.getNum());
 					}
 
-					Pose2d test = field.getTagPose(DrivetrainConstants.TAG_TO_ALIGN_TO).orElse(null).toPose2d();
+					Pose2d test = field.getTagPose(
+						DrivetrainConstants.getTagToAlignTo()).orElse(null).toPose2d();
 
 					Transform2d offsetTransform = new Transform2d(
 							-DrivetrainConstants.X_TRANFORM_FROM_TAG, // Back to Front
@@ -389,7 +391,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		if (input.getButtonValue(ButtonInput.FACE_HUB)) {
 			Pose2d hubPose;
-			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red){
+			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
 				hubPose = DrivetrainConstants.RED_HUB_POSE;
 			} else {
 				hubPose = DrivetrainConstants.BLUE_HUB_POSE;
@@ -398,24 +400,24 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				hubPose.getY() - getPose().getY(),
 				hubPose.getX() - getPose().getX()
 			);
-			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red){
+			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
 				angle *= -1;
 			}
 			drivetrain.setControl(
 				driveFacingAngle
 					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
-					.withHeadingPID(7, 0, 0)
+					.withHeadingPID(N7.instance.getNum(), 0, 0)
 					.withVelocityX(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 					.withVelocityY(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 			);
 		}
 
-		if (input.getButtonValue(ButtonInput.FACE_PASS)){
+		if (input.getButtonValue(ButtonInput.FACE_PASS)) {
 			double outpostDistance;
 			double target3Distance;
 			boolean isRed = true;
 			Pose2d correctTarget;
-			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red){
+			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
 				outpostDistance = (double) getPose().getTranslation()
 				.getDistance(DrivetrainConstants.RED_OUTPOST_POSE.getTranslation());
 				target3Distance = (double) getPose().getTranslation()
@@ -429,13 +431,13 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			}
 
 			if (outpostDistance < target3Distance) {
-				if (isRed){
+				if (isRed) {
 					correctTarget = DrivetrainConstants.RED_OUTPOST_POSE;
 				} else {
 					correctTarget = DrivetrainConstants.BLUE_OUTPOST_POSE;
 				}
 			} else {
-				if (isRed){
+				if (isRed) {
 					correctTarget = DrivetrainConstants.RED_POSE3_POSE;
 				} else {
 					correctTarget = DrivetrainConstants.BLUE_POSE3_POSE;
@@ -446,14 +448,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				correctTarget.getY() - getPose().getY(),
 				correctTarget.getX() - getPose().getX()
 			);
-			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red){
+			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
 				angle *= -1;
 			}
-			
+
 			drivetrain.setControl(
 				driveFacingAngle
 					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
-					.withHeadingPID(7, 0, 0)
+					.withHeadingPID(N7.instance.getNum(), 0, 0)
 					.withVelocityX(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 					.withVelocityY(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 			);
@@ -516,7 +518,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			|| input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE) != 0;
 	}
 
+	/**
+	 * Stops the drivetrain.
+	 */
 	public void stop() {
-		drivetrain.applyRequest(() -> driveFieldCentric.withVelocityX(0).withVelocityY(0).withRotationalRate(0));
+		drivetrain.applyRequest(
+			() -> driveFieldCentric.withVelocityX(0).withVelocityY(0).withRotationalRate(0));
 	}
 }
