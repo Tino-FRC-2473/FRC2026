@@ -267,7 +267,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 				default:
 					throw new IllegalStateException("Invalid state: "
-					+ getCurrentState().toString());
+							+ getCurrentState().toString());
 			}
 		}
 		Logger.recordOutput("Shooter/Shooter State", getCurrentState());
@@ -415,7 +415,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 				default:
 					throw new IllegalStateException("Invalid state: "
-					+ getCurrentState().toString());
+							+ getCurrentState().toString());
 			}
 		}
 		throw new IllegalStateException("No current state");

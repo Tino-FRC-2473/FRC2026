@@ -290,13 +290,13 @@ public class AutoPaths {
 						DrivePaths.BlueD_INTAKE.get(isRed),
 						stopIntakeCommand(input, intake),
 						Commands.either(
-								shootFor(input, shooter, 2),
-								Commands.none(),
-								() -> shouldShoot),
+							shootFor(input, shooter, 2),
+							Commands.none(),
+							() -> shouldShoot),
 						Commands.parallel(
-								input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
-								climber.watchForStatesCommand(
-										ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)),
+							input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
+							climber.watchForStatesCommand(
+									ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)),
 						DrivePaths.BlueHUB_T.get(isRed),
 						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2));
 	}
@@ -329,22 +329,22 @@ public class AutoPaths {
 
 		return Commands
 				.sequence(
-						settings.startingPositon().nzPath.get(isRed),
-						startIntakeCommand(input, intake),
-						DrivePaths.BlueNZ_INTAKE.get(shouldShoot),
-						stopIntakeCommand(input, intake),
-						settings.startingPositon().nzPathBack.get(isRed),
-						settings.startingPositon().hubPath.get(isRed),
-						Commands.either(
-								shootFor(input, shooter, 2),
-								Commands.none(),
-								() -> shouldShoot),
-						Commands.parallel(
-								input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
-								climber.watchForStatesCommand(
-										ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)),
-						DrivePaths.BlueHUB_T.get(isRed),
-						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2));
+					settings.startingPositon().nzPath.get(isRed),
+					startIntakeCommand(input, intake),
+					DrivePaths.BlueNZ_INTAKE.get(shouldShoot),
+					stopIntakeCommand(input, intake),
+					settings.startingPositon().nzPathBack.get(isRed),
+					settings.startingPositon().hubPath.get(isRed),
+					Commands.either(
+						shootFor(input, shooter, 2),
+						Commands.none(),
+						() -> shouldShoot),
+					Commands.parallel(
+						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
+						climber.watchForStatesCommand(
+								ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)),
+					DrivePaths.BlueHUB_T.get(isRed),
+					input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2));
 	}
 
 	/**
@@ -361,52 +361,52 @@ public class AutoPaths {
 			Drivetrain drivetrain,
 			ShooterFSMSystem shooter) {
 		return Commands
-				.sequence(shootFor(input, shooter, N10.instance.getNum()));
+			.sequence(shootFor(input, shooter, N10.instance.getNum()));
 	}
 
 	private static Command startShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return Commands
 				.sequence(
-						input.pressButtonCommand(ButtonInput.PASSER_PREP_TOGGLE),
-						input.setButtonCommand(ButtonInput.REV_FEEDER, true),
-						shooter.watchForStatesCommand(ShooterFSMState.FEED_STATE));
+					input.pressButtonCommand(ButtonInput.PASSER_PREP_TOGGLE),
+					input.setButtonCommand(ButtonInput.REV_FEEDER, true),
+					shooter.watchForStatesCommand(ShooterFSMState.FEED_STATE));
 	}
 
 	private static Command startIntakeCommand(AutoInput input, IntakeFSMSystem intake) {
 		return Commands
 				.sequence(
-						Commands.parallel(
-								input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON),
-								intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE)),
-						Commands.parallel(
-								input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true),
-								intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE)));
+					Commands.parallel(
+						input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON),
+						intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE)),
+					Commands.parallel(
+						input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true),
+						intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE)));
 	}
 
 	private static Command stopIntakeCommand(AutoInput input, IntakeFSMSystem intake) {
 		return Commands
 				.sequence(
-						input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false),
-						intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE),
-						input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON),
-						intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE));
+					input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false),
+					intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE),
+					input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON),
+					intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE));
 	}
 
 	private static Command stopShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return Commands
 				.sequence(
-						input.setButtonCommand(ButtonInput.REV_FEEDER, false),
-						Commands.waitSeconds(1 / N10.instance.getNum()),
-						input.pressButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE),
-						shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE));
+					input.setButtonCommand(ButtonInput.REV_FEEDER, false),
+					Commands.waitSeconds(1 / N10.instance.getNum()),
+					input.pressButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE),
+					shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE));
 	}
 
 	private static Command shootFor(AutoInput input, ShooterFSMSystem shooter, double time) {
 		return Commands
 				.sequence(
-						startShootingCommand(input, shooter),
-						Commands.waitSeconds(time),
-						stopShootingCommand(input, shooter));
+					startShootingCommand(input, shooter),
+					Commands.waitSeconds(time),
+					stopShootingCommand(input, shooter));
 	}
 
 	// on the fly path example
