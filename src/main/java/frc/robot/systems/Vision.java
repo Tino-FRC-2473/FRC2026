@@ -29,7 +29,7 @@ public class Vision {
 	/**
 	 * Construct a vision object.
 	 * @param consumer The consumer to accept vision observations.
-	 * @param rotSupplier The supplier for the robot's rotation.
+	 * @param rot The robot's rotation.
 	 * @param limeLightName The name of the Limelight
 	 */
 	public Vision(
@@ -40,8 +40,8 @@ public class Vision {
 		visionConsumer = consumer;
 
 		LimelightHelpers.setLEDMode_PipelineControl(limelightName);
-		LimelightHelpers.SetIMUAssistAlpha(limeLightName, 0.01);
-		LimelightHelpers.SetIMUMode(limelightName, 3);
+		LimelightHelpers.SetIMUAssistAlpha(limeLightName, VisionConstants.IMU_ASSIST_ALPHA);
+		LimelightHelpers.SetIMUMode(limelightName, VisionConstants.IMU_MODE);
 	}
 
 	/**
@@ -49,22 +49,23 @@ public class Vision {
 	 */
 	public void periodic() {
 		//Rotation3d rotation = rotationSupplier.get();
-		LimelightHelpers.SetRobotOrientation(limelightName, rotation.getZ(), 0, rotation.getY(), 0, rotation.getX(), 0);
+		LimelightHelpers.SetRobotOrientation(
+			limelightName, rotation.getZ(), 0, rotation.getY(), 0, rotation.getX(), 0);
 
 		PoseEstimate visionEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
 		if (LimelightHelpers.validPoseEstimate(visionEstimate)) {
-            Pose2d pose = visionEstimate.pose;
-            Logger.recordOutput("Vision/MT2Pose", pose);
+			Pose2d pose = visionEstimate.pose;
+			Logger.recordOutput("Vision/MT2Pose", pose);
 
-            if (pose.getX() > 1) {
-                visionConsumer.accept(
-                    pose,
-                    visionEstimate.timestampSeconds,
-                    VisionConstants.LL4_STDEVS
-                );
-            }
-        }
-    }
+			if (pose.getX() > 1) {
+				visionConsumer.accept(
+					pose,
+					visionEstimate.timestampSeconds,
+					VisionConstants.LL4_STDEVS
+				);
+			}
+		}
+	}
 
 
 	@FunctionalInterface
