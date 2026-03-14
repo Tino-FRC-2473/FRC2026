@@ -8,24 +8,20 @@ import edu.wpi.first.wpilibj.DigitalInput;
  */
 public final class HardwareMap {
 	// ID numbers for devices on the CAN bus
-	public static final int CAN_ID_SPARK_DRIVE_FRONT_RIGHT = 1;
-	public static final int CAN_ID_SPARK_DRIVE_BACK_RIGHT = 2;
-	public static final int CAN_ID_SPARK_DRIVE_FRONT_LEFT = 3;
-	public static final int CAN_ID_SPARK_DRIVE_BACK_LEFT = 4;
-	public static final int CAN_ID_CLIMBER_LEFT = 6;
-	public static final int CAN_ID_CLIMBER_RIGHT = 7;
-	public static final int CAN_ID_SPARK_PIVOT_LEFT = 11;
-	public static final int CAN_ID_SPARK_PIVOT_RIGHT = 12;
-	public static final int CAN_ID_SPARK_INTAKE = 5;
+	public static final int CAN_ID_CLIMBER_LEFT = 62;
+	public static final int CAN_ID_CLIMBER_RIGHT = 61;
+	public static final int CAN_ID_SPARK_PIVOT_LEFT = 52;
+	public static final int CAN_ID_SPARK_PIVOT_RIGHT = 51;
+	public static final int CAN_ID_SPARK_INTAKE = 53;
 
 	//values TBD
-	public static final int CAN_ID_FLYWHEEL = 9;
-	public static final int CAN_ID_FEEDER = 10;
-	public static final int CAN_ID_SPINDEXER = 11;
+	public static final int CAN_ID_FLYWHEEL = 2;
+	public static final int CAN_ID_FEEDER = 3;
+	public static final int CAN_ID_SPINDEXER = 4;
 
 	//rio - dio ports
-	public static final int INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT = 0;
-	public static final int INTAKE_TOP_LIMIT_SWITCH_DIO_PORT = 2;
+	public static final int INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT = 1;
+	public static final int INTAKE_TOP_LIMIT_SWITCH_DIO_PORT = 3;
 	public static final int STORAGE_BREAK_BEAM_DIO_PORT = 2; //receiver of breakbeam
 
 	// Pneumatics channel numbers
@@ -35,8 +31,8 @@ public final class HardwareMap {
 	// Place jumper from DIO pin 9 to GND to indicate this is a test setup
 	private static final int DIO_TEST_SETUP_CHANNEL = 9;
 	// Use unique DIO ports for climber limit switches to avoid collisions with intake
-	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT = 2;
-	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_RIGHT = 3;
+	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_LEFT = 5;
+	public static final int CLIMBER_GROUND_LIMIT_SWITCH_DIO_PORT_RIGHT = 4;
 	private static DigitalInput testBoardPin = new DigitalInput(HardwareMap.DIO_TEST_SETUP_CHANNEL);
 	/**
 	 * Check if the current RoboRIO is part of a test setup or real robot.
@@ -51,7 +47,7 @@ public final class HardwareMap {
 	 * @return if the hardware for the drivetrain is present
 	 */
 	public static boolean isDrivetrainEnabled() {
-		return false;
+		return true;
 	}
 
 	/**
@@ -59,7 +55,7 @@ public final class HardwareMap {
 	 * @return if the hardware for the climber is present
 	 */
 	public static boolean isClimberEnabled() {
-		return false;
+		return true;
 	}
 
 	/**
@@ -67,7 +63,7 @@ public final class HardwareMap {
 	 * @return if the hardware for the intake is present
 	 */
 	public static boolean isIntakeEnabled() {
-		return false;
+		return true;
 	}
 
 	/**
@@ -75,6 +71,6 @@ public final class HardwareMap {
 	 * @return if the hardware for the shooter is present
 	 */
 	public static boolean isShooterEnabled() {
-		return false;
+		return true;
 	}
 }

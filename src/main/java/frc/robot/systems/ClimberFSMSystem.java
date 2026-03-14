@@ -6,7 +6,9 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 
 import java.util.Optional;
@@ -15,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
 
 import frc.robot.HardwareMap;
@@ -31,6 +34,7 @@ import frc.robot.Constants.ClimberConstants;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -74,6 +78,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		climberMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_CLIMBER_RIGHT);
 		climberMotorRight.setControl(new Follower(HardwareMap.CAN_ID_CLIMBER_LEFT,
 			MotorAlignmentValue.Opposed));
+
 
 		motionRequest = new MotionMagicVoltage(0);
 		var talonFXConfigs = getConfig();
@@ -123,7 +128,8 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		var talonFXConfigs = new TalonFXConfiguration();
 
 		var outputConfigs = talonFXConfigs.MotorOutput;
-		outputConfigs.NeutralMode = NeutralModeValue.Coast;
+		outputConfigs.NeutralMode = NeutralModeValue.Brake;
+		outputConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
 
 		var swLimitSwitch = talonFXConfigs.SoftwareLimitSwitch;
 		swLimitSwitch.ForwardSoftLimitEnable = true;
@@ -178,27 +184,33 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	@Override
 	public void update(Input input) {
 
-		if (RobotBase.isSimulation()) {
-			sim.setInputVoltage(climberMotorLeft.getSimState().getMotorVoltage());
-			sim.update(ClimberConstants.UPDATE_RATE);
-
-			double drumCircumferenceMeters = ClimberConstants.DRUM_CIRCUMFERENCE_METERS;
-			double gearRatio = ClimberConstants.CLIMBER_GEAR_RATIO;
-
-			double rotorRotations = (sim.getPositionMeters()
-				/ drumCircumferenceMeters) * gearRatio;
-			double rotorVelocityRPS = (sim.getVelocityMetersPerSecond()
-				/ drumCircumferenceMeters) * gearRatio;
-
-			var simState = climberMotorLeft.getSimState();
-			simState.setRawRotorPosition(rotorRotations);
-			simState.setRotorVelocity(rotorVelocityRPS);
-
-			boolean atBottom = sim.getPositionMeters() <= ClimberConstants.LIMIT_SWITCH_HEIGHT;
-			limitSimLeft.setValue(atBottom);
-			limitSimRight.setValue(atBottom);
-
+		boolean atBottom2 = (getLeftLimitSwitch() || getRightLimitSwitch());
+		if (atBottom2) {
+			climberMotorLeft.setPosition(Angle.ofBaseUnits(0, Degrees));
+			climberMotorRight.setPosition(Angle.ofBaseUnits(0, Degrees));
 		}
+
+		// if (RobotBase.isSimulation()) {
+		// 	sim.setInputVoltage(climberMotorLeft.getSimState().getMotorVoltage());
+		// 	sim.update(ClimberConstants.UPDATE_RATE);
+
+		// 	double drumCircumferenceMeters = ClimberConstants.DRUM_CIRCUMFERENCE_METERS;
+		// 	double gearRatio = ClimberConstants.CLIMBER_GEAR_RATIO;
+
+		// 	double rotorRotations = (sim.getPositionMeters()
+		// 		/ drumCircumferenceMeters) * gearRatio;
+		// 	double rotorVelocityRPS = (sim.getVelocityMetersPerSecond()
+		// 		/ drumCircumferenceMeters) * gearRatio;
+
+		// 	var simState = climberMotorLeft.getSimState();
+		// 	simState.setRawRotorPosition(rotorRotations);
+		// 	simState.setRotorVelocity(rotorVelocityRPS);
+
+		// 	boolean atBottom = sim.getPositionMeters() <= ClimberConstants.LIMIT_SWITCH_HEIGHT;
+		// 	limitSimLeft.setValue(atBottom);
+		// 	limitSimRight.setValue(atBottom);
+
+		// }
 
 		if (input == null) {
 			return;
@@ -294,6 +306,14 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	}
 
 	/**
+	 * @return the current state
+	 */
+	@AutoLogOutput(key = "Climber/Current State")
+	public ClimberFSMState getClimberState() {
+		return getCurrentState();
+	}
+
+	/**
 	 * Get the climber height in inches.
 	 *
 	 * @return climber height in inches
@@ -313,6 +333,19 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		double height = getClimberHeightInches();
 		return height >= ClimberConstants.L1_EXTEND_POS.in(Inches)
 			- ClimberConstants.POSITION_TOLERANCE_L1.in(Inches);
+	}
+
+	/**
+	 * Returns a command that ends when isExtendedL1 is true.
+	 * @return a command that ends when isExtendedL1 is true
+	 */
+	public Command waitForExtendedL1() {
+		return new Command() {
+			@Override
+			public boolean isFinished() {
+				return super.isFinished() && isExtendedL1();
+			}
+		};
 	}
 
 	@AutoLogOutput(key = "Climber/Right Is At Bottom?")
@@ -347,6 +380,12 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 				if (input.getButtonPressed(ButtonInput.CLIMBER_EMERGENCY_ABORT)) {
 					return ClimberFSMState.IDLE;
 				}
+				if (input.getButtonPressed(ButtonInput.CLIMBER_AUTO_UP_1)) {
+					return ClimberFSMState.AUTO_UP_1;
+				}
+				if (input.getButtonPressed(ButtonInput.CLIMBER_AUTO_UP_2)) {
+					return ClimberFSMState.AUTO_UP_2;
+				}
 				return ClimberFSMState.AUTO_IDLE;
 			case IDLE:
 				if (input.getButtonPressed(ButtonInput.CLIMBER_MANUAL_OVERRIDE)) {
@@ -355,15 +394,9 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 				if (input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP)) {
 					return ClimberFSMState.L1_EXTEND;
 				}
-				if (input.getButtonPressed(ButtonInput.CLIMBER_AUTO_UP_1)) {
-					return ClimberFSMState.AUTO_UP_1;
-				}
-				if (input.getButtonPressed(ButtonInput.CLIMBER_AUTO_UP_2)) {
-					return ClimberFSMState.AUTO_UP_2;
-				}
 				return ClimberFSMState.IDLE;
 			case MANUAL_DIRECT_CONTROL:
-				if (input.getButtonPressed(ButtonInput.CLIMBER_NEXT_STEP)) {
+				if (input.getButtonPressed(ButtonInput.CLIMBER_EMERGENCY_ABORT)) {
 					return ClimberFSMState.IDLE;
 				}
 				return ClimberFSMState.MANUAL_DIRECT_CONTROL;
@@ -427,6 +460,11 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		boolean atBottom = (getLeftLimitSwitch() || getRightLimitSwitch());
 		boolean atTop = (getClimberHeightInches() >= ClimberConstants.UPPER_THRESHOLD.in(Inches));
 
+		if (atBottom) {
+			climberMotorLeft.setPosition(Angle.ofBaseUnits(0, Degrees));
+			climberMotorRight.setPosition(Angle.ofBaseUnits(0, Degrees));
+		}
+
 		boolean isUnsafe = ((manualControlValue < 0 && atBottom)
 			|| (manualControlValue > 0 && atTop));
 
@@ -442,7 +480,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 		// DutyCycleOut b = new DutyCycleOut(0.5);
 		// climberMotorLeft.setControl(n);
 		// climberMotorRight.setControl(b);
-		if (!isIntakeDown()) {
+		if (true) {
 			climberMotorLeft.setControl(motionRequest.withPosition(
 				ClimberConstants.L1_EXTEND_POS.in(Inches)
 			));
@@ -450,7 +488,7 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	}
 
 	private void handleL1RetractState(Input input) {
-		if (!isIntakeDown()) {
+		if (true) {
 			climberMotorLeft.setControl(motionRequest.withPosition(
 				ClimberConstants.L1_RETRACT_POS.in(Inches)
 			));
@@ -458,9 +496,9 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	}
 
 	private void handleResetToZero(Input input) {
-		if (!isIntakeDown()) {
-			if (groundLimitSwitchLeft.get() || getClimberHeightInches() <= 0
-				|| groundLimitSwitchRight.get()) {
+		if (true) {
+			if (getLeftLimitSwitch()
+				|| getRightLimitSwitch()) {
 				climberMotorLeft.set(0);
 			} else {
 				climberMotorLeft.setControl(motionRequest.withPosition(

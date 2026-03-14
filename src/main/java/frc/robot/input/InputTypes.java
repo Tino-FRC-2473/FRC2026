@@ -19,6 +19,10 @@ public class InputTypes {
 	public enum ButtonInput {
 		// Drivetrain
 		DRIVETRAIN_RESEED,
+		DRIVETRAIN_PATHFIND,
+		FACE_PASS,
+		FACE_HUB,
+		INVERT_DRIVETRAIN_CONTROLS,
 
 
 		// Climber

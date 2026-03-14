@@ -85,7 +85,7 @@ public abstract class FSMSystem<S> {
 			if (getCurrentState() == targetSequence[sequenceProgress]) {
 				sequenceProgress++;
 			} else if (sequenceProgress > 0
-					&& getCurrentState() == targetSequence[sequenceProgress - 1]) {
+					&& getCurrentState() != targetSequence[sequenceProgress - 1]) {
 				sequenceProgress = 0;
 			}
 		}
