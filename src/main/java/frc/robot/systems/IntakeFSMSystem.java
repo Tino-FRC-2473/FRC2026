@@ -448,7 +448,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 *        the robot is in autonomous mode.
 	 */
 	private void handleIdleState(Input input) {
-		pivotMotorRight.set(0);
+		pivotMotorRight.stopMotor();
 		intakeMotor.setControl(intakeMotionRequest.
 			withVelocity(0));
 	}
@@ -472,7 +472,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 			pivotMotorRight.setControl(pivotMotionRequest.
 				withPosition(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE));
 		} else {
-			pivotMotorRight.set(0);
+			pivotMotorRight.stopMotor();
 		}
 	}
 	/**
