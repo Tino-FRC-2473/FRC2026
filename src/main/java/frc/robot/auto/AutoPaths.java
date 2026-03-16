@@ -8,6 +8,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FileVersionException;
 
 import edu.wpi.first.math.numbers.N10;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 // import edu.wpi.first.apriltag.AprilTagFieldLayout;
 // import edu.wpi.first.apriltag.AprilTagFields;
 // import edu.wpi.first.math.geometry.Rotation2d;
@@ -407,6 +408,53 @@ public class AutoPaths {
 					startShootingCommand(input, shooter),
 					Commands.waitSeconds(time),
 					stopShootingCommand(input, shooter));
+	}
+	/**
+	 * Returns a test auto that drives with the the BlueHubNZCimb2 trajectory,
+	 * and then shoots in the direction its facing for 10 seconds.
+	 * @param chooser    the auto chooser
+	 * @param input      the auto input
+	 * @param drivetrain the drivetrain
+	 * @param shooter    the shooter
+	 * @param climber    the climber
+	 * @param intake     the intake
+	 */
+	public static void loadCommands(
+		SendableChooser<Command> chooser,
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		ClimberFSMSystem climber,
+		IntakeFSMSystem intake
+	) {
+		chooser.setDefaultOption(
+			"Shoot + Climb",
+			getShootClimbCommand(
+				input, drivetrain, shooter, climber, intake,
+				new GetShootClimbSettings(true, true)
+			)
+		);
+		chooser.addOption(
+			"Shoot Only",
+			getShootCommand(
+				input, drivetrain, shooter, intake,
+				new GetShootSettings()
+			)
+		);
+		chooser.addOption(
+			"Depot Shoot Climb",
+			getDepotShootClimb(
+				input, drivetrain, shooter, climber, intake,
+				new DepotShootClimbSettings(true, true, Start.S1)
+			)
+		);
+		chooser.addOption(
+			"NZ Shoot Climb",
+			getNZShootClimbCommand(
+				input, drivetrain, shooter, climber, intake,
+				new NZShootClimbSettings(true, true, Start.S1)
+			)
+		);
 	}
 
 	// on the fly path example

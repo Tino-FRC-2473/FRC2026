@@ -55,7 +55,7 @@ public class Robot extends LoggedRobot {
 
 	private Vision vision;
 	//create sendable chooser
-	private final SendableChooser<String> autoChooser = new SendableChooser<>();
+	private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 	private Command autonomousCommand;
 
 	/**
@@ -118,13 +118,6 @@ public class Robot extends LoggedRobot {
 		climberFSMSystem = HardwareMap.isClimberEnabled()
 			? new ClimberFSMSystem(intake)
 			: new PlaceholderFSMSystem<>();
-
-		//adding options for auto chooser and adding menu to dashboard
-		autoChooser.setDefaultOption("Shoot + Climb", "SHOOT_CLIMB");
-		autoChooser.addOption("Depot Shoot Climb", "DEPOT_SHOOT_CLIMB");
-		autoChooser.addOption("NZ Shoot Climb", "NZ_SHOOT_CLIMB");
-		autoChooser.addOption("Shoot Only", "SHOOT_ONLY");
-		autoChooser.addOption("Test Auto", "TEST_AUTO");
 		SmartDashboard.putData("Auto Chooser", autoChooser);
 	}
 
@@ -145,28 +138,15 @@ public class Robot extends LoggedRobot {
 			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
 			System.out.println("Reach 3");
 			//get the selected auto
-			String selectedAuto = autoChooser.getSelected();
-			if (selectedAuto.equals("SHOOT_CLIMB")) {
-				autonomousCommand = AutoPaths.getShootClimbCommand(
-					autoInput, drive, shooter, climber, intake,
-					new AutoPaths.GetShootClimbSettings(true, true)
-				);
-			} else if (selectedAuto.equals("DEPOT_SHOOT_CLIMB")) {
-				autonomousCommand = AutoPaths.getDepotShootClimb(
-					autoInput, drive, shooter, climber, intake,
-					new AutoPaths.DepotShootClimbSettings(true, true, AutoPaths.Start.S1)
-				);
-			} else if (selectedAuto.equals("SHOOT_ONLY")) {
-				autonomousCommand = AutoPaths.getShootCommand(
-					autoInput, drive, shooter, intake,
-					new AutoPaths.GetShootSettings()
-				);
-			} else if (selectedAuto.equals("NZ_SHOOT_CLIMB")) {
-				autonomousCommand = AutoPaths.getNZShootClimbCommand(
-					autoInput, drive, shooter, climber, intake,
-					new AutoPaths.NZShootClimbSettings(true, true, AutoPaths.Start.S1)
-				);
-			}
+			autonomousCommand = autoChooser.getSelected();
+			AutoPaths.loadCommands(
+				autoChooser,
+				autoInput,
+				drive,
+				shooter,
+				climber,
+				intake
+			);
 			//scudule auto command
 			if (autonomousCommand != null) {
 				CommandScheduler.getInstance().schedule(autonomousCommand);
