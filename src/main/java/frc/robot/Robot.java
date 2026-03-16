@@ -32,6 +32,10 @@ import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
+//imports for auto chooser
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 
 
 /**
@@ -50,6 +54,9 @@ public class Robot extends LoggedRobot {
 	private FSMSystem<ShooterFSMSystem.ShooterFSMState> shooterFSMSystem;
 
 	private Vision vision;
+	//create sendable chooser
+	private final SendableChooser<String> autoChooser = new SendableChooser<>();
+	private Command autonomousCommand;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -112,6 +119,13 @@ public class Robot extends LoggedRobot {
 			? new ClimberFSMSystem(intake)
 			: new PlaceholderFSMSystem<>();
 
+		//adding options for auto chooser and adding menu to dashboard
+		autoChooser.setDefaultOption("Shoot + Climb", "SHOOT_CLIMB");
+		autoChooser.addOption("Depot Shoot Climb", "DEPOT_SHOOT_CLIMB");
+		autoChooser.addOption("NZ Shoot Climb", "NZ_SHOOT_CLIMB");
+		autoChooser.addOption("Shoot Only", "SHOOT_ONLY");
+		autoChooser.addOption("Test Auto", "TEST_AUTO");
+		SmartDashboard.putData("Auto Chooser", autoChooser);
 	}
 
 	@Override
@@ -130,11 +144,33 @@ public class Robot extends LoggedRobot {
 			&& climberFSMSystem instanceof ClimberFSMSystem climber
 			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
 			System.out.println("Reach 3");
-			CommandScheduler.getInstance().schedule(
-				AutoPaths.getShootClimbCommand(
+			//get the selected auto
+			String selectedAuto = autoChooser.getSelected();
+			if (selectedAuto.equals("SHOOT_CLIMB")) {
+				autonomousCommand = AutoPaths.getShootClimbCommand(
 					autoInput, drive, shooter, climber, intake,
-					new AutoPaths.GetShootClimbSettings(true, true))
-			);
+					new AutoPaths.GetShootClimbSettings(true, true)
+				);
+			} else if (selectedAuto.equals("DEPOT_SHOOT_CLIMB")) {
+				autonomousCommand = AutoPaths.getDepotShootClimb(
+					autoInput, drive, shooter, climber, intake,
+					new AutoPaths.DepotShootClimbSettings(true, true, AutoPaths.Start.S1)
+				);
+			} else if (selectedAuto.equals("SHOOT_ONLY")) {
+				autonomousCommand = AutoPaths.getShootCommand(
+					autoInput, drive, shooter, intake,
+					new AutoPaths.GetShootSettings()
+				);
+			} else if (selectedAuto.equals("NZ_SHOOT_CLIMB")) {
+				autonomousCommand = AutoPaths.getNZShootClimbCommand(
+					autoInput, drive, shooter, climber, intake,
+					new AutoPaths.NZShootClimbSettings(true, true, AutoPaths.Start.S1)
+				);
+			}
+			//scudule auto command
+			if (autonomousCommand != null) {
+				CommandScheduler.getInstance().schedule(autonomousCommand);
+			}
 		}
 	}
 
