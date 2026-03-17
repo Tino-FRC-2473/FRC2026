@@ -9,12 +9,17 @@ import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+
+import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
-
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 // WPILib Imports
 
@@ -76,6 +81,44 @@ public class Robot extends LoggedRobot {
 		if (HardwareMap.isDrivetrainEnabled()) {
 			Drivetrain drivetrain = new Drivetrain();
 			drivetrainFSMSystem = drivetrain;
+			if (!AutoBuilder.isConfigured()){
+				AutoBuilder.configure(
+				drivetrain::getPose, 
+				drivetrain.drivetrain::resetPose, 
+				() -> {
+					return drivetrain.drivetrain.getState().Speeds;
+				},
+				(speeds, feedforwards) -> {
+					ChassisSpeeds speedINeedThis = new ChassisSpeeds(
+						speeds.vxMetersPerSecond,
+						speeds.vyMetersPerSecond,
+						-speeds.omegaRadiansPerSecond);
+
+					drivetrain.drivetrain.setControl(
+						drivetrain.applyRobotSpeeds
+							.withSpeeds(speedINeedThis.times(
+								Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
+							.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+							.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
+					);
+				},
+				new PPHolonomicDriveController(/*PPHolonomicController is the built in path
+					following controller for holonomic drive trains */
+					// Translation PID constants
+					new PIDConstants(ModuleConstants.DRIVE_P,
+						ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D),
+					// Rotation PID constants
+					new PIDConstants(ModuleConstants.STEER_P,
+						ModuleConstants.STEER_I, ModuleConstants.STEER_D)
+				),
+				drivetrain.config,
+				() -> {
+					return false;
+				},
+				drivetrain.drivetrain
+			);
+			}
+			
 			vision = new Vision(
 				drivetrain::addVisionMeasurement,
 				drivetrain.getDrivetrainRotation(),
@@ -127,13 +170,13 @@ public class Robot extends LoggedRobot {
 		shooterFSMSystem.reset();
 		if (drivetrainFSMSystem instanceof Drivetrain drive
 			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
-			&& climberFSMSystem instanceof ClimberFSMSystem climber
+			// && climberFSMSystem instanceof ClimberFSMSystem climber
 			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
 			System.out.println("Reach 3");
 			CommandScheduler.getInstance().schedule(
 				AutoPaths.getShootClimbCommand(
-					autoInput, drive, shooter, climber, intake,
-					new AutoPaths.GetShootClimbSettings(true, true))
+					autoInput, drive, shooter, intake,
+					new AutoPaths.GetShootClimbSettings(true, false))
 			);
 		}
 	}

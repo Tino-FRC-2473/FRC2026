@@ -77,7 +77,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			// Use open-loop for drive motors
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	private final SwerveRequest.ApplyRobotSpeeds
+	public final SwerveRequest.ApplyRobotSpeeds
 			applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
@@ -93,7 +93,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	// Current FSM state
 	private DrivetrainState currentState;
 	// Drivetrain subsystem instance
-	private CommandSwerveDrivetrain drivetrain;
+	public CommandSwerveDrivetrain drivetrain;
 	//Pathfind command
 	private Command pathfindCommand = null;
 	//Flip controls if needed
@@ -104,6 +104,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	private Field2d elasticfield = new Field2d();
 	private Pose2d hubPose;
+	public RobotConfig config;
 
 	//TODO: Need to clean this stuff up and put it in constants
 	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method
@@ -126,7 +127,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		//System.out.println(DriverStation.getAlliance());
 
 
-		RobotConfig config;
+		
 		try {
 			config = RobotConfig.fromGUISettings();
 		} catch (Exception e) {

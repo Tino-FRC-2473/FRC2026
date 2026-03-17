@@ -4,9 +4,12 @@ import java.io.IOException;
 import org.json.simple.parser.ParseException;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FileVersionException;
 
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N10;
 // import edu.wpi.first.apriltag.AprilTagFieldLayout;
 // import edu.wpi.first.apriltag.AprilTagFields;
@@ -26,7 +29,9 @@ import frc.robot.systems.ShooterFSMSystem;
 import frc.robot.systems.IntakeFSMSystem.IntakeFSMState;
 import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
 import frc.robot.systems.ClimberFSMSystem.ClimberFSMState;
+import frc.robot.Constants;
 import frc.robot.Constants.AutoPathsConstants;
+import frc.robot.Constants.ModuleConstants;
 
 public class AutoPaths {
 
@@ -225,7 +230,7 @@ public class AutoPaths {
 			AutoInput input,
 			Drivetrain drivetrain,
 			ShooterFSMSystem shooter,
-			ClimberFSMSystem climber,
+			// ClimberFSMSystem climber,
 			IntakeFSMSystem intake,
 			GetShootClimbSettings settings
 
@@ -236,15 +241,61 @@ public class AutoPaths {
 		// right now isRed = true means blue and isRed = false means red ;(
 		System.out.println("Reach 1");
 
+		if (!AutoBuilder.isConfigured()){
+			AutoBuilder.configure(
+				drivetrain::getPose, 
+				drivetrain.drivetrain::resetPose, 
+				() -> {
+					return drivetrain.drivetrain.getState().Speeds;
+				},
+				(speeds, feedforwards) -> {
+					ChassisSpeeds speedINeedThis = new ChassisSpeeds(
+						speeds.vxMetersPerSecond,
+						speeds.vyMetersPerSecond,
+						-speeds.omegaRadiansPerSecond);
+
+					drivetrain.drivetrain.setControl(
+						drivetrain.applyRobotSpeeds
+							.withSpeeds(speedINeedThis.times(
+								Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
+							.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+							.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
+					);
+				},
+				new PPHolonomicDriveController(/*PPHolonomicController is the built in path
+					following controller for holonomic drive trains */
+					// Translation PID constants
+					new PIDConstants(ModuleConstants.DRIVE_P,
+						ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D),
+					// Rotation PID constants
+					new PIDConstants(ModuleConstants.STEER_P,
+						ModuleConstants.STEER_I, ModuleConstants.STEER_D)
+				),
+				drivetrain.config,
+				() -> {
+					return false;
+				},
+				drivetrain.drivetrain
+			);
+		}
+
 		return Commands
-				.sequence(
-						shootFor(input, shooter, AutoPathsConstants.SHOOT_CLIMB_SECONDS),
-						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
-						climber.watchForStatesCommand(ClimberFSMState.AUTO_UP_1,
-								ClimberFSMState.AUTO_IDLE),
-						DrivePaths.BlueHUB_T.get(isRed),
-						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2),
-						DrivePaths.BlueS2_HUB.get(isRed));
+			.sequence(
+					Commands.waitSeconds(4),
+					DrivePaths.NZ_BlueS2.get(isRed),
+					//input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON),
+					//intake.watchForStatesCommand(IntakeFSMState.FOLD_OUT_STATE, IntakeFSMState.IDLE_OUT_STATE)
+					//shootFor(input, shooter, AutoPathsConstants.SHOOT_CLIMB_SECONDS),
+					// input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
+					// climber.watchForStatesCommand(ClimberFSMState.AUTO_UP_1,
+					// 		ClimberFSMState.AUTO_IDLE),
+					Commands.waitSeconds(3),
+					DrivePaths.BlueHUB_T.get(isRed)
+
+			);
+
+		
+						// input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2),
 
 	}
 
