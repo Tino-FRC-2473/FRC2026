@@ -1,13 +1,22 @@
 package frc.robot.systems;
 
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.PhotonCamera;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
+import org.photonvision.simulation.VisionSystemSim;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-
+import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.imported.LimelightHelpers;
 import frc.robot.imported.LimelightHelpers.PoseEstimate;
@@ -16,6 +25,8 @@ public class Vision {
 	private String limelightName;
 	private VisionConsumer visionConsumer;
 	private Rotation3d rotation;
+	private VisionSystemSim visionSim;
+	private PhotonCameraSim cameraSim;
 
 
 	/**
@@ -34,6 +45,44 @@ public class Vision {
 		LimelightHelpers.setLEDMode_PipelineControl(limelightName);
 		LimelightHelpers.SetIMUAssistAlpha(limeLightName, VisionConstants.IMU_ASSIST_ALPHA);
 		LimelightHelpers.SetIMUMode(limelightName, VisionConstants.IMU_MODE);
+
+		if (RobotBase.isSimulation()) {
+			visionSim = new VisionSystemSim("main");
+			AprilTagFieldLayout tagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+			visionSim.addAprilTags(tagLayout);
+			SimCameraProperties cameraProp = new SimCameraProperties();
+			cameraProp.setCalibration(640, 480, Rotation2d.fromDegrees(100));
+
+			PhotonCamera camera = new PhotonCamera("SimCamera");
+			cameraSim = new PhotonCameraSim(camera, cameraProp);
+			cameraSim.enableRawStream(true);
+			cameraSim.enableProcessedStream(true);
+
+			Transform3d robotToCamera = new Transform3d(
+			new Translation3d(0.1, 0, 0.5),
+			new Rotation3d(0, Math.toRadians(-15), 0)
+			);
+
+			visionSim.addCamera(cameraSim, robotToCamera);
+		}
+	}
+	/**
+	 * Update the vision simulation with the robot's pose.
+	 * @param robotPoseMeters
+	 */
+	public void updateSim(Pose2d robotPoseMeters) {
+		if (visionSim != null) {
+			visionSim.update(robotPoseMeters);
+			var cameraPoseOpt = visionSim.getCameraPose(cameraSim);
+			if (cameraPoseOpt.isPresent()) {
+				var cameraPose3d = cameraPoseOpt.get();
+				var cameraPose2d = new Pose2d(
+					cameraPose3d.getTranslation().toTranslation2d(),
+					cameraPose3d.getRotation().toRotation2d()
+				);
+				Logger.recordOutput("Vision/SimCameraPose", cameraPose2d);
+			}
+		}
 	}
 
 	/**

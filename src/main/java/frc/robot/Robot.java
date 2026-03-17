@@ -205,7 +205,9 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void simulationPeriodic() {
-
+		if (vision != null && drivetrainFSMSystem instanceof Drivetrain drivetrain) {
+			vision.updateSim(drivetrain.getPose());
+		}
 	}
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
