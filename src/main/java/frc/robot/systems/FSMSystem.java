@@ -82,11 +82,13 @@ public abstract class FSMSystem<S> {
 
 		@Override
 		public void execute() {
-			if (getCurrentState() == targetSequence[sequenceProgress]) {
-				sequenceProgress++;
-			} else if (sequenceProgress > 0
-					&& getCurrentState() != targetSequence[sequenceProgress - 1]) {
-				sequenceProgress = 0;
+			if (sequenceProgress < targetSequence.length) {
+				if (getCurrentState() == targetSequence[sequenceProgress]) {
+					sequenceProgress++;
+				} else if (sequenceProgress > 0
+						&& getCurrentState() != targetSequence[sequenceProgress - 1]) {
+					sequenceProgress = 0;
+				}
 			}
 		}
 
