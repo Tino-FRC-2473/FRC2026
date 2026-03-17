@@ -183,7 +183,7 @@ public class AutoPaths {
 	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
 	 * @param shooter    the shooter
-	 *                   // * @param climber the climber
+	 *      //@param climber the climber
 	 * @param intake     the intake
 	 * @param settings   some settings
 	 *                   starting postion, and whether it should shoot during auto
