@@ -371,11 +371,28 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		boolean isRed = true;
 		Pose2d correctTarget;
 		if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-			outpostDistance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getY(),2));
-			target3Distance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getY(),2));
+			outpostDistance =
+				Math.sqrt(
+					Math.pow(
+						getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getX(), 2)
+						+
+						Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getY(), 2));
+			target3Distance =
+				Math.sqrt(
+					Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getX(), 2)
+					+
+					Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getY(), 2));
 		} else {
-			outpostDistance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getY(),2));
-			target3Distance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getY(),2));
+			outpostDistance =
+			Math.sqrt(
+				Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getX(), 2)
+				+ Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getY(), 2));
+			target3Distance =
+			Math.sqrt(
+				Math.pow(
+					getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getX(), 2
+					)
+				+ Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getY(), 2));
 			isRed = false;
 		}
 		if (outpostDistance < target3Distance) {
