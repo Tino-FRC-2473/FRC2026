@@ -54,7 +54,7 @@ public abstract class Input {
 			for (BooleanEventType type : BooleanEventType.values()) {
 				buttonEvents.put(
 					new ButtonInputDescriptor(booleanSignal, type),
-					type.eventTransformer.apply(getButton(booleanSignal).apply(inputEventLoop))
+					type.eventTransformer.apply(getButtonEvent(booleanSignal).apply(inputEventLoop))
 				);
 			}
 		}
@@ -101,7 +101,7 @@ public abstract class Input {
 		return getBooleanEvent(key, BooleanEventType.FALLING).getAsBoolean();
 	}
 
-	protected abstract Function<EventLoop, BooleanEvent> getButton(ButtonInput key);
+	protected abstract Function<EventLoop, BooleanEvent> getButtonEvent(ButtonInput key);
 
 	protected BooleanEvent getBooleanEvent(ButtonInput key, BooleanEventType type) {
 		return buttonEvents.getOrDefault(new ButtonInputDescriptor(key, type), falseEvent);

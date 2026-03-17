@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.input.InputTypes.AxialInput;
-import frc.robot.Robot;
 import frc.robot.input.InputTypes.ButtonInput;
 
 public final class AutoInput extends Input {
@@ -45,7 +44,7 @@ public final class AutoInput extends Input {
 	 * @return the command
 	 */
 	public Command toggleButtonCommand(ButtonInput button) {
-		return new InstantCommand(() -> buttonValues.put(button, buttonValues.get(button)));
+		return new InstantCommand(() -> buttonValues.put(button, !getButtonValue(button)));
 	}
 
 	/**
@@ -58,6 +57,16 @@ public final class AutoInput extends Input {
 	}
 
 	/**
+	 * Returns an instant command that sets the button value.
+	 * @param button the button to set
+	 * @param value the button value
+	 * @return the command
+	 */
+	public Command setButtonCommand(ButtonInput button, boolean value) {
+		return new InstantCommand(() -> buttonValues.put(button, value));
+	}
+
+	/**
 	 * Returns an instant command that briefly presses a button.
 	 * @param button the button to press
 	 * @param duration the duration of the press in seconds
@@ -66,9 +75,20 @@ public final class AutoInput extends Input {
 	public Command pressButtonCommand(ButtonInput button, int duration) {
 		return new SequentialCommandGroup(
 			toggleButtonCommand(button),
-			new WaitCommand(duration * Robot.defaultPeriodSecs),
+			//new WaitCommand(duration * Robot.defaultPeriodSecs),
+			new WaitCommand(duration),
 			toggleButtonCommand(button)
 		);
+	}
+
+	/**
+	 * Returns an instant command that sets the button value.
+	 * @param axis the axis to set
+	 * @param value the button value
+	 * @return the command
+	 */
+	public Command setAxisCommand(AxialInput axis, double value) {
+		return new InstantCommand(() -> axesValues.put(axis, value));
 	}
 
 	/**
@@ -86,8 +106,8 @@ public final class AutoInput extends Input {
 	}
 
 	@Override
-	protected Function<EventLoop, BooleanEvent> getButton(ButtonInput key) {
-		return (e) -> new BooleanEvent(e, () -> buttonValues.get(key));
+	protected Function<EventLoop, BooleanEvent> getButtonEvent(ButtonInput key) {
+		return (e) -> new BooleanEvent(e, () -> buttonValues.getOrDefault(key, false));
 	}
 
 }

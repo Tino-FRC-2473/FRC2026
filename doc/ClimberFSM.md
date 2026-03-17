@@ -6,35 +6,51 @@ config:
   title: Climber State Diagram
 ---
 stateDiagram
-  [*] --> AI
-  AI --> I: emergencyAbortBtnPressed
-  AI --> AD1: nextBtn
-  I --> I:!(nextBtn || manualOverrideBtnReleased || autoDownBtnPressed)
-  MDC --> MDC:!manualOverrideBtnReleased
-  I --> MDC:manualOverrideBtnPressed
-  MDC --> I:manualOverrideBtnReleased
-  I --> L1E:nextBtn
-  L1E --> L1E:!(nextBtn && isExtended())
-  L1R --> L1R:!((nextBtn) && isLatched())
-  L1E --> L1R:nextBtn && isExtended()
-  L1R --> LF
-  L1E --> I:emergencyAbortBtnPressed
-  L1R --> I:emergencyAbortBtnPressed
-  AD2 --> I:isOnGround()
-  AD2 --> AD2: !isOnGround()
-  AU1 --> I:L1_EXTEND
-  AU2 --> I:L1_RETRACT
-  AD1 --> AD2: autoDownBtnPressed
-  AD1 --> AD1: !autoDownBtnPressed
 
-  I:IDLE
-  AI:AUTO_IDLE
-  MDC:MANUAL_DIRECT_CONTROL (Driver has control)
-  L1E:L1_EXTEND (Climber extends to L1 Height)
-  L1R:L1_RETRACT (Climber retracts to L1 Height)
-  LF:LOCKED_FINAL (Can't switch from this state, meant for end of robot match)
-  AU1:AUTO_UP_ONE (First part of Auto up, extend)
-  AU2:AUTO_UP_TWO (Second part of Auto up, retract)
-  AD1:AUTO_DOWN_ONE (First part of Auto down, extend)
-  AD2:AUTO_DOWN_TWO (Second part of Auto down, retract)
-  
+  [*] --> AUTO_IDLE
+
+  AUTO_IDLE --> AUTO_DOWN_1: nextBtn
+  AUTO_IDLE --> IDLE: emergencyAbortBtnPressed
+  AUTO_IDLE --> AUTO_IDLE: !(nextBtn || emergencyAbortBtnPressed)
+
+  IDLE --> MANUAL_DIRECT_CONTROL: manualOverrideBtnPressed
+  IDLE --> L1_EXTEND: nextBtn
+  IDLE --> AUTO_UP_1: autoUp1BtnPressed
+  IDLE --> AUTO_UP_2: autoUp2BtnPressed
+  IDLE --> IDLE: !(manualOverrideBtnPressed || nextBtn || autoUp1BtnPressed || autoUp2BtnPressed)
+
+  MANUAL_DIRECT_CONTROL --> IDLE: nextBtn
+  MANUAL_DIRECT_CONTROL --> MANUAL_DIRECT_CONTROL: !nextBtn
+
+  L1_EXTEND --> IDLE: emergencyAbortBtnPressed
+  L1_EXTEND --> L1_RETRACT: nextBtn && isExtendedL1()
+  L1_EXTEND --> L1_EXTEND: !(emergencyAbortBtnPressed || (nextBtn && isExtendedL1()))
+
+  L1_RETRACT --> IDLE: emergencyAbortBtnPressed
+  L1_RETRACT --> LOCKED_FINAL: isRetractedL1()
+  L1_RETRACT --> L1_RETRACT: !(emergencyAbortBtnPressed || isRetractedL1())
+
+  LOCKED_FINAL --> LOCKED_FINAL: always
+
+  AUTO_UP_1 --> AUTO_IDLE: isExtendedL1()
+  AUTO_UP_1 --> AUTO_UP_1: !isExtendedL1()
+
+  AUTO_UP_2 --> AUTO_IDLE: isRetractedL1()
+  AUTO_UP_2 --> AUTO_UP_2: !isRetractedL1()
+
+  AUTO_DOWN_1 --> AUTO_DOWN_2: nextBtn && isExtendedL1()
+  AUTO_DOWN_1 --> AUTO_DOWN_1: !(nextBtn && isExtendedL1())
+
+  AUTO_DOWN_2 --> IDLE: isOnGround()
+  AUTO_DOWN_2 --> AUTO_DOWN_2: !isOnGround()
+
+  IDLE: IDLE
+  AUTO_IDLE: AUTO_IDLE
+  MANUAL_DIRECT_CONTROL: MANUAL_DIRECT_CONTROL (Driver has control)
+  L1_EXTEND: L1_EXTEND (Climber extends to L1 Height)
+  L1_RETRACT: L1_RETRACT (Climber retracts to L1 Height)
+  LOCKED_FINAL: LOCKED_FINAL (End of match, no transitions out)
+  AUTO_UP_1: AUTO_UP_1 (Auto up part 1 - extend)
+  AUTO_UP_2: AUTO_UP_2 (Auto up part 2 - retract)
+  AUTO_DOWN_1: AUTO_DOWN_1 (Auto down part 1 - extend)
+  AUTO_DOWN_2: AUTO_DOWN_2 (Auto down part 2 - reset to ground)
