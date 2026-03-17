@@ -46,6 +46,7 @@ public class Robot extends LoggedRobot {
 
 	// Robot input
 	private Input input;
+	private AutoInput autoInput;
 
 	// Systems
 	private FSMSystem<Drivetrain.DrivetrainState> drivetrainFSMSystem;
@@ -92,7 +93,6 @@ public class Robot extends LoggedRobot {
 			drivetrainFSMSystem = new PlaceholderFSMSystem<>();
 			vision = null;
 		}
-
 		Optional<IntakeFSMSystem> intake;
 		if (HardwareMap.isIntakeEnabled()) {
 			intake = Optional.of(new IntakeFSMSystem());
@@ -118,39 +118,44 @@ public class Robot extends LoggedRobot {
 		climberFSMSystem = HardwareMap.isClimberEnabled()
 			? new ClimberFSMSystem(intake)
 			: new PlaceholderFSMSystem<>();
+
+		if (drivetrainFSMSystem instanceof Drivetrain
+			&& shooterFSMSystem instanceof ShooterFSMSystem
+			&& climberFSMSystem instanceof ClimberFSMSystem
+			&& intakeFSMSystem instanceof IntakeFSMSystem) {
+
+			Drivetrain drive = (Drivetrain) drivetrainFSMSystem;
+			ClimberFSMSystem climber = (ClimberFSMSystem) climberFSMSystem;
+			ShooterFSMSystem shooterAuto = (ShooterFSMSystem) shooterFSMSystem;
+			IntakeFSMSystem intakeAuto = (IntakeFSMSystem) intakeFSMSystem;
+			AutoPaths.loadCommands(
+				autoChooser,
+				autoInput,
+				drive,
+				shooterAuto,
+				climber,
+				intakeAuto
+			);
+		}
 		SmartDashboard.putData("Auto Chooser", autoChooser);
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
-
-		AutoInput autoInput = new AutoInput();
+		autoInput = new AutoInput();
 		input = autoInput;
 		input.reset();
 		drivetrainFSMSystem.reset();
 		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
-		if (drivetrainFSMSystem instanceof Drivetrain drive
-			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
-			&& climberFSMSystem instanceof ClimberFSMSystem climber
-			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
-			System.out.println("Reach 3");
-			//get the selected auto
-			autonomousCommand = autoChooser.getSelected();
-			AutoPaths.loadCommands(
-				autoChooser,
-				autoInput,
-				drive,
-				shooter,
-				climber,
-				intake
-			);
-			//scudule auto command
-			if (autonomousCommand != null) {
-				CommandScheduler.getInstance().schedule(autonomousCommand);
-			}
+		System.out.println("Reach 3");
+		//get the selected auto
+		autonomousCommand = autoChooser.getSelected();
+		//scudule auto command
+		if (autonomousCommand != null) {
+			CommandScheduler.getInstance().schedule(autonomousCommand);
 		}
 	}
 
