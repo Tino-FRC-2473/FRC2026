@@ -366,7 +366,33 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		} else {
 			hubPose = DrivetrainConstants.BLUE_HUB_POSE;
 		}
+		double outpostDistance;
+		double target3Distance;
+		boolean isRed = true;
+		Pose2d correctTarget;
+		if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+			outpostDistance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getY(),2));
+			target3Distance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getY(),2));
+		} else {
+			outpostDistance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getY(),2));
+			target3Distance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getY(),2));
+			isRed = false;
+		}
+		if (outpostDistance < target3Distance) {
+			if (isRed) {
+				correctTarget = DrivetrainConstants.RED_OUTPOST_POSE;
+			} else {
+				correctTarget = DrivetrainConstants.BLUE_OUTPOST_POSE;
+			}
+		} else {
+			if (isRed) {
+				correctTarget = DrivetrainConstants.RED_POSE3_POSE;
+			} else {
+				correctTarget = DrivetrainConstants.BLUE_POSE3_POSE;
+			}
+		}
 		Logger.recordOutput("Hub Pose Alignment", hubPose);
+		Logger.recordOutput("Target Passing Pose", correctTarget);
 
 		//TODO: Clean this jawn up it's for testing
 		double flipAlliance = -1;
@@ -410,34 +436,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		if (input.getButtonValue(ButtonInput.FACE_PASS)) {
-			double outpostDistance;
-			double target3Distance;
-			boolean isRed = true;
-			Pose2d correctTarget;
-			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-				outpostDistance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getY(),2));
-				targetDistance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getY(),2));
-				
-			} else {
-				outpostDistance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getY(),2));
-				targetDistance = Math.sqrt(Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getX(),2) + Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getY(),2));
-				isRed = false;
-			}
-
-			if (outpostDistance < target3Distance) {
-				if (isRed) {
-					correctTarget = DrivetrainConstants.RED_OUTPOST_POSE;
-				} else {
-					correctTarget = DrivetrainConstants.BLUE_OUTPOST_POSE;
-				}
-			} else {
-				if (isRed) {
-					correctTarget = DrivetrainConstants.RED_POSE3_POSE;
-				} else {
-					correctTarget = DrivetrainConstants.BLUE_POSE3_POSE;
-				}
-			}
-
 			Transform2d distance = getPose().minus(correctTarget);
 			double angle = Math.atan2(distance.getY(), distance.getX());
 
