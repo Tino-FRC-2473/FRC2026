@@ -1,6 +1,5 @@
 package frc.robot.systems;
 
-
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -14,11 +13,11 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
-
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -27,12 +26,8 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N10;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.numbers.N6;
-import edu.wpi.first.math.numbers.N7;
 import edu.wpi.first.units.measure.AngularVelocity;
-
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -47,486 +42,270 @@ import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.input.Input;
 import frc.robot.input.InputTypes.ButtonInput;
+import frc.robot.limelight.LimelightHelpers;
 import frc.robot.input.InputTypes.AxialInput;
 
-
-import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;;
-
+import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
-	/* ======================== Constants ======================== */
 
-	// FSM states enum
-	public enum DrivetrainState {
-		TELEOP,
-		PATHFIND,
-		ENTRY // so the robot isn't controlled in auto
-	}
+    public enum DrivetrainState {
+        TELEOP,
+        PATHFIND,
+        FACE_HUB,
+        FACE_PASS,
+        ENTRY
+    }
 
-	// Max linear & angular speeds
-	private static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
-	private static final AngularVelocity MAX_ANGULAR_SPEED =
-		DrivetrainConstants.MAX_ANGULAR_VELOCITY;
+    private static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
+    private static final AngularVelocity MAX_ANGULAR_SPEED = DrivetrainConstants.MAX_ANGULAR_VELOCITY;
 
-	// Drive swerve requests
-	private final SwerveRequest.FieldCentric driveFieldCentric = new SwerveRequest.FieldCentric()
-			.withDeadband(MAX_SPEED.in(MetersPerSecond)
-					* DrivetrainConstants.TRANSLATIONAL_DEADBAND)
-			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
-					* DrivetrainConstants.ROTATIONAL_DEADBAND)
-			// Use open-loop for drive motors
-			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+    private final SwerveRequest.FieldCentric driveFieldCentric = new SwerveRequest.FieldCentric()
+            .withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
+            .withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond) * DrivetrainConstants.ROTATIONAL_DEADBAND)
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	private final SwerveRequest.ApplyRobotSpeeds
-			applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
-		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+    private final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle =
-		new SwerveRequest.FieldCentricFacingAngle()
-		.withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
-		.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
-					* DrivetrainConstants.ROTATIONAL_DEADBAND)
-		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+    private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle = new SwerveRequest.FieldCentricFacingAngle()
+            .withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
+            .withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond) * DrivetrainConstants.ROTATIONAL_DEADBAND)
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	/* ======================== Private variables ======================== */
+    private DrivetrainState currentState;
+    private CommandSwerveDrivetrain drivetrain;
+    private Command pathfindCommand = null;
+    private double invertControls = 1;
+    private LinearFilter filter;
 
-	// Current FSM state
-	private DrivetrainState currentState;
-	// Drivetrain subsystem instance
-	private CommandSwerveDrivetrain drivetrain;
-	//Pathfind command
-	private Command pathfindCommand = null;
-	//Flip controls if needed
-	private double invertControls = 1;
+    private AprilTagFieldLayout field = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+    private Field2d elasticfield = new Field2d();
 
-	private AprilTagFieldLayout field = AprilTagFieldLayout
-			.loadField(AprilTagFields.k2026RebuiltWelded);
+    public Drivetrain() {
+        drivetrain = TunerConstants.createDrivetrain();
+        filter = LinearFilter.singlePoleIIR(0.1, 0.02);
+        SmartDashboard.putData(elasticfield);
 
-	private Field2d elasticfield = new Field2d();
-	private Pose2d hubPose;
+        RobotConfig config;
+        try {
+            config = RobotConfig.fromGUISettings();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
 
-	//TODO: Need to clean this stuff up and put it in constants
-	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method
-	//instead of the drivetrain's periodic?
-	//Pathfind targeting stuff
+        AutoBuilder.configure(
+                this::getPose,
+                drivetrain::resetPose,
+                () -> drivetrain.getState().Speeds,
+                (speeds, feedforwards) -> {
+                    // Correcting the omega inversion often seen in older PP versions
+                    ChassisSpeeds speedCorrected = new ChassisSpeeds(
+                            speeds.vxMetersPerSecond,
+                            speeds.vyMetersPerSecond,
+                            -speeds.omegaRadiansPerSecond);
 
-	//private Pose2d pathfindTarget;
-	private ShooterFSMSystem shooter;
+                    drivetrain.setControl(
+                            applyRobotSpeeds
+                                    .withSpeeds(speedCorrected.times(Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
+                                    .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+                                    .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons()));
+                },
+                new PPHolonomicDriveController(
+                        new PIDConstants(ModuleConstants.DRIVE_P, ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D),
+                        new PIDConstants(ModuleConstants.STEER_P, ModuleConstants.STEER_I, ModuleConstants.STEER_D)),
+                config,
+                () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
+                drivetrain);
 
-	/**
-	 * Constructs the drivetrain subsystem.
-	 */
-	public Drivetrain() {
-		drivetrain = TunerConstants.createDrivetrain();
-		//updateLimelightYaw();
+        reset();
+    }
 
-		SmartDashboard.putData(CommandScheduler.getInstance());
-		SmartDashboard.putData(elasticfield);
+    @Override
+    public void reset() {
+        currentState = DrivetrainState.ENTRY;
+        stop();
+        update(null);
+    }
 
-		//System.out.println(DriverStation.getAlliance());
+    @Override
+    public void update(Input input) {
+        drivetrain.periodic();
+        // Remove CommandScheduler.run() if it's already in Robot.java periodic
+        elasticfield.setRobotPose(drivetrain.getState().Pose);
 
+        switch (currentState) {
+            case TELEOP:
+                handleTeleopState(input);
+                break;
+            case FACE_HUB:
+                handleFaceTarget(input, getHubPose());
+                break;
+            case FACE_PASS:
+                handleFaceTarget(input, getBestPassingTarget());
+                break;
+            case ENTRY:
+            case PATHFIND:
+                break;
+            default:
+                throw new IllegalStateException("[DRIVETRAIN] Invalid state: " + currentState);
+        }
 
-		RobotConfig config;
-		try {
-			config = RobotConfig.fromGUISettings();
-		} catch (Exception e) {
-			// Handle exception as needed
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+        currentState = nextState(input);
+    }
 
-		// Configure AutoBuilder last
-		AutoBuilder.configure(
-				this::getPose, // Robot pose supplier
-				drivetrain::resetPose, /*Method to reset odometry
-				(will be called if your auto has a starting pose) */
-				() -> {
-					return drivetrain.getState().Speeds;
-				}, /*ChassisSpeeds supplier. MUST BE ROBOT RELATIVE */
-				(speeds, feedforwards) -> {
+    /* ======================== Helper Methods ======================== */
 
-					ChassisSpeeds speedINeedThis = new ChassisSpeeds(
-						speeds.vxMetersPerSecond,
-						speeds.vyMetersPerSecond,
-						-speeds.omegaRadiansPerSecond);
+    private Pose2d getHubPose() {
+        var alliance = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
+        return (alliance == DriverStation.Alliance.Red) ? DrivetrainConstants.RED_HUB_POSE
+                : DrivetrainConstants.BLUE_HUB_POSE;
+    }
 
-					drivetrain.setControl(
-						applyRobotSpeeds
-							.withSpeeds(speedINeedThis.times(
-								Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
-							.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
-							.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
-					);
+    private Pose2d getBestPassingTarget() {
+        var alliance = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
+        boolean isRed = (alliance == DriverStation.Alliance.Red);
 
-				}, /* Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
-				optionally outputs individual module feedforwards*/
-				new PPHolonomicDriveController(/*PPHolonomicController is the built in path
-						following controller for holonomic drive trains */
-						// Translation PID constants
-						new PIDConstants(ModuleConstants.DRIVE_P,
-							ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D),
-						// Rotation PID constants
-						new PIDConstants(ModuleConstants.STEER_P,
-							ModuleConstants.STEER_I, ModuleConstants.STEER_D)
-				),
-				config, // The robot configuration
-				() -> {
-				/* Boolean supplier that controls when the
-				path will be mirrored for the red alliance*/
-				// This will flip the path being followed to the red side of the field.
-				// THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+        Pose2d outpost = isRed ? DrivetrainConstants.RED_OUTPOST_POSE : DrivetrainConstants.BLUE_OUTPOST_POSE;
+        Pose2d pose3 = isRed ? DrivetrainConstants.RED_POSE3_POSE : DrivetrainConstants.BLUE_POSE3_POSE;
 
-				// var alliance = DriverStation.getAlliance();
-				// if (alliance.isPresent()) {
-				// 	return alliance.get() == DriverStation.Alliance.Red;
-				// }
-				return false;
-				},
-				drivetrain // Reference to the subsystem to set requirements
-		);
+        double distOutpost = getPose().getTranslation().getDistance(outpost.getTranslation());
+        double distPose3 = getPose().getTranslation().getDistance(pose3.getTranslation());
 
-		//shooter = shooterFSMSystem.orElse(null);
-		reset();
-	}
+        return (distOutpost < distPose3) ? outpost : pose3;
+    }
 
-	/* ======================== Public methods ======================== */
+    private void handleFaceTarget(Input input, Pose2d targetPose) {
+        if (input == null) return;
 
-	@Override
-	public void reset() {
-		currentState = DrivetrainState.ENTRY;
-		stop();
+        double flipAlliance = (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue) ? 1.0 : -1.0;
 
-		update(null);
-	}
+        double xSpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
+                input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X), DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-	@Override
-	public void update(Input input) {
-		drivetrain.periodic();
-		CommandScheduler.getInstance().run();
-		elasticfield.setRobotPose(drivetrain.getState().Pose);
+        double ySpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
+                input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y), DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-		switch (currentState) {
-			case TELEOP:
-				handleTeleopState(input);
-				break;
-			case ENTRY: case PATHFIND:
-				break;
-			default:
-				throw new IllegalStateException(
-					"[DRIVETRAIN] Cannot update an invalid current state: "
-					+ currentState.toString()
-				);
-		}
+        Transform2d distance = getPose().minus(targetPose);
+        // Using angleModulus to prevent wrap-around issues with filtering
+        double targetAngle = MathUtil.angleModulus(Math.atan2(distance.getY(), distance.getX()) + Math.PI);
+        double filteredAngle = filter.calculate(targetAngle);
 
-		currentState = nextState(input);
-	}
+        // Adjust PID based on Vision presence
+        double kP = LimelightHelpers.getTargetCount(Constants.VisionConstants.LIMELIGHT_NAME) > 0 ? 0.25 : 5.0;
 
-	/**
-	 * Get the drivetrain pose.
-	 *
-	 * @return the pose
-	 */
-	@AutoLogOutput(key = "Drivetrain/Pose")
-	public Pose2d getPose() {
-		return drivetrain.getState().Pose;
-	}
+        drivetrain.setControl(
+                driveFacingAngle
+                        .withTargetDirection(Rotation2d.fromRadians(filteredAngle))
+                        .withHeadingPID(kP, 0, 0)
+                        .withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+                        .withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
 
-	/**
-	 * Get the drivetrain chassis speeds.
-	 *
-	 * @return the chassis speeds
-	 */
-	@AutoLogOutput(key = "Drivetrain/Swerve/Chassis Speeds")
-	public ChassisSpeeds getChassisSpeeds() {
-		return drivetrain.getState().Speeds;
-	}
+        if (Math.abs(MathUtil.angleModulus(getRotation() - targetAngle)) < 0.05) {
+            // Optional: Transition back to teleop once aligned
+            // currentState = DrivetrainState.TELEOP; 
+        }
+    }
 
-	/**
-	 * Get the drivetrain swerve states.
-	 *
-	 * @return the swerve module states
-	 */
-	@AutoLogOutput(key = "Drivetrain/Swerve/States")
-	public SwerveModuleState[] getModuleStates() {
-		return drivetrain.getState().ModuleStates;
-	}
+    private void handleTeleopState(Input input) {
+        if (input == null) return;
 
-	/**
-	 * Get the drivetrain swerve targets.
-	 *
-	 * @return the swerve module targets
-	 */
-	@AutoLogOutput(key = "Drivetrain/Swerve/Targets")
-	public SwerveModuleState[] getModuleTargets() {
-		return drivetrain.getState().ModuleTargets;
-	}
+        double flipAlliance = (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue) ? 1.0 : -1.0;
 
-	/**
-	 * Get the drivetrain swerve positions.
-	 *
-	 * @return the swerve module positions
-	 */
-	@AutoLogOutput(key = "Drivetrain/Swerve/Positions")
-	public SwerveModulePosition[] getModulePositions() {
-		return drivetrain.getState().ModulePositions;
-	}
+        double xSpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
+                input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X), DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-	/**
-	 * Get the drivetrain's rotation.
-	 *
-	 * @return The drivetrain's rotation as a Pose2D
-	 */
-	@AutoLogOutput(key = "Drivetrain/Rotation")
-	public Rotation3d getDrivetrainRotation() {
-		return drivetrain.getPigeon2().getRotation3d();
-	}
+        double ySpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
+                input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y), DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-	/* ======================== Private methods ======================== */
+        double thetaSpeed = MathUtil.applyDeadband(
+                input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE), DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
 
-	@Override
-	protected DrivetrainState nextState(Input input) {
-		if (input == null) {
-			return DrivetrainState.TELEOP;
-		}
+        drivetrain.setControl(
+                driveFieldCentric
+                        .withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+                        .withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+                        .withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP));
 
-		if (input.getButtonPressed(ButtonInput.INVERT_DRIVETRAIN_CONTROLS)) {
-			invertControls *= -1;
-		}
+        if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
+            drivetrain.seedFieldCentric();
+        }
+    }
 
-		switch (currentState) {
-			case ENTRY:
-				if (hasDriverInput(input)) {
-					return DrivetrainState.TELEOP;
-				}
-				return DrivetrainState.ENTRY;
-			case TELEOP:
-				if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
+    @Override
+    protected DrivetrainState nextState(Input input) {
+        if (input == null) return DrivetrainState.TELEOP;
 
-					if (DriverStation.getAlliance().isPresent()) {
+        if (input.getButtonPressed(ButtonInput.INVERT_DRIVETRAIN_CONTROLS)) {
+            invertControls *= -1;
+        }
 
-						if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-							DrivetrainConstants.setTagToAlignTo(N10.instance.getNum());
-							System.out.println("RED ALLIANCE TAG 10");
-						} else {
-							DrivetrainConstants.setTagToAlignTo(N10.instance.getNum()
-								+ N10.instance.getNum()
-								+ N6.instance.getNum());
-							System.out.println("BLUE ALLIANCE TAG 26");
-						}
+        switch (currentState) {
+            case ENTRY:
+                return hasDriverInput(input) ? DrivetrainState.TELEOP : DrivetrainState.ENTRY;
 
-					} else {
-						System.out.println("Defaulting to red. Good luck");
-						DrivetrainConstants.setTagToAlignTo(N10.instance.getNum());
-					}
+            case TELEOP:
+                if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
+                    setupAndStartPathfinding();
+                    return DrivetrainState.PATHFIND;
+                }
+                if (input.getButtonValue(ButtonInput.FACE_HUB)) return DrivetrainState.FACE_HUB;
+                if (input.getButtonValue(ButtonInput.FACE_PASS)) return DrivetrainState.FACE_PASS;
+                return DrivetrainState.TELEOP;
 
-					Pose2d test = field.getTagPose(
-						DrivetrainConstants.getTagToAlignTo()).orElse(null).toPose2d();
+            case PATHFIND:
+                if (input.getButtonValue(ButtonInput.DRIVETRAIN_PATHFIND)) return DrivetrainState.PATHFIND;
+                if (pathfindCommand != null) pathfindCommand.cancel();
+                return DrivetrainState.TELEOP;
 
-					Transform2d offsetTransform = new Transform2d(
-							-DrivetrainConstants.X_TRANFORM_FROM_TAG, // Back to Front
-							DrivetrainConstants.Y_TRANFORM_FROM_TAG, // Side to Side
-							Rotation2d.kZero);
+            case FACE_HUB:
+                return input.getButtonValue(ButtonInput.FACE_HUB) ? DrivetrainState.FACE_HUB : DrivetrainState.TELEOP;
 
-					startPathfinding(test.transformBy(offsetTransform));
-					return DrivetrainState.PATHFIND;
-				} else {
-					return DrivetrainState.TELEOP;
-				}
-			case PATHFIND:
-				if (input.getButtonValue(ButtonInput.DRIVETRAIN_PATHFIND)) {
-					return DrivetrainState.PATHFIND;
-				} else {
-					pathfindCommand.cancel();
-					return DrivetrainState.TELEOP;
-				}
-			default:
-				throw new IllegalStateException(
-					"[DRIVETRAIN] Cannot get next state of an invalid current state: "
-					+ currentState.toString()
-				);
-		}
-	}
+            case FACE_PASS:
+                return input.getButtonValue(ButtonInput.FACE_PASS) ? DrivetrainState.FACE_PASS : DrivetrainState.TELEOP;
 
-	private void startPathfinding(Pose2d target) {
+            default:
+                return DrivetrainState.TELEOP;
+        }
+    }
 
-		Logger.recordOutput("Vision/AlignmentPose", target);
+    private void setupAndStartPathfinding() {
+        var alliance = DriverStation.getAlliance().orElse(DriverStation.Alliance.Red);
+        int tagId = (alliance == DriverStation.Alliance.Red) ? 10 : 26;
+        
+        DrivetrainConstants.setTagToAlignTo(tagId);
 
-		pathfindCommand = AutoBuilder.pathfindToPose(target,
-					PATH_CONSTRAINTS);
-		CommandScheduler.getInstance().schedule(pathfindCommand);
-	}
+        field.getTagPose(tagId).ifPresent(tagPose -> {
+            Pose2d target = tagPose.toPose2d().transformBy(new Transform2d(
+                -DrivetrainConstants.X_TRANFORM_FROM_TAG,
+                DrivetrainConstants.Y_TRANFORM_FROM_TAG,
+                Rotation2d.kZero
+            ));
+            startPathfinding(target);
+        });
+    }
 
-	private void handleTeleopState(Input input) {
-		if (input == null) {
-			return;
-		}
+    private void startPathfinding(Pose2d target) {
+        Logger.recordOutput("Vision/AlignmentPose", target);
+        pathfindCommand = AutoBuilder.pathfindToPose(target, PATH_CONSTRAINTS);
+        pathfindCommand.schedule();
+    }
 
-		if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-			hubPose = DrivetrainConstants.RED_HUB_POSE;
-		} else {
-			hubPose = DrivetrainConstants.BLUE_HUB_POSE;
-		}
-		double outpostDistance;
-		double target3Distance;
-		boolean isRed = true;
-		Pose2d correctTarget;
-		if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-			outpostDistance =
-				Math.sqrt(
-					Math.pow(
-						getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getX(), 2)
-						+
-						Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getY(), 2));
-			target3Distance =
-				Math.sqrt(
-					Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getX(), 2)
-					+
-					Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getY(), 2));
-		} else {
-			outpostDistance =
-			Math.sqrt(
-				Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getX(), 2)
-				+ Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getY(), 2));
-			target3Distance =
-			Math.sqrt(
-				Math.pow(
-					getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getX(), 2
-					)
-				+ Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getY(), 2));
-			isRed = false;
-		}
-		if (outpostDistance < target3Distance) {
-			if (isRed) {
-				correctTarget = DrivetrainConstants.RED_OUTPOST_POSE;
-			} else {
-				correctTarget = DrivetrainConstants.BLUE_OUTPOST_POSE;
-			}
-		} else {
-			if (isRed) {
-				correctTarget = DrivetrainConstants.RED_POSE3_POSE;
-			} else {
-				correctTarget = DrivetrainConstants.BLUE_POSE3_POSE;
-			}
-		}
-		Logger.recordOutput("Hub Pose Alignment", hubPose);
-		Logger.recordOutput("Target Passing Pose", correctTarget);
+    /* ======================== Boilerplate Getters ======================== */
 
-		//TODO: Clean this jawn up it's for testing
-		double flipAlliance = -1;
-		var alliance = DriverStation.getAlliance();
-		if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue) {
-			flipAlliance = 1.0;
-		}
-		double xSpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
-				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+    @AutoLogOutput(key = "Drivetrain/Pose")
+    public Pose2d getPose() { return drivetrain.getState().Pose; }
 
-		double ySpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
-				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+    public double getRotation() { return drivetrain.getPigeon2().getRotation2d().getRadians(); }
 
-		double thetaSpeed = MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
-				DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+    private boolean hasDriverInput(Input input) {
+        return Math.abs(input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X)) > 0.1
+            || Math.abs(input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y)) > 0.1
+            || Math.abs(input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE)) > 0.1;
+    }
 
-		drivetrain.setControl(
-			driveFieldCentric
-				.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-				.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-				.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
-		);
-
-		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
-			drivetrain.seedFieldCentric();
-		}
-
-		if (input.getButtonValue(ButtonInput.FACE_HUB)) {
-			Transform2d distance = getPose().minus(hubPose);
-			double angle = Math.atan2(distance.getY(), distance.getX());
-			drivetrain.setControl(
-				driveFacingAngle
-					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
-					.withHeadingPID(N7.instance.getNum(), 0, 0)
-					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-			);
-		}
-
-		if (input.getButtonValue(ButtonInput.FACE_PASS)) {
-			Transform2d distance = getPose().minus(correctTarget);
-			double angle = Math.atan2(distance.getY(), distance.getX());
-
-			drivetrain.setControl(
-				driveFacingAngle
-					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
-					.withHeadingPID(N7.instance.getNum(), 0, 0)
-					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-			);
-		}
-	}
-
-	/**
-	 * Get the current state of the Drivetrain subsystem.
-	 *
-	 * @return current state of the drivetrain
-	 */
-	//@AutoLogOutput(key = "Drivetrain/Current State")
-	public DrivetrainState getCurrentState() {
-		return currentState;
-	}
-
-	/**
-	 * Adds a new timestamped vision measurement.
-	 *
-	 * @param visionPoseMeters The pose of the robot in the camera's coordinate
-	 *                         frame
-	 * @param timestampSeconds The timestamp of the measurement
-	 * @param visionStdDevs    The standard deviations of the measurement in the x,
-	 *                         y, and theta directions
-	 */
-	public void addVisionMeasurement(
-			Pose2d visionPoseMeters,
-			double timestampSeconds,
-			Matrix<N3, N1> visionStdDevs) {
-		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(),
-			visionPoseMeters.getY(),
-			visionPoseMeters.getRotation().plus(Rotation2d.k180deg)),
-			timestampSeconds, visionStdDevs);
-		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
-	}
-
-	/**
-	 * Aligns the bot to target the hub for shooting.
-	 *
-	 */
-	public void targetHub() {
-		//TODO: Code to be finished in a separate branch
-		Pose2d transformPose = getPose().relativeTo(ShooterConstants.HUB_POSE);
-	}
-
-	/**
-	 * Aligns the bot to target the passing target.
-	 * @param targetPose the target passing pose
-	 */
-	public void targetPassZone(Pose2d targetPose) {
-		//toggleNumber = 1 for outpost, toggleNumber = 2 for other mirrored pose, etc
-		//TODO: Code to be finished in a seperate branch
-		Pose2d transformPose = getPose().relativeTo(targetPose);
-		//TODO: Code to be implemented differently later
-	}
-
-	private boolean hasDriverInput(Input input) {
-		return input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X) != 0
-			|| input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y) != 0
-			|| input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE) != 0;
-	}
-
-	/**
-	 * Stops the drivetrain.
-	 */
-	public void stop() {
-		drivetrain.applyRequest(
-			() -> driveFieldCentric.withVelocityX(0).withVelocityY(0).withRotationalRate(0));
-	}
+    public void stop() {
+        drivetrain.setControl(new SwerveRequest.Idle());
+    }
 }
