@@ -104,6 +104,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	private Field2d elasticfield = new Field2d();
 	private Pose2d hubPose;
+	private boolean isRed;
 
 	//TODO: Need to clean this stuff up and put it in constants
 	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method
@@ -184,6 +185,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				},
 				drivetrain // Reference to the subsystem to set requirements
 		);
+
+		if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+			isRed = true;
+		} else {
+			isRed = false;
+		}
 
 		//shooter = shooterFSMSystem.orElse(null);
 		reset();
@@ -361,56 +368,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
-		if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-			hubPose = DrivetrainConstants.RED_HUB_POSE;
-		} else {
-			hubPose = DrivetrainConstants.BLUE_HUB_POSE;
-		}
-		double outpostDistance;
-		double target3Distance;
-		boolean isRed = true;
-		Pose2d correctTarget;
-		if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-			outpostDistance =
-				Math.sqrt(
-					Math.pow(
-						getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getX(), 2)
-						+
-						Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getY(), 2));
-			target3Distance =
-				Math.sqrt(
-					Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getX(), 2)
-					+
-					Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getY(), 2));
-		} else {
-			outpostDistance =
-			Math.sqrt(
-				Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getX(), 2)
-				+ Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getY(), 2));
-			target3Distance =
-			Math.sqrt(
-				Math.pow(
-					getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getX(), 2
-					)
-				+ Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getY(), 2));
-			isRed = false;
-		}
-		if (outpostDistance < target3Distance) {
-			if (isRed) {
-				correctTarget = DrivetrainConstants.RED_OUTPOST_POSE;
-			} else {
-				correctTarget = DrivetrainConstants.BLUE_OUTPOST_POSE;
-			}
-		} else {
-			if (isRed) {
-				correctTarget = DrivetrainConstants.RED_POSE3_POSE;
-			} else {
-				correctTarget = DrivetrainConstants.BLUE_POSE3_POSE;
-			}
-		}
-		Logger.recordOutput("Hub Pose Alignment", hubPose);
-		Logger.recordOutput("Target Passing Pose", correctTarget);
-
 		//TODO: Clean this jawn up it's for testing
 		double flipAlliance = -1;
 		var alliance = DriverStation.getAlliance();
@@ -441,8 +398,15 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		if (input.getButtonValue(ButtonInput.FACE_HUB)) {
+			if (isRed) {
+				hubPose = DrivetrainConstants.RED_HUB_POSE;
+			} else {
+				hubPose = DrivetrainConstants.BLUE_HUB_POSE;
+			}
+
+			Logger.recordOutput("Hub Pose Alignment", hubPose);
 			Transform2d distance = getPose().minus(hubPose);
-			double angle = Math.atan2(distance.getY(), distance.getX());
+			double angle = Math.atan2(distance.getY(), distance.getX()) + Math.PI;
 			drivetrain.setControl(
 				driveFacingAngle
 					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
@@ -453,8 +417,44 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		if (input.getButtonValue(ButtonInput.FACE_PASS)) {
+			double outpostDistance;
+			double target3Distance;
+			Pose2d correctTarget;
+			if (isRed) {
+				outpostDistance =
+					Math.hypot(
+						getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getX(),
+						getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getY());
+				target3Distance =
+					Math.hypot(
+						getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getX(),
+						getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getY());
+			} else {
+				outpostDistance =
+					Math.hypot(
+						getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getX(),
+						getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getY());
+				target3Distance =
+					Math.hypot(
+						getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getX(),
+						getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getY());
+			}
+			if (outpostDistance < target3Distance) {
+				if (isRed) {
+					correctTarget = DrivetrainConstants.RED_OUTPOST_POSE;
+				} else {
+					correctTarget = DrivetrainConstants.BLUE_OUTPOST_POSE;
+				}
+			} else {
+				if (isRed) {
+					correctTarget = DrivetrainConstants.RED_POSE3_POSE;
+				} else {
+					correctTarget = DrivetrainConstants.BLUE_POSE3_POSE;
+				}
+			}
+			Logger.recordOutput("Target Passing Pose", correctTarget);
 			Transform2d distance = getPose().minus(correctTarget);
-			double angle = Math.atan2(distance.getY(), distance.getX());
+			double angle = Math.atan2(distance.getY(), distance.getX()) + Math.PI;
 
 			drivetrain.setControl(
 				driveFacingAngle
