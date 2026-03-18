@@ -13,6 +13,7 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_PIVOT_LEFT = 52;
 	public static final int CAN_ID_SPARK_PIVOT_RIGHT = 51;
 	public static final int CAN_ID_SPARK_INTAKE = 53;
+	public static final int CAN_ID_CONVEYOR = 53;
 
 	//values TBD
 	public static final int CAN_ID_FLYWHEEL = 2;
@@ -71,6 +72,15 @@ public final class HardwareMap {
 	 * @return if the hardware for the shooter is present
 	 */
 	public static boolean isShooterEnabled() {
+		return true;
+	}
+
+
+	/**
+	 * Hardware map entry for the agitator subsystem.
+	 * @return if the hardware for the agitator is present
+	 */
+	public static boolean isAgitatorEnabled() {
 		return true;
 	}
 }

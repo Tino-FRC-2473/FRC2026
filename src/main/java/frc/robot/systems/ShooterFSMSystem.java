@@ -515,6 +515,14 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	}
 
 	/**
+	 * Check if we are currently in shooter prep state, which is used for the drivetrain.
+	 * @return true if the past state is FEED_STATE, false otherwise
+	 */
+	public boolean getIsFeeding() {
+		return pastState == ShooterFSMState.FEED_STATE;
+	}
+
+	/**
 	 * Check if we are currently in shooter prep state, which is used for the drivetrain
 	 * to know whether to face the hub or the pass zone.
 	 * @return true if the current state is SHOOTER_PREP_STATE, false otherwise

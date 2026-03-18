@@ -545,6 +545,14 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	}
 
 	/**
+	 * Check if we are currently in shooter prep state, which is used for the drivetrain.
+	 * @return true if the past state is FEED_STATE, false otherwise
+	 */
+	public boolean getIsIntakeOuttaking() {
+		return (getCurrentState() == IntakeFSMState.OUTTAKE_STATE);
+	}
+
+	/**
 	 * Getter for the result of the elevator's top limit switch.
 	 * @return whether the limit is reached
 	 */
