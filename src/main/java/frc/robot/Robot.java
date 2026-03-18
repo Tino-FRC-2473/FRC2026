@@ -121,24 +121,18 @@ public class Robot extends LoggedRobot {
 		autoInput = new AutoInput();
 		teleopInput = new TeleopInput();
 
-		if (drivetrainFSMSystem instanceof Drivetrain
-			&& shooterFSMSystem instanceof ShooterFSMSystem
-			&& climberFSMSystem instanceof ClimberFSMSystem
-			&& intakeFSMSystem instanceof IntakeFSMSystem) {
-
-			Drivetrain drive = (Drivetrain) drivetrainFSMSystem;
-			ClimberFSMSystem climber = (ClimberFSMSystem) climberFSMSystem;
-			ShooterFSMSystem shooterAuto = (ShooterFSMSystem) shooterFSMSystem;
-			IntakeFSMSystem intakeAuto = (IntakeFSMSystem) intakeFSMSystem;
-			AutoPaths.loadCommands(
-				autoChooser,
-				autoInput,
-				drive,
-				shooterAuto,
-				climber,
-				intakeAuto
-			);
-		}
+		Drivetrain drive = (Drivetrain) drivetrainFSMSystem;
+		ClimberFSMSystem climber = (ClimberFSMSystem) climberFSMSystem;
+		ShooterFSMSystem shooterAuto = (ShooterFSMSystem) shooterFSMSystem;
+		IntakeFSMSystem intakeAuto = (IntakeFSMSystem) intakeFSMSystem;
+		AutoPaths.loadCommands(
+			autoChooser,
+			autoInput,
+			drive,
+			shooterAuto,
+			climber,
+			intakeAuto
+		);
 		SmartDashboard.putData("Auto Chooser", autoChooser);
 	}
 
