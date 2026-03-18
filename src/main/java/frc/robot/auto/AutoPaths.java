@@ -302,6 +302,36 @@ public class AutoPaths {
 	}
 
 	/**
+	 * 
+	 * @param input
+	 * @param drivetrain
+	 * @param shooter
+	 * @param climber
+	 * @param intake
+	 * @param settings
+	 * @return
+	 */
+	public static Command getIntakeCommand(
+			AutoInput input,
+			Drivetrain drivetrain,
+			IntakeFSMSystem intake)
+			{
+
+		return Commands
+				.sequence(
+					drivetrain.followcommand("BlueS2_NZ"),
+					//startIntakeCommand(input, intake),
+					waitFor(5),
+					//stopIntakeCommand(input, intake),
+					drivetrain.followcommand("NZ_BlueS1"),
+					drivetrain.followcommand("BlueS1_HUB"),
+					drivetrain.followcommand("BlueHUB_T")
+				);
+	}
+	
+
+
+	/**
 	 * Returns an auto command that goes from a start position to neutral zone,
 	 * intakes, optionally shoots into the hub, then climbs.
 	 *
@@ -388,8 +418,8 @@ public class AutoPaths {
 				.sequence(
 					input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false),
 					intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE),
-					input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON),
-					intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE));
+					input.pressButtonCommand(ButtonInput.FOLD_IN_BUTTON),
+					intake.watchForStatesCommand(IntakeFSMState.IDLE_IN_STATE));
 	}
 
 	private static Command stopShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
@@ -407,6 +437,10 @@ public class AutoPaths {
 					startShootingCommand(input, shooter),
 					Commands.waitSeconds(time),
 					stopShootingCommand(input, shooter));
+	}
+
+	private static Command waitFor(double time) {
+		return Commands.waitSeconds(time);
 	}
 
 	// on the fly path example
