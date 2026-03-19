@@ -2,7 +2,7 @@ package frc.robot.systems;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-
+import static frc.robot.Constants.DrivetrainConstants.BLUE_POSE3_POSE;
 import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;
 import static frc.robot.imported.FieldConstants.TAG_LAYOUT;
 
@@ -45,6 +45,8 @@ import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
+import frc.robot.imported.FieldConstants;
+import frc.robot.imported.geom.AllianceFlipUtil;
 import frc.robot.input.Input;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.input.InputTypes.AxialInput;
@@ -349,11 +351,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
-		if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-			hubPose = DrivetrainConstants.RED_HUB_POSE;
-		} else {
-			hubPose = DrivetrainConstants.BLUE_HUB_POSE;
-		}
 		Logger.recordOutput("Hub Pose Alignment", hubPose);
 
 		//TODO: Clean this jawn up it's for testing
@@ -362,11 +359,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue) {
 			flipAlliance = 1.0;
 		}
-		double xSpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
+		double xSpeed = MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-		double ySpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
+		double ySpeed = MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
@@ -386,7 +383,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		if (input.getButtonValue(ButtonInput.FACE_HUB)) {
-			Transform2d distance = getPose().minus(hubPose);
+			Transform2d distance = getPose()
+				.minus(AllianceFlipUtil.apply(FieldConstants.Hub.nearFace));
 			double angle = Math.atan2(distance.getY(), distance.getX());
 			drivetrain.setControl(
 				driveFacingAngle
@@ -398,44 +396,22 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		if (input.getButtonValue(ButtonInput.FACE_PASS)) {
-			double outpostDistance;
-			double target3Distance;
-			boolean isRed = true;
-			Pose2d correctTarget;
-			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-				outpostDistance = Math.sqrt(
-						Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getX(), 2)
-						+ Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getY(), 2)
-					);
-				target3Distance = Math.sqrt(
-					Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getX(), 2)
-					+ Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getY(), 2)
+			double outpostDistance = getPose()
+				.getTranslation()
+				.getDistance(
+					AllianceFlipUtil.apply(DrivetrainConstants.BLUE_OUTPOST_POSE).getTranslation()
 				);
-			} else {
-				outpostDistance = Math.sqrt(
-					Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getX(), 2)
-						+ Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getY(), 2)
-					);
-				target3Distance = Math.sqrt(
-					Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getX(), 2)
-					+ Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getY(), 2)
+			double target3Distance = getPose()
+				.getTranslation()
+				.getDistance(
+					AllianceFlipUtil.apply(DrivetrainConstants.BLUE_POSE3_POSE).getTranslation()
 				);
-				isRed = false;
-			}
 
-			if (outpostDistance < target3Distance) {
-				if (isRed) {
-					correctTarget = DrivetrainConstants.RED_OUTPOST_POSE;
-				} else {
-					correctTarget = DrivetrainConstants.BLUE_OUTPOST_POSE;
-				}
-			} else {
-				if (isRed) {
-					correctTarget = DrivetrainConstants.RED_POSE3_POSE;
-				} else {
-					correctTarget = DrivetrainConstants.BLUE_POSE3_POSE;
-				}
-			}
+			Pose2d correctTarget =
+				AllianceFlipUtil.apply(
+					outpostDistance < target3Distance
+					? DrivetrainConstants.BLUE_OUTPOST_POSE : BLUE_POSE3_POSE
+				);
 
 			Transform2d distance = getPose().minus(correctTarget);
 			double angle = Math.atan2(distance.getY(), distance.getX());
