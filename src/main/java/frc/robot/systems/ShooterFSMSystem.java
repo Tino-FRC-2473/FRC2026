@@ -25,6 +25,7 @@ import frc.robot.HardwareMap;
 import frc.robot.input.Input;
 // Robot Imports
 import frc.robot.motors.TalonFXWrapper;
+import frc.robot.util.LaunchCalculator;
 // import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 
@@ -478,15 +479,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @return A double holding the target's needed flywheel speed
 	 */
 	public double calculateTargetPassSpeed(Pose2d target) {
-		// Transform2d transform = curPose.minus(target);
-		// double distance =
-		// 	Math.sqrt(Math.pow(transform.getX(), 2) + Math.pow(transform.getY(), 2));
-		// double flyspeed = ShooterConstants.PASSING_REGRESSION_CONSTANT
-		// 	+ ShooterConstants.PASSING_REGRESSION_SLOPE * Units.metersToInches(distance);
-		// return flyspeed;
-
-		return TARGET_PASS_SPEED;
-		//code to be determined based off of regression model
+		return LaunchCalculator.getInstance().getParameters(
+			curPose, drivetrain.getChassisSpeeds(), target.getTranslation(), true
+		).flywheelSpeed();
 	}
 
 	/**
@@ -495,8 +490,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @return A double holding the target's needed flywheel speed
 	 */
 	public double calculateTargetShootSpeed(Pose2d target) {
-		return ShooterConstants.TEMP_FLYSPEED;
-		//code to be determined based off of regression model
+		return LaunchCalculator.getInstance().getParameters(
+			curPose, drivetrain.getChassisSpeeds(), target.getTranslation(), false
+		).flywheelSpeed();
 	}
 
 
