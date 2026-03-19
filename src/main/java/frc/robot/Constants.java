@@ -321,4 +321,8 @@ public class Constants {
 		public static final Pose3d LL4_OFFSET =
 			new Pose3d(0.096, -0.03, 0.55, new Rotation3d(0, 0, 270));
 	}
+
+	public static final class Features {
+		public static final boolean MAPLE_SIM_ENABLED = true;
+	}
 }
