@@ -349,11 +349,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
-		if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-			hubPose = DrivetrainConstants.RED_HUB_POSE;
-		} else {
-			hubPose = DrivetrainConstants.BLUE_HUB_POSE;
-		}
+		hubPose = AllianceFlipUtil.apply(BLUE_HUB_POSE);
 		Logger.recordOutput("Hub Pose Alignment", hubPose);
 
 		//TODO: Clean this jawn up it's for testing
@@ -481,12 +477,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	/**
-	 * Aligns the bot to target the hub for shooting.
-	 *
+	 * Returns the target rotation needed given a target pose
+	 * @param targetPose the target pose 
+	 * @return the rotation
 	 */
-	public void targetHub() {
-		//TODO: Code to be finished in a separate branch
-		Pose2d transformPose = getPose().relativeTo(ShooterConstants.HUB_POSE);
+	public Rotation2D getTargetHub(Pose2D target) {
+		// Pose2d transformPose = getPose().relativeTo(ShooterConstants.HUB_POSE);
+		Transform2d distance = target.minus(getPose());
+		return Rotation2d.fromRadians(Math.atan2(distance.getY(), distance.getX()) + 90);
 	}
 
 	/**
