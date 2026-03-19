@@ -1,8 +1,11 @@
 package frc.robot.systems;
 
-
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+
+import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;
+import static frc.robot.imported.FieldConstants.TAG_LAYOUT;
+
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -14,9 +17,6 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
-
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -50,7 +50,6 @@ import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.input.InputTypes.AxialInput;
 
 
-import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;;
 
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
@@ -99,19 +98,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	//Flip controls if needed
 	private double invertControls = 1;
 
-	private AprilTagFieldLayout field = AprilTagFieldLayout
-			.loadField(AprilTagFields.k2026RebuiltWelded);
-
 	private Field2d elasticfield = new Field2d();
 	private Pose2d hubPose;
-
-	//TODO: Need to clean this stuff up and put it in constants
-	//TODO: Should I call CommandScheduler.getInstance().run(); in a different method
-	//instead of the drivetrain's periodic?
-	//Pathfind targeting stuff
-
-	//private Pose2d pathfindTarget;
-	private ShooterFSMSystem shooter;
 
 	/**
 	 * Constructs the drivetrain subsystem.
@@ -319,7 +307,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 						DrivetrainConstants.setTagToAlignTo(N10.instance.getNum());
 					}
 
-					Pose2d test = field.getTagPose(
+					Pose2d test = TAG_LAYOUT.getTagPose(
 						DrivetrainConstants.getTagToAlignTo()).orElse(null).toPose2d();
 
 					Transform2d offsetTransform = new Transform2d(
