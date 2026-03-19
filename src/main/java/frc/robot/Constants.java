@@ -13,6 +13,8 @@ import edu.wpi.first.units.measure.MomentOfInertia;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Hertz;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.Inches;
 
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
@@ -27,8 +29,10 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.N8;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.generated.TunerConstants;
 
@@ -324,5 +328,89 @@ public class Constants {
 
 	public static final class Features {
 		public static final boolean MAPLE_SIM_ENABLED = true;
+	}
+
+	public static final class SimConstants {
+		public static final Mass MASS_WITH_BUMPER = Pounds.of(115);
+		public static final Distance ROBOT_LENGTH = Inches.of(34.5);
+		public static final Distance ROBOT_WIDTH = Inches.of(34.5);
+		public static final double WHEEL_COF = 1.2;
+
+		public static final double STEER_P = 70;
+		public static final double STEER_I = 0;
+		public static final double STEER_D = 4.5;
+		public static final double STEER_S = 0;
+		public static final double STEER_V = 1.91;
+		public static final double STEER_A = 0;
+
+		public static final double STEER_MOTOR_GEAR_RATIO = 16.0;
+		public static final Voltage DRIVE_FRICTION_VOLTAGE = Volts.of(0.1);
+		public static final Voltage STEER_FRICTION_VOLTAGE = Volts.of(0.51);
+		public static final MomentOfInertia STEER_INERTIA = KilogramSquareMeters.of(0.05);
+
+		/* ================== PhotonSim Camera Properties ==================== */
+		public static final int CAM_FPS = 100;
+		public static final int CAM_RES_WIDTH_PIX = 640;
+		public static final int CAM_RES_HEIGHT_PIX = 480;
+
+
+		/* THE FOLLOWING CAMERA PROPERTIES ARE TAKEN FROM THE camprops.sqlite FILE */
+		public static final Matrix<N3, N3> REEF_CAMERA_CALIBRATION = new Matrix<>(
+			N3.instance, N3.instance,
+				new double[] {
+					554.8363329613238,
+					0.0,
+					319.771006175582,
+					0.0,
+					555.7640379607542,
+					210.90231168898111,
+					0.0,
+					0.0,
+					1.0
+				}
+			);
+
+		public static final Matrix<N8, N1> REEF_CAMERA_DISTORTION = new Matrix<>(
+			N8.instance, N1.instance,
+				new double[] {
+					0.032904169887820925,
+					0.024981667114235325,
+					-0.0024512685439365967,
+					9.347928373666906E-4,
+					-0.15993971100687385,
+					-2.8908154357146817E-4,
+					1.516375932970693E-4,
+					0.006735034604041476
+				}
+			);
+
+		public static final Matrix<N3, N3> STATION_CAMERA_CALIBRATION = new Matrix<>(
+			N3.instance, N3.instance,
+				new double[] {
+					548.8107781815636,
+					0.0,
+					335.98845208944647,
+					0.0,
+					549.91022315822,
+					261.5076314193876,
+					0.0,
+					0.0,
+					1.0
+				}
+			);
+
+		public static final Matrix<N8, N1> STATION_CAMERA_DISTORTION = new Matrix<>(
+			N8.instance, N1.instance,
+				new double[] {
+					0.046882076180144325,
+					-0.08739491623632688,
+					-7.369602850193537E-4,
+					9.49279422750342E-4,
+					0.015437967521711683,
+					-0.0018478126980591776,
+					0.004435053264404992,
+					-1.8178696218760975E-4
+				}
+			);
 	}
 }
