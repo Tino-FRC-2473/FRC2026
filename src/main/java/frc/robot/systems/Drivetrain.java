@@ -190,14 +190,20 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
         Transform2d distance = getPose().minus(targetPose);
         // Using angleModulus to prevent wrap-around issues with filtering
         double targetAngle = MathUtil.angleModulus(Math.atan2(distance.getY(), distance.getX()) + Math.PI);
-        double filteredAngle = filter.calculate(targetAngle);
+        double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
+    	double angleError = Math.abs(MathUtil.angleModulus(targetAngle - currentAngle));
 
         // Adjust PID based on Vision presence
-        double kP = LimelightHelpers.getTargetCount(Constants.VisionConstants.LIMELIGHT_NAME) > 0 ? 0.25 : 5.0;
+        double kP;
+		if (angleError < Math.toRadians(45)) {
+			kP = 0.25;  
+		} else {
+			kP = 5.0;  
+		}
 
         drivetrain.setControl(
                 driveFacingAngle
-                        .withTargetDirection(Rotation2d.fromRadians(filteredAngle))
+                        .withTargetDirection(Rotation2d.fromRadians(targetAngle))
                         .withHeadingPID(kP, 0, 0)
                         .withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
                         .withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
@@ -299,6 +305,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
     public double getRotation() { return drivetrain.getPigeon2().getRotation2d().getRadians(); }
 
+	public Rotation3d getRotation3d() { return drivetrain.getPigeon2().getRotation3d(); }
+
     private boolean hasDriverInput(Input input) {
         return Math.abs(input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X)) > 0.1
             || Math.abs(input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y)) > 0.1
@@ -308,4 +316,24 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
     public void stop() {
         drivetrain.setControl(new SwerveRequest.Idle());
     }
+
+	/**
+	 * Adds a new timestamped vision measurement.
+	 *
+	 * @param visionPoseMeters The pose of the robot in the camera's coordinate
+	 *                         frame
+	 * @param timestampSeconds The timestamp of the measurement
+	 * @param visionStdDevs    The standard deviations of the measurement in the x,
+	 *                         y, and theta directions
+	 */
+	public void addVisionMeasurement(
+			Pose2d visionPoseMeters,
+			double timestampSeconds,
+			Matrix<N3, N1> visionStdDevs) {
+		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(),
+			visionPoseMeters.getY(),
+			visionPoseMeters.getRotation().plus(Rotation2d.k180deg)),
+			timestampSeconds, visionStdDevs);
+		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
+	}
 }

@@ -78,7 +78,7 @@ public class Robot extends LoggedRobot {
 			drivetrainFSMSystem = drivetrain;
 			vision = new Vision(
 				drivetrain::addVisionMeasurement,
-				drivetrain.getDrivetrainRotation(),
+				drivetrain.getRotation3d(),
 				VisionConstants.LIMELIGHT_NAME
 			);
 		} else {
@@ -215,4 +215,6 @@ public class Robot extends LoggedRobot {
 			vision.periodic();
 		}
 	}
+
+	
 }
