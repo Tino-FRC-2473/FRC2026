@@ -313,6 +313,8 @@ public class Constants {
 		public static final int RESOLUTION_Y = 480;
 		public static final double IMU_ASSIST_ALPHA = 0.01;
 		public static final int IMU_MODE = 3;
+		public static final int AUTO_IMU_MODE = 1;
+		public static final int TELEOP_IMU_MODE = 3;
 		public static final String LIMELIGHT_NAME = "limelight-four";
 		//TODO: Find some actual values for this.
 		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(

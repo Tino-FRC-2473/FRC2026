@@ -11,6 +11,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
+import frc.robot.imported.LimelightHelpers;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
@@ -112,6 +113,9 @@ public class Robot extends LoggedRobot {
 			? new ClimberFSMSystem(intake)
 			: new PlaceholderFSMSystem<>();
 
+		//Pre-match/Disabled: Use mode 1 to continuously seed the internal IMU with external gyro
+		LimelightHelpers.SetIMUMode(VisionConstants.LIMELIGHT_NAME, VisionConstants.AUTO_IMU_MODE);
+
 	}
 
 	@Override
@@ -162,6 +166,8 @@ public class Robot extends LoggedRobot {
 		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
+		LimelightHelpers.SetIMUMode(VisionConstants.LIMELIGHT_NAME,
+			VisionConstants.TELEOP_IMU_MODE);
 	}
 
 	@Override
