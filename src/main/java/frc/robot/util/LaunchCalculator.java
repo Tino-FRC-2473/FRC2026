@@ -4,6 +4,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
@@ -40,6 +41,10 @@ public class LaunchCalculator {
 
 	// Phase delay for shooting on the move
 	private static final double phaseDelay = 0.03;
+
+	private static final Transform2d ROBOT_TO_LAUNCHER_2D = new Transform2d(
+			ShooterConstants.ROBOT_TO_LAUNCHER.getTranslation().toTranslation2d(),
+			ShooterConstants.ROBOT_TO_LAUNCHER.getRotation().toRotation2d());
 
 	// Launching Maps
 	private static final InterpolatingDoubleTreeMap flywheelSpeedMap =
@@ -106,7 +111,7 @@ public class LaunchCalculator {
 						robotVelocity.omegaRadiansPerSecond * phaseDelay));
 
 		// Define launcher position on the field
-		Pose2d launcherPosition = estimatedPose.transformBy(ShooterConstants.ROBOT_TO_LAUNCHER.toTransform2d());
+		Pose2d launcherPosition = estimatedPose.transformBy(ROBOT_TO_LAUNCHER_2D);
 		double launcherToTargetDistance = target.getDistance(launcherPosition.getTranslation());
 
 		// Velocity of the robot in field-relative terms is needed for lookahead.
@@ -137,7 +142,7 @@ public class LaunchCalculator {
 		}
 
 		// Account for launcher being off center
-		Pose2d lookaheadRobotPose = lookaheadPose.transformBy(ShooterConstants.ROBOT_TO_LAUNCHER.toTransform2d().inverse());
+		Pose2d lookaheadRobotPose = lookaheadPose.transformBy(ROBOT_TO_LAUNCHER_2D.inverse());
 		Rotation2d driveAngle = getDriveAngleWithLauncherOffset(lookaheadRobotPose, target);
 
 		if (lastDriveAngle == null) lastDriveAngle = driveAngle;
