@@ -519,7 +519,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @return true if the past state is FEED_STATE, false otherwise
 	 */
 	public boolean getIsFeeding() {
-		return pastState == ShooterFSMState.FEED_STATE;
+		return (getCurrentState() == ShooterFSMState.FEED_STATE);
 	}
 
 	/**

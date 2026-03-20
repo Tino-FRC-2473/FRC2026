@@ -8,6 +8,7 @@ import frc.robot.HardwareMap;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.input.Input;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -48,8 +49,8 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 
 		var talonFXConfigs = new TalonFXConfiguration();
 
-		var pivotConfig = talonFXConfigs.Feedback;
-		pivotConfig.SensorToMechanismRatio = AgitatorConstants.CONVEYOR_GEARING;
+		var conveyorConfig = talonFXConfigs.Feedback;
+		conveyorConfig.SensorToMechanismRatio = AgitatorConstants.CONVEYOR_GEARING;
 
 		var outputConfigs = talonFXConfigs.MotorOutput;
 		outputConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
@@ -61,6 +62,18 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 		slot0Configs.kI = AgitatorConstants.CONVEYOR_KI;
 		slot0Configs.kD = AgitatorConstants.CONVEYOR_KD;
 		slot0Configs.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
+
+		conveyorMotor.getConfigurator().apply(talonFXConfigs);
+
+		BaseStatusSignal.setUpdateFrequencyForAll(
+				AgitatorConstants.UPDATE_FREQUENCY,
+				conveyorMotor.getPosition(),
+				conveyorMotor.getVelocity(),
+				conveyorMotor.getAcceleration(),
+				conveyorMotor.getMotorVoltage()
+		);
+
+		conveyorMotor.optimizeBusUtilization();
 
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
@@ -114,27 +127,27 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 	protected AgitatorFSMState nextState(Input input) {
 		switch (getCurrentState()) {
 			case IDLE:
-				if (intake.getIsIntakeOuttaking()) {
+				if (isIntakeOuttaking()) {
 					return AgitatorFSMState.OUTTAKE_CONVEYOR;
-				} else if (shooter.getIsFeeding()) {
+				} else if (isShooterFeeding()) {
 					return AgitatorFSMState.SHOOT_CONVEYOR;
 				} else {
 					return AgitatorFSMState.IDLE;
 				}
 
 			case SHOOT_CONVEYOR:
-				if (shooter.getIsFeeding()) {
+				if (isShooterFeeding()) {
 					return AgitatorFSMState.SHOOT_CONVEYOR;
-				} else if (intake.getIsIntakeOuttaking() && !shooter.getIsFeeding()) {
+				} else if (isIntakeOuttaking() && !isShooterFeeding()) {
 					return AgitatorFSMState.OUTTAKE_CONVEYOR;
 				} else {
 					return AgitatorFSMState.IDLE;
 				}
 
 			case OUTTAKE_CONVEYOR:
-				if (intake.getIsIntakeOuttaking()) {
+				if (isIntakeOuttaking()) {
 					return AgitatorFSMState.OUTTAKE_CONVEYOR;
-				} else if (shooter.getIsFeeding() && !intake.getIsIntakeOuttaking()) {
+				} else if (isShooterFeeding() && !isIntakeOuttaking()) {
 					return AgitatorFSMState.SHOOT_CONVEYOR;
 				} else {
 					return AgitatorFSMState.IDLE;
@@ -144,6 +157,23 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
 		}
 	}
+
+	//Second level getters to ensure that intake and shooter are not null
+
+	private boolean isIntakeOuttaking() {
+		if (intake != null) {
+			return intake.getIsIntakeOuttaking();
+		}
+		return false;
+	}
+
+	private boolean isShooterFeeding() {
+		if (intake != null) {
+			return shooter.getIsFeeding();
+		}
+		return false;
+	}
+
 
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**

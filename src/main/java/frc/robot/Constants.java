@@ -324,7 +324,7 @@ public class Constants {
 
 	public static final class AgitatorConstants {
 		//Conveyor gearing
-		public static final double CONVEYOR_GEARING = 3;
+		public static final double CONVEYOR_GEARING = 2.5;
 
 
 		// Conveyor Motor PID
@@ -339,5 +339,8 @@ public class Constants {
 		public static final double CONVEYOR_CRUISE_VELO = 5;
 		public static final double CONVEYOR_TARGET_ACCEL = 10;
 		public static final double CONVEYOR_EXPO_KV = 0.12;
+
+		//other
+		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
 	}
 }

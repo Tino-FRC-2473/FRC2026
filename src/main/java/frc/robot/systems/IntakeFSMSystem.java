@@ -143,9 +143,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				pivotMotorRight.getPosition(),
 				pivotMotorRight.getVelocity(),
 				pivotMotorRight.getAcceleration(),
-				pivotMotorRight.getMotorVoltage(),
-				pivotMotorRight.getPosition(),
-				pivotMotorRight.getVelocity()
+				pivotMotorRight.getMotorVoltage()
 		);
 
 		pivotMotorRight.optimizeBusUtilization();
@@ -157,9 +155,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				pivotMotorLeft.getPosition(),
 				pivotMotorLeft.getVelocity(),
 				pivotMotorLeft.getAcceleration(),
-				pivotMotorLeft.getMotorVoltage(),
-				pivotMotorLeft.getPosition(),
-				pivotMotorLeft.getVelocity()
+				pivotMotorLeft.getMotorVoltage()
 		);
 
 		pivotMotorLeft.optimizeBusUtilization();
