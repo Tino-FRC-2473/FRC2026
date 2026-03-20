@@ -80,7 +80,8 @@ public class Robot extends LoggedRobot {
 			vision = new Vision(
 				drivetrain::addVisionMeasurement,
 				drivetrain.getDrivetrainRotation(),
-				VisionConstants.LIMELIGHT_NAME
+				VisionConstants.LIMELIGHT_NAME,
+				Drivetrain driv
 			);
 		} else {
 			drivetrainFSMSystem = new PlaceholderFSMSystem<>();
@@ -112,10 +113,6 @@ public class Robot extends LoggedRobot {
 		climberFSMSystem = HardwareMap.isClimberEnabled()
 			? new ClimberFSMSystem(intake)
 			: new PlaceholderFSMSystem<>();
-
-		//Pre-match/Disabled: Use mode 1 to continuously seed the internal IMU with external gyro
-		LimelightHelpers.SetIMUMode(VisionConstants.LIMELIGHT_NAME, VisionConstants.AUTO_IMU_MODE);
-
 	}
 
 	@Override
@@ -158,6 +155,10 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void teleopInit() {
+		//set the limelight imu mode for optimal performance in teleop
+		LimelightHelpers.SetIMUMode(VisionConstants.LIMELIGHT_NAME,
+			VisionConstants.TELEOP_IMU_MODE);
+
 		System.out.println("-------- Teleop Init --------");
 		input = new TeleopInput();
 		input.reset();
@@ -166,8 +167,6 @@ public class Robot extends LoggedRobot {
 		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
-		LimelightHelpers.SetIMUMode(VisionConstants.LIMELIGHT_NAME,
-			VisionConstants.TELEOP_IMU_MODE);
 	}
 
 	@Override
@@ -191,6 +190,8 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void disabledPeriodic() {
 		CommandScheduler.getInstance().cancelAll();
+		//Pre-match/Disabled: Use mode 1 to continuously seed the internal IMU with external gyro
+		LimelightHelpers.SetIMUMode(VisionConstants.LIMELIGHT_NAME, VisionConstants.AUTO_IMU_MODE);
 	}
 
 	@Override

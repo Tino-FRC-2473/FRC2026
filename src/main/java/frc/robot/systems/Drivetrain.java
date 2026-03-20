@@ -15,6 +15,7 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
@@ -279,6 +280,36 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@AutoLogOutput(key = "Drivetrain/Rotation")
 	public Rotation3d getDrivetrainRotation() {
 		return drivetrain.getPigeon2().getRotation3d();
+	}
+
+	/**
+	 * Get the drivetrain's angular velocity.
+	 *
+	 * @return The drivetrain's angular velocity in dps.
+	 */
+	public double getAngularVelocity() {
+		return drivetrain.getPigeon2().getAngularVelocityXDevice().getValueAsDouble();
+	}
+
+	/**
+	 * Gets the linear velocity of the robot by averaging motor encoders.
+	 * Use this to check against VisionConstants.MAX_LINEAR_SPEED.
+	 * @return calculated linear velocity
+	 */
+	public double getLinearVelocityFromEncoders() {
+		// 1. Calculate conversion (Wheel Circ / Gear Ratio)
+		double conversion = (Math.PI * 0.1016) / 6.75;
+
+		// 2. Get speeds from all 4 drive motors (Rotations per Second)
+		double fl = drivetrain.getModule(0).getEncoder().getVelocity().getValueAsDouble();
+		double fr = drivetrain.getModule(1).getEncoder().getVelocity().getValueAsDouble();
+		double bl = drivetrain.getModule(2).getEncoder().getVelocity().getValueAsDouble();
+		double br = drivetrain.getModule(3).getEncoder().getVelocity().getValueAsDouble();
+
+		// 3. Average the motor speeds and convert to m/s
+		double avgMotorSpeed = (fl + fr + bl + br) / 4;
+
+		return Math.abs(avgMotorSpeed * conversion);
 	}
 
 	/* ======================== Private methods ======================== */

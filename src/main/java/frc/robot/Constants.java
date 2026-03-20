@@ -309,6 +309,12 @@ public class Constants {
 	}
 
 	public static final class VisionConstants {
+		public static final double UPDATE_TIME = 0.02;
+
+		//max speeds before the Limelight IMU switches for optimal performance
+		public static final double MAX_ANGULAR_SPEED = 300; //angular speed
+		public static final double MAX_LINEAR_SPEED = 2.5; //meters per sec
+
 		public static final int RESOLUTION_X = 640;
 		public static final int RESOLUTION_Y = 480;
 		public static final double IMU_ASSIST_ALPHA = 0.01;
