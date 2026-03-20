@@ -1,6 +1,7 @@
 package frc.robot.systems;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -27,6 +28,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -195,8 +197,18 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
         Transform2d distance = targetPose.minus(getPose());
         // Using angleModulus to prevent wrap-around issues with filtering
-        targetAngle = Math.atan2(distance.getY(), distance.getX());
-        System.out.println(targetAngle);
+
+        double currentAngle = getRotation();
+        double rawTarget = Math.atan2(distance.getY(), distance.getX());
+
+        double error = MathUtil.angleModulus(rawTarget - currentAngle);
+
+        if(Math.abs(error) > Math.PI / 2) {
+            rawTarget = MathUtil.angleModulus(rawTarget + Math.PI);
+        }
+
+        targetAngle = MathUtil.angleModulus(rawTarget);
+        
         //double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
     	//double angleError = Math.abs(MathUtil.angleModulus(targetAngle - currentAngle));
         //Logger.recordOutput("Drivetrain/Error", angleError);
@@ -299,7 +311,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
     public Pose2d getPose() { return drivetrain.getState().Pose; }
     
     @AutoLogOutput(key = "Drivetrain/Rotation")
-    public double getRotation() { return drivetrain.getPigeon2().getRotation2d().getRadians(); }
+    public double getRotation() { 
+        return drivetrain.getPigeon2().getRotation2d().getRadians();
+    }
 
 	public Rotation3d getRotation3d() { return drivetrain.getPigeon2().getRotation3d(); }
 
