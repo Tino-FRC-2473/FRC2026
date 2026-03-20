@@ -53,15 +53,19 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private Pose2d hubPose;
 	private Pose2d target3Pose; //probably going to be the mirrored side of the outpost
 	private TalonFXWrapper flywheelMotor;
+	private TalonFXWrapper secondFlywheelMotor;
 	private TalonFXWrapper feederMotor;
 	//private SparkMax spindexMotor;
 	private Measure<AngularVelocityUnit> flywheelSpeed; //Units.RotationsPerSecond
+	private Measure<AngularVelocityUnit> secondFlywheelSpeed; //Units.RotationsPerSecond
 	private Measure<AngularVelocityUnit> flywheelTargetSpeed; //Units.RotationsPerSecond
 	private Measure<AngleUnit> hoodAngle; //Units.Degrees
 	private ShooterFSMState pastState;
 	private TalonFXConfiguration flywheelConfigs;
 	private TalonFXConfiguration feederConfigs;
+	private TalonFXConfiguration secondFlywheelConfigs;
 	private Drivetrain drivetrain;
+	private MotionMagicVelocityVoltage secondFlywheelRequest;
 	private MotionMagicVelocityVoltage flywheelRequest;
 	private MotionMagicVelocityVoltage feederRequest;
 	private IntakeFSMSystem intake;
@@ -89,8 +93,12 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 		flywheelRequest = new MotionMagicVelocityVoltage(0);
 		feederRequest = new MotionMagicVelocityVoltage(0);
+		secondFlywheelRequest = new MotionMagicVelocityVoltage(0);
 		flywheelMotor = new TalonFXWrapper(
-			HardwareMap.CAN_ID_FLYWHEEL
+			HardwareMap.CAN_ID_FLYWHEEL1
+		);
+		secondFlywheelMotor = new TalonFXWrapper(
+			HardwareMap.CAN_ID_FLYWHEEL2
 		);
 		feederMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_FEEDER
@@ -128,7 +136,44 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		//set to 3
 		flywheelFeedbackConfigs.SensorToMechanismRatio = ShooterConstants.FLYWHEEL_GEAR_RATIO;
 
+		var flywheelMotorOutputs = flywheelConfigs.MotorOutput;
+		flywheelMotorOutputs.NeutralMode = NeutralModeValue.Coast;
+		flywheelMotorOutputs.Inverted = InvertedValue.CounterClockwise_Positive;
 
+		flywheelMotor.getConfigurator().apply(flywheelConfigs);
+		flywheelMotor.getConfigurator().apply(limitConfigs);
+
+
+		secondFlywheelConfigs = new TalonFXConfiguration();
+		var secondFlywheel0Config = secondFlywheelConfigs.Slot0;
+		//voltage output to overcome static friction
+		secondFlywheel0Config.kS = ShooterConstants.FLYWHEEL_MM_CONSTANT_S;
+		//voltage for 1 rps in the motor, 0.11
+		secondFlywheel0Config.kV = ShooterConstants.MM_CONSTANT_V;
+		//account for position error of 1 rotation
+		secondFlywheel0Config.kP = ShooterConstants.FLYWHEEL_MM_CONSTANT_P;
+		//output for integrated error
+		secondFlywheel0Config.kI = ShooterConstants.FLYWHEEL_MM_CONSTANT_I;
+		//account for velocity error of 1rps
+		secondFlywheel0Config.kD = ShooterConstants.FLYWHEEL_MM_CONSTANT_D;
+
+		var secondFlywheelMotionMagicConfigs = secondFlywheelConfigs.MotionMagic;
+		//160 rps/s
+		secondFlywheelMotionMagicConfigs.MotionMagicAcceleration =
+			ShooterConstants.MAGIC_ACCELERATION.in(RotationsPerSecondPerSecond);
+		//1600 rps/s/s, 10* acceleration
+		secondFlywheelMotionMagicConfigs.MotionMagicJerk = ShooterConstants.MAGIC_JERK;
+
+		var secondFlywheelFeedbackConfigs = secondFlywheelConfigs.Feedback;
+		//set to 3
+		secondFlywheelFeedbackConfigs.SensorToMechanismRatio = ShooterConstants.FLYWHEEL_GEAR_RATIO;
+
+		var secondFlywheelMotorOutputs = secondFlywheelConfigs.MotorOutput;
+		secondFlywheelMotorOutputs.NeutralMode = NeutralModeValue.Coast;
+		secondFlywheelMotorOutputs.Inverted = InvertedValue.CounterClockwise_Positive;
+
+		secondFlywheelMotor.getConfigurator().apply(flywheelConfigs);
+		secondFlywheelMotor.getConfigurator().apply(limitConfigs);
 
 		feederConfigs = new TalonFXConfiguration();
 		var feeder0Config = feederConfigs.Slot0;
@@ -137,13 +182,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feeder0Config.kP = ShooterConstants.FEEDER_MM_CONSTANT_P;
 		feeder0Config.kI = ShooterConstants.FEEDER_MM_CONSTANT_I;
 		feeder0Config.kD = ShooterConstants.FEEDER_MM_CONSTANT_D;
-
-		var flywheelMotorOutputs = flywheelConfigs.MotorOutput;
-		flywheelMotorOutputs.NeutralMode = NeutralModeValue.Coast;
-		flywheelMotorOutputs.Inverted = InvertedValue.CounterClockwise_Positive;
-
-		flywheelMotor.getConfigurator().apply(flywheelConfigs);
-		flywheelMotor.getConfigurator().apply(limitConfigs);
 
 		var feederMotionMagicConfigs = feederConfigs.MotionMagic;
 		feederMotionMagicConfigs.MotionMagicAcceleration =
@@ -177,8 +215,19 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				flywheelMotor.getRotorPosition(),
 				flywheelMotor.getRotorVelocity()
 		);
+
+		BaseStatusSignal.setUpdateFrequencyForAll(
+				ShooterConstants.UPDATE_FREQUENCY_HZ,
+				secondFlywheelMotor.getPosition(),
+				secondFlywheelMotor.getVelocity(),
+				secondFlywheelMotor.getAcceleration(),
+				secondFlywheelMotor.getMotorVoltage(),
+				secondFlywheelMotor.getRotorPosition(),
+				secondFlywheelMotor.getRotorVelocity()
+		);
 		feederMotor.optimizeBusUtilization();
 		flywheelMotor.optimizeBusUtilization();
+		secondFlywheelMotor.optimizeBusUtilization();
 
 		breakBeam = new DigitalInput(HardwareMap.STORAGE_BREAK_BEAM_DIO_PORT);
 		reset();
@@ -209,12 +258,23 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * Checks if the target flywheel speed matches the actual flywheel speed within margin of error.
 	 * @return Boolean statement whether or not it is at flywheel speed or not
 	 */
-	public boolean isAtSpeed() {
-
+	public boolean flywheel1AtSpeed() {
 		double flyDifference =
 			flywheelTargetSpeed.in(RotationsPerSecond) - flywheelSpeed.in(RotationsPerSecond);
 		return (
 			Math.abs(flyDifference) <= ShooterConstants.FLYWHEEL_MOE.in(RotationsPerSecond)
+			);
+	}
+
+	/**
+	 * Checks if the target flywheel speed matches the actual flywheel speed within margin of error.
+	 * @return Boolean statement whether or not it is at flywheel speed or not
+	 */
+	public boolean flywheel2AtSpeed() {
+		double fly2Difference =
+			flywheelTargetSpeed.in(RotationsPerSecond) - secondFlywheelSpeed.in(RotationsPerSecond);
+		return (
+			Math.abs(fly2Difference) <= ShooterConstants.FLYWHEEL_MOE.in(RotationsPerSecond)
 			);
 	}
 
@@ -275,11 +335,24 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		if (flywheelMotor.getVelocity() != null) {
 			double curSpeed = flywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
 			flywheelSpeed = RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
-			Logger.recordOutput("Shooter/Actual Motor Speed", flywheelSpeed.in(RotationsPerSecond));
+			Logger.recordOutput("Shooter/Actual Motor 1 Speed",
+				flywheelSpeed.in(RotationsPerSecond));
 			if (flywheelSpeed.in(RotationsPerSecond) <= 1) {
-				Logger.recordOutput("Shooter/Flywheel at speed?", false);
+				Logger.recordOutput("Shooter/Flywheel 1 at speed?", false);
 			} else {
-				Logger.recordOutput("Shooter/Flywheel at speed?", isAtSpeed());
+				Logger.recordOutput("Shooter/Flywheel 1 at speed?", flywheel1AtSpeed());
+			}
+		}
+		if (secondFlywheelMotor.getVelocity() != null) {
+			double curSpeed = secondFlywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
+			secondFlywheelSpeed =
+				RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
+			Logger.recordOutput("Shooter/Actual Motor 1 Speed",
+				secondFlywheelSpeed.in(RotationsPerSecond));
+			if (secondFlywheelSpeed.in(RotationsPerSecond) <= 1) {
+				Logger.recordOutput("Shooter/Flywheel 1 at speed?", false);
+			} else {
+				Logger.recordOutput("Shooter/Flywheel 1 at speed?", flywheel2AtSpeed());
 			}
 		}
 		setCurrentState(nextState(input));
@@ -336,7 +409,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						pastState = getCurrentState();
 						return ShooterFSMState.MANUAL_PREP_STATE;
 					} else if (input != null
-						&& isAtSpeed() && flywheelTargetSpeed.in(RotationsPerSecond) != 0
+						&& flywheel1AtSpeed() && flywheelTargetSpeed.in(RotationsPerSecond) != 0
+						&& flywheel2AtSpeed()
 						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						//need to change colors for if its at speed and at angle so that
 						// they know when to pull triggers
@@ -361,7 +435,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 						stopFlywheel();
 						pastState = getCurrentState();
 						return ShooterFSMState.MANUAL_PREP_STATE;
-					} else if (input != null && isAtSpeed()
+					} else if (input != null && flywheel1AtSpeed() && flywheel2AtSpeed()
 						&& flywheelTargetSpeed.in(RotationsPerSecond) != 0
 						&& input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						pastState = getCurrentState();
@@ -372,7 +446,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 					}
 
 				case FEED_STATE:
-					if (!isAtSpeed() || input == null
+					if (!flywheel1AtSpeed() || !flywheel2AtSpeed() || input == null
 						|| !input.getButtonValue(ButtonInput.REV_FEEDER)) {
 						return pastState;
 						//pastState should only store shooter_prep, passer_prep, and manual_prep
@@ -591,7 +665,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// 	spindexVoltage *= -1;
 		// }
 
-		if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
+		if (!flywheel1AtSpeed() || !flywheel2AtSpeed()
+			|| !input.getButtonValue(ButtonInput.REV_FEEDER)) {
 		//if (!input.getButtonValue(ButtonInput.REV_FEEDER)) {
 			System.out.println("reach 2");
 			feederMotor.stopMotor();
@@ -692,6 +767,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private void updateFlywheel() {
 		Logger.recordOutput("Flywheel Target Speed", flywheelTargetSpeed);
 		flywheelMotor.setControl(flywheelRequest.withVelocity(
+			flywheelTargetSpeed.in(RotationsPerSecond)));
+		secondFlywheelMotor.setControl(secondFlywheelRequest.withVelocity(
 			flywheelTargetSpeed.in(RotationsPerSecond)));
 
 	}
