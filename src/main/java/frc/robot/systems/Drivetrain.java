@@ -82,6 +82,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
     private AprilTagFieldLayout field = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
     private Field2d elasticfield = new Field2d();
 
+    private double targetAngle = 0;
+
     public Drivetrain() {
         drivetrain = TunerConstants.createDrivetrain();
         filter = LinearFilter.singlePoleIIR(0.1, 0.02);
@@ -134,6 +136,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
         drivetrain.periodic();
         // Remove CommandScheduler.run() if it's already in Robot.java periodic
         elasticfield.setRobotPose(drivetrain.getState().Pose);
+        
+
+        Logger.recordOutput("Drivetrain/Target Angle", targetAngle);
+        Logger.recordOutput("Drivetrain/Target Angle Pose", getPose().rotateAround(getPose().getTranslation(), Rotation2d.fromRadians(targetAngle)));
 
         switch (currentState) {
             case TELEOP:
@@ -187,31 +193,20 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
         double ySpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
                 input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y), DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-        Transform2d distance = getPose().minus(targetPose);
+        Transform2d distance = targetPose.minus(getPose());
         // Using angleModulus to prevent wrap-around issues with filtering
-        double targetAngle = MathUtil.angleModulus(Math.atan2(distance.getY(), distance.getX()) + Math.PI);
-        double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
-    	double angleError = Math.abs(MathUtil.angleModulus(targetAngle - currentAngle));
-
-        // Adjust PID based on Vision presence
-        double kP;
-		if (angleError < Math.toRadians(45)) {
-			kP = 0.25;  
-		} else {
-			kP = 5.0;  
-		}
-
+        targetAngle = Math.atan2(distance.getY(), distance.getX());
+        System.out.println(targetAngle);
+        //double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
+    	//double angleError = Math.abs(MathUtil.angleModulus(targetAngle - currentAngle));
+        //Logger.recordOutput("Drivetrain/Error", angleError);
+        
         drivetrain.setControl(
                 driveFacingAngle
                         .withTargetDirection(Rotation2d.fromRadians(targetAngle))
-                        .withHeadingPID(kP, 0, 0)
+                        .withHeadingPID(1, 0, 0.1)
                         .withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
                         .withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
-
-        if (Math.abs(MathUtil.angleModulus(getRotation() - targetAngle)) < 0.05) {
-            // Optional: Transition back to teleop once aligned
-            // currentState = DrivetrainState.TELEOP; 
-        }
     }
 
     private void handleTeleopState(Input input) {
@@ -266,10 +261,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
                 return DrivetrainState.TELEOP;
 
             case FACE_HUB:
-                return input.getButtonValue(ButtonInput.FACE_HUB) ? DrivetrainState.FACE_HUB : DrivetrainState.TELEOP;
+                return input.getButtonValue(ButtonInput.FACE_HUB) /*&&  Math.abs(MathUtil.angleModulus(getRotation() - targetAngle) + Math.PI) >= Math.toRadians(20) */ ? DrivetrainState.FACE_HUB : DrivetrainState.TELEOP;
 
             case FACE_PASS:
-                return input.getButtonValue(ButtonInput.FACE_PASS) ? DrivetrainState.FACE_PASS : DrivetrainState.TELEOP;
+                return input.getButtonValue(ButtonInput.FACE_PASS) &&  Math.abs(MathUtil.angleModulus(getRotation() - targetAngle) + Math.PI) >= Math.toRadians(20) ? DrivetrainState.FACE_PASS : DrivetrainState.TELEOP;
 
             default:
                 return DrivetrainState.TELEOP;
@@ -302,7 +297,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
     @AutoLogOutput(key = "Drivetrain/Pose")
     public Pose2d getPose() { return drivetrain.getState().Pose; }
-
+    
+    @AutoLogOutput(key = "Drivetrain/Rotation")
     public double getRotation() { return drivetrain.getPigeon2().getRotation2d().getRadians(); }
 
 	public Rotation3d getRotation3d() { return drivetrain.getPigeon2().getRotation3d(); }
