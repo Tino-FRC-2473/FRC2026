@@ -8,12 +8,19 @@ import frc.robot.HardwareMap;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.input.Input;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants.AgitatorConstants;
 
 public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMState> {
@@ -33,6 +40,11 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 
 	private final IntakeFSMSystem intake;
 	private final ShooterFSMSystem shooter;
+
+	private final StatusSignal<Angle> conveyorMotorPos;
+	private final StatusSignal<AngularVelocity> conveyorMotorVel;
+	private final StatusSignal<AngularAcceleration> conveyorMotorAccel;
+	private final StatusSignal<Voltage> conveyorMotorVol;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -63,14 +75,19 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 		slot0Configs.kD = AgitatorConstants.CONVEYOR_KD;
 		slot0Configs.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
+		conveyorMotorPos = conveyorMotor.getPosition();
+		conveyorMotorVel = conveyorMotor.getVelocity();
+		conveyorMotorAccel = conveyorMotor.getAcceleration();
+		conveyorMotorVol = conveyorMotor.getMotorVoltage();
+
 		conveyorMotor.getConfigurator().apply(talonFXConfigs);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				AgitatorConstants.UPDATE_FREQUENCY,
-				conveyorMotor.getPosition(),
-				conveyorMotor.getVelocity(),
-				conveyorMotor.getAcceleration(),
-				conveyorMotor.getMotorVoltage()
+				conveyorMotorPos,
+				conveyorMotorVel,
+				conveyorMotorAccel,
+				conveyorMotorVol
 		);
 
 		conveyorMotor.optimizeBusUtilization();
@@ -102,6 +119,14 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 		if (input == null) {
 			return;
 		}
+
+		BaseStatusSignal.refreshAll(
+				conveyorMotorPos,
+				conveyorMotorVel,
+				conveyorMotorAccel,
+				conveyorMotorVol
+		);
+
 		switch (getCurrentState()) {
 			case IDLE:
 				handleIdleState(input);
@@ -172,6 +197,52 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 			return shooter.getIsFeeding();
 		}
 		return false;
+	}
+
+	//Logging
+	/**
+	 * Getter for intake current state.
+	 * @return intake current state.
+	*/
+	@AutoLogOutput(key = "Agitator/Agitator Current State")
+	public AgitatorFSMState getAgitatorState() {
+		return getCurrentState();
+	}
+
+	/**
+	 * Getter for agitator conveyor position.
+	 * @return agitator conveyor position.
+	*/
+	@AutoLogOutput(key = "Agitator/Conveyor Position")
+	public double getAgitatorPos() {
+		return conveyorMotorPos.getValueAsDouble();
+	}
+
+	/**
+	 * Getter for agitator conveyor velocity.
+	 * @return agitator conveyor velocity.
+	*/
+	@AutoLogOutput(key = "Agitator/Conveyor Velocity")
+	public double getAgitatorVelocity() {
+		return conveyorMotorVel.getValueAsDouble();
+	}
+
+	/**
+	 * Getter for agitator conveyor acceleration.
+	 * @return agitator conveyor acceleration.
+	*/
+	@AutoLogOutput(key = "Agitator/Conveyor Acceleration")
+	public double getAgitatorAccel() {
+		return conveyorMotorAccel.getValueAsDouble();
+	}
+
+	/**
+	 * Getter for agitator conveyor voltage.
+	 * @return agitator conveyor voltage.
+	*/
+	@AutoLogOutput(key = "Agitator/Conveyor Voltage")
+	public double getAgitatorVol() {
+		return conveyorMotorVol.getValueAsDouble();
 	}
 
 
