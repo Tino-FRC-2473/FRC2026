@@ -88,7 +88,7 @@ public class TunerConstants {
     private static final boolean kInvertRightSide = false;
 
     private static final int kPigeonId = 1;
-
+    public static final Distance WHEEL_RADIUS = Inches.of(2);
     // These are only used for simulation
     private static final MomentOfInertia kSteerInertia = KilogramSquareMeters.of(0.01);
     private static final MomentOfInertia kDriveInertia = KilogramSquareMeters.of(0.01);

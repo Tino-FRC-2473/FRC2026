@@ -3,9 +3,13 @@ package frc.robot.systems;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Rotations;
 
+import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -43,10 +47,13 @@ import frc.robot.Constants;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Robot;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.input.Input;
 import frc.robot.input.InputTypes.ButtonInput;
+import frc.robot.simulation.MapleSimSwerveDrivetrain;
+import frc.robot.simulation.SimSwerveDrivetrainConfig;
 import frc.robot.input.InputTypes.AxialInput;
 
 
@@ -89,7 +96,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
 	/* ======================== Private variables ======================== */
-
+	private MapleSimSwerveDrivetrain simDrivetrain;
 	// Current FSM state
 	private DrivetrainState currentState;
 	// Drivetrain subsystem instance
@@ -125,7 +132,20 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		//System.out.println(DriverStation.getAlliance());
 
+		Pose2d startingPose = new Pose2d(2, 2, new Rotation2d(0));
 
+		if (Robot.isSimulation()) {
+			simDrivetrain = new MapleSimSwerveDrivetrain(
+				SimSwerveDrivetrainConfig
+					.getDefault()
+					.withPigeon(drivetrain.getPigeon2())
+					.withModuleLocations(drivetrain.getModuleLocations())
+					.withModules(drivetrain.getModules())
+					.withStartingPose(
+						startingPose
+					)
+			);
+		}
 		RobotConfig config;
 		try {
 			config = RobotConfig.fromGUISettings();
@@ -202,6 +222,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@Override
 	public void update(Input input) {
 		drivetrain.periodic();
+		simDrivetrain.update();
 		CommandScheduler.getInstance().run();
 		elasticfield.setRobotPose(drivetrain.getState().Pose);
 
@@ -217,7 +238,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					+ currentState.toString()
 				);
 		}
-
+		Logger.recordOutput("pose", simDrivetrain.getMapleSimDrive().getSimulatedDriveTrainPose());
 		currentState = nextState(input);
 	}
 
@@ -228,8 +249,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	@AutoLogOutput(key = "Drivetrain/Pose")
 	public Pose2d getPose() {
+		if (true/*Robot.isSimulation() && Constants.Features.MAPLE_SIM_ENABLED*/) {
+			return simDrivetrain.getMapleSimDrive().getSimulatedDriveTrainPose();
+		}
 		return drivetrain.getState().Pose;
 	}
+
 
 	/**
 	 * Get the drivetrain chassis speeds.
@@ -238,6 +263,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	@AutoLogOutput(key = "Drivetrain/Swerve/Chassis Speeds")
 	public ChassisSpeeds getChassisSpeeds() {
+		if (Robot.isSimulation() && Constants.Features.MAPLE_SIM_ENABLED) {
+			return simDrivetrain
+				.getMapleSimDrive()
+				.getDriveTrainSimulatedChassisSpeedsFieldRelative();
+		}
 		return drivetrain.getState().Speeds;
 	}
 
@@ -268,6 +298,22 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	@AutoLogOutput(key = "Drivetrain/Swerve/Positions")
 	public SwerveModulePosition[] getModulePositions() {
+		if (Robot.isSimulation() && Constants.Features.MAPLE_SIM_ENABLED) {
+			SwerveModuleSimulation[] simModules = simDrivetrain.getMapleSimDrive().getModules();
+			var positions = new SwerveModulePosition[simModules.length];
+
+			for (int i = 0; i < positions.length; i++) {
+				double wheelRotations = simModules[i].getDriveWheelFinalPosition().in(Rotations);
+				double distance =
+					wheelRotations
+					* TunerConstants.WHEEL_RADIUS.times(2 * Math.PI).in(Meters);
+				Rotation2d angle = simModules[i].getSteerAbsoluteFacing();
+
+				positions[i] = new SwerveModulePosition(distance, angle);
+			}
+
+			return positions;
+		}
 		return drivetrain.getState().ModulePositions;
 	}
 
@@ -460,6 +506,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 			);
 		}
+	}
+
+	/**
+	 * Get the maple sim drivetrain.
+	 * @return the maple sim swerve drivetrain
+	 */
+	public MapleSimSwerveDrivetrain getSimDrivetrain() {
+		return simDrivetrain;
 	}
 
 	/**

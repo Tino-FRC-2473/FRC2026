@@ -50,6 +50,7 @@ public class Robot extends LoggedRobot {
 	private FSMSystem<ShooterFSMSystem.ShooterFSMState> shooterFSMSystem;
 
 	private Vision vision;
+	private Drivetrain drivetrain;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -74,7 +75,7 @@ public class Robot extends LoggedRobot {
 
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
-			Drivetrain drivetrain = new Drivetrain();
+			drivetrain = new Drivetrain();
 			drivetrainFSMSystem = drivetrain;
 			vision = new Vision(
 				drivetrain::addVisionMeasurement,
@@ -205,6 +206,7 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void simulationPeriodic() {
+		drivetrain.getSimDrivetrain().update();
 
 	}
 
