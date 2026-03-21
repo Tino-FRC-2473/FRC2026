@@ -42,6 +42,7 @@ import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
+import frc.robot.util.EnergyLogger;
 import frc.robot.input.Input;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.limelight.LimelightHelpers;
@@ -159,6 +160,13 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
             default:
                 throw new IllegalStateException("[DRIVETRAIN] Invalid state: " + currentState);
         }
+
+        double[] currents = new double[8];
+        for (int i = 0; i < 4; i++) {
+            currents[i * 2] = drivetrain.getModule(i).getDriveMotor().getSupplyCurrent().getValueAsDouble();
+            currents[i * 2 + 1] = drivetrain.getModule(i).getSteerMotor().getSupplyCurrent().getValueAsDouble();
+        }
+        EnergyLogger.recordEnergyUsage("Drivetrain", currents);
 
         currentState = nextState(input);
     }
