@@ -17,8 +17,6 @@ public class Vision {
 	private String limelightName;
 	private VisionConsumer visionConsumer;
 	private Rotation3d rotation;
-	private double lastYaw = 0;
-	private Pose2d lastPose = new Pose2d();
 	private Drivetrain drivetrain;
 
 
@@ -49,20 +47,17 @@ public class Vision {
 		LimelightHelpers.SetRobotOrientation(
 			limelightName, rotation.getZ(), 0, rotation.getY(), 0, rotation.getX(), 0);
 
-		// Angular Velocity (deg/s)
-		double currentYaw = rotation.getZ();
+		// Angular Velocity (deg/s); taken from pigeon
 		double angularVelocity = drivetrain.getAngularVelocity();
+		// Linear Velocity (m/s); calculated through motor encoders
+		double linearVelocity = drivetrain.getLinearVelocityFromEncoders();
 
-		// 3. Get Estimates
+		// 3. Get Estimates (will decide later which one to choose)
 		PoseEstimate mt1Estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
 		PoseEstimate mt2Estimate =
 			LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
 
-		// Linear Velocity (m/s) - calculated from the last successful vision pose
-		double linearVelocity = drivetrain.getLinearVelocityFromEncoders();
-
 		PoseEstimate selectedEstimate = null;
-
 		// 4. Decision Logic: Force MT2 if moving too fast (Linear or Angular)
 		boolean isMovingTooFast = (angularVelocity > VisionConstants.MAX_ANGULAR_SPEED)
 			|| (linearVelocity > VisionConstants.MAX_LINEAR_SPEED);
@@ -83,17 +78,14 @@ public class Vision {
 			}
 		}
 
-		PoseEstimate visionEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
-		if (LimelightHelpers.validPoseEstimate(visionEstimate) && selectedEstimate != null) {
+		if (LimelightHelpers.validPoseEstimate(selectedEstimate) && selectedEstimate != null) {
 			Pose2d pose = selectedEstimate.pose;
-			lastPose = pose; //save for next velocity calc
-
 			Logger.recordOutput("Vision/Final Pose", pose);
 
 			if (pose.getX() > 1) {
 				visionConsumer.accept(
 					pose,
-					visionEstimate.timestampSeconds,
+					selectedEstimate.timestampSeconds,
 					VisionConstants.LL4_STDEVS
 				);
 			}
