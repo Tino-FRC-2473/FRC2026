@@ -23,6 +23,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -195,19 +196,22 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
         double ySpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
                 input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y), DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-        Transform2d distance = targetPose.minus(getPose());
+        // Transform2d distance = targetPose.minus(getPose());
         // Using angleModulus to prevent wrap-around issues with filtering
+        Translation2d robotTranslation = getPose().getTranslation();
+        Translation2d targetTranslation = targetPose.getTranslation();
+        Translation2d diff = targetTranslation.minus(robotTranslation);
+        targetAngle = Math.atan2(diff.getY(), diff.getX());
+        // double currentAngle = getRotation();
+        // double rawTarget = Math.atan2(distance.getY(), distance.getX());
 
-        double currentAngle = getRotation();
-        double rawTarget = Math.atan2(distance.getY(), distance.getX());
+        // double error = MathUtil.angleModulus(rawTarget - currentAngle);
 
-        double error = MathUtil.angleModulus(rawTarget - currentAngle);
+        // if(Math.abs(error) > Math.PI / 2) {
+        //     rawTarget = MathUtil.angleModulus(rawTarget + Math.PI);
+        // }
 
-        if(Math.abs(error) > Math.PI / 2) {
-            rawTarget = MathUtil.angleModulus(rawTarget + Math.PI);
-        }
-
-        targetAngle = MathUtil.angleModulus(rawTarget);
+        // targetAngle = MathUtil.angleModulus(rawTarget);
         
         //double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
     	//double angleError = Math.abs(MathUtil.angleModulus(targetAngle - currentAngle));
@@ -216,7 +220,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
         drivetrain.setControl(
                 driveFacingAngle
                         .withTargetDirection(Rotation2d.fromRadians(targetAngle))
-                        .withHeadingPID(1, 0, 0.1)
+                        .withHeadingPID(2.5, 5, 0)
                         .withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
                         .withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
     }
@@ -312,7 +316,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
     
     @AutoLogOutput(key = "Drivetrain/Rotation")
     public double getRotation() { 
-        return drivetrain.getPigeon2().getRotation2d().getRadians();
+        return MathUtil.angleModulus(drivetrain.getPigeon2().getRotation2d().getRadians() + Math.PI);
     }
 
 	public Rotation3d getRotation3d() { return drivetrain.getPigeon2().getRotation3d(); }
