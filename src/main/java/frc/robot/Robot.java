@@ -198,14 +198,38 @@ public class Robot extends LoggedRobot {
 	}
 
 	/* Simulation mode handlers, only used for simulation testing  */
+	private frc.robot.util.firecontrol.FuelPhysicsSim ballSim;
+
 	@Override
 	public void simulationInit() {
 		System.out.println("-------- Simulation Init --------");
+		ballSim = new frc.robot.util.firecontrol.FuelPhysicsSim("Sim/Fuel");
+		ballSim.enable();
+		ballSim.placeFieldBalls();
+
+		if (drivetrainFSMSystem instanceof Drivetrain drive) {
+			ballSim.configureRobot(
+				0.8, // width m
+				0.8, // length m
+				0.2, // bumper height m
+				drive::getPose,
+				drive::getChassisSpeeds
+			);
+		}
+
+		if (shooterFSMSystem instanceof ShooterFSMSystem shooter) {
+			shooter.setBallSim(ballSim);
+		}
+
+		// Add intake zones (robot relative box)
+		ballSim.addIntakeZone(0.3, 0.8, -0.4, 0.4, () -> true);
 	}
 
 	@Override
 	public void simulationPeriodic() {
-
+		if (ballSim != null) {
+			ballSim.tick();
+		}
 	}
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.

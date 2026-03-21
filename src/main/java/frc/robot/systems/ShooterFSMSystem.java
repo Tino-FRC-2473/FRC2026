@@ -71,6 +71,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private boolean noFuelStored = false;
 	private boolean flywheelMotorStopped = false;
 	private double spindexVoltage; //Volts
+	private frc.robot.util.firecontrol.FuelPhysicsSim ballSim;
+	private boolean hasLaunched = false;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -202,6 +204,10 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	}
 
 	/* ======================== Public methods ======================== */
+
+	public void setBallSim(frc.robot.util.firecontrol.FuelPhysicsSim ballSim) {
+		this.ballSim = ballSim;
+	}
 
 	// overridden methods don't require javadocs
 	// however, you may want to add implementation specific javadocs
@@ -592,16 +598,47 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// }
 
 		if (!isAtSpeed() || !input.getButtonValue(ButtonInput.REV_FEEDER)) {
-		//if (!input.getButtonValue(ButtonInput.REV_FEEDER)) {
-			System.out.println("reach 2");
 			feederMotor.stopMotor();
-				//spindexMotor.stopMotor();
-				//pastState should only store shooter_prep, passer_prep, and manual_prep
+			hasLaunched = false;
 		} else {
-			System.out.println("reach 1");
 			feederMotor.setControl(feederRequest.withVelocity(ShooterConstants.
 				FEEDER_CONSTANT_SPEED));
-				//spindexMotor.setVoltage(ShooterConstants.SPINDEX_CONSTANT_VOLTAGE);
+			
+			if (ballSim != null && !hasLaunched) {
+				// Launch ball in simulation
+				double rpm = flywheelSpeed.in(RotationsPerSecond) * 60.0;
+				Rotation2d robotAngle = drivetrain.getPose().getRotation();
+				double launchAngleRad = ShooterConstants.HOOD_ANGLE.in(Units.Radians);
+				
+				// Exit velocity from flywheel RPM (approximate, usually 0.5 * v_tip)
+				double v_exit = (rpm / 60.0) * Math.PI * 0.1016 * 0.5; // using 4in wheel
+				
+				double vx = v_exit * Math.sin(launchAngleRad); // horizontal speed in robot frame
+				double vz = v_exit * Math.cos(launchAngleRad); // vertical speed
+				
+				// Convert to field frame
+				double vxField = vx * robotAngle.getCos();
+				double vyField = vx * robotAngle.getSin();
+				
+				// Add robot velocity
+				ChassisSpeeds robotVel = drivetrain.getChassisSpeeds();
+				double robotVxField = robotVel.vxMetersPerSecond * robotAngle.getCos() - robotVel.vyMetersPerSecond * robotAngle.getSin();
+				double robotVyField = robotVel.vxMetersPerSecond * robotAngle.getSin() + robotVel.vyMetersPerSecond * robotAngle.getCos();
+				
+				edu.wpi.first.math.geometry.Translation3d pos = new edu.wpi.first.math.geometry.Translation3d(
+					drivetrain.getPose().getX(), 
+					drivetrain.getPose().getY(), 
+					0.6 // launch height
+				);
+				edu.wpi.first.math.geometry.Translation3d vel = new edu.wpi.first.math.geometry.Translation3d(
+					vxField + robotVxField, 
+					vyField + robotVyField, 
+					vz
+				);
+				
+				ballSim.launchBall(pos, vel, 2000); // 2000 RPM backspin
+				hasLaunched = true;
+			}
 		}
 		Logger.recordOutput("BreakBeam Timer: ", feedTimer.get());
 	}
