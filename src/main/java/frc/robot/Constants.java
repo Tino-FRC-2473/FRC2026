@@ -324,7 +324,7 @@ public class Constants {
 
 	public static final class AgitatorConstants {
 		//Conveyor gearing
-		public static final double CONVEYOR_GEARING = 2.5;
+		public static final double CONVEYOR_GEARING = 2;
 
 
 		// Conveyor Motor PID

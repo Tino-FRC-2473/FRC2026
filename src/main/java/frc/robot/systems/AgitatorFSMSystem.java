@@ -183,7 +183,7 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 	 *              the robot is in autonomous mode.
 	 */
 	private void handleIdleState(Input input) {
-		conveyorMotor.setControl(conveyorMotionRequest.withVelocity(0));
+		conveyorMotor.stopMotor();
 	}
 
 	/**
