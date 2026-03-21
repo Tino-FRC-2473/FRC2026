@@ -257,6 +257,16 @@ public class Constants {
 		public static final double PASSING_REGRESSION_SLOPE = 0.233; //inches
 
 		public static final double SPINDEX_MAX_TIME = 2.0; //3s, needs to be tuned
+
+		// Physics constants for ProjectileSimulator
+		public static final double BALL_MASS_KG = 0.215;
+		public static final double BALL_DIAMETER_M = 0.1501;
+		public static final double BALL_DRAG_COEFF = 0.47;
+		public static final double BALL_MAGNUS_COEFF = 0.2;
+		public static final double AIR_DENSITY = 1.225;
+		public static final double SHOOTER_WHEEL_DIAMETER_M = 0.1016; // 4 inch
+		public static final double SHOOTER_SLIP_FACTOR = 0.6;
+		public static final double TARGET_HEIGHT_M = 1.829; // Hub height
 	}
 	public static final class IntakeConstants {
 

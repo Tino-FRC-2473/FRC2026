@@ -9,6 +9,9 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.util.firecontrol.ProjectileSimulator;
+import frc.robot.util.firecontrol.ProjectileSimulator.LUTEntry;
+import frc.robot.util.firecontrol.ProjectileSimulator.SimParameters;
 import frc.robot.util.firecontrol.ShotCalculator;
 import frc.robot.util.firecontrol.ShotCalculator.LaunchParameters;
 import frc.robot.util.firecontrol.ShotCalculator.ShotInputs;
@@ -49,27 +52,41 @@ public class LaunchCalculator {
 		passingConfig.maxScoringDistance = 20.0;
 		passingCalculator = new ShotCalculator(passingConfig);
 
-		// Load Hub LUT
-		hubCalculator.loadLUTEntry(0.96, 150.0 / (2 * Math.PI), 1.16);
-		hubCalculator.loadLUTEntry(1.16, 155.0 / (2 * Math.PI), 1.12);
-		hubCalculator.loadLUTEntry(1.58, 160.0 / (2 * Math.PI), 1.11);
-		hubCalculator.loadLUTEntry(2.07, 165.0 / (2 * Math.PI), 1.09);
-		hubCalculator.loadLUTEntry(2.37, 170.0 / (2 * Math.PI), 0.90);
-		hubCalculator.loadLUTEntry(2.47, 170.0 / (2 * Math.PI), 0.90);
-		hubCalculator.loadLUTEntry(2.70, 170.0 / (2 * Math.PI), 0.90);
-		hubCalculator.loadLUTEntry(2.94, 175.0 / (2 * Math.PI), 0.90);
-		hubCalculator.loadLUTEntry(3.48, 175.0 / (2 * Math.PI), 0.90);
-		hubCalculator.loadLUTEntry(3.92, 180.0 / (2 * Math.PI), 0.90);
-		hubCalculator.loadLUTEntry(4.35, 185.0 / (2 * Math.PI), 0.90);
-		hubCalculator.loadLUTEntry(4.84, 190.0 / (2 * Math.PI), 0.90);
+		// Physics parameters for simulation
+		SimParameters params = new SimParameters(
+				ShooterConstants.BALL_MASS_KG,
+				ShooterConstants.BALL_DIAMETER_M,
+				ShooterConstants.BALL_DRAG_COEFF,
+				ShooterConstants.BALL_MAGNUS_COEFF,
+				ShooterConstants.AIR_DENSITY,
+				ShooterConstants.ROBOT_TO_LAUNCHER.getZ(),
+				ShooterConstants.SHOOTER_WHEEL_DIAMETER_M,
+				ShooterConstants.TARGET_HEIGHT_M,
+				ShooterConstants.SHOOTER_SLIP_FACTOR,
+				ShooterConstants.HOOD_ANGLE.in(edu.wpi.first.units.Units.Degrees),
+				0.001,  // dt
+				500,    // rpmMin
+				6000,   // rpmMax
+				25,     // binarySearchIters
+				5.0     // maxSimTime
+		);
 
-		// Load Passing LUT
-		passingCalculator.loadLUTEntry(5.46, 160.0 / (2 * Math.PI), 1.27);
-		passingCalculator.loadLUTEntry(6.62, 180.0 / (2 * Math.PI), 1.39);
-		passingCalculator.loadLUTEntry(7.80, 200.0 / (2 * Math.PI), 1.49);
-		passingCalculator.loadLUTEntry(11.0, 280.0 / (2 * Math.PI), 1.75); // Adjusted from 17.16/360
-		passingCalculator.loadLUTEntry(13.0, 320.0 / (2 * Math.PI), 1.76);
-		passingCalculator.loadLUTEntry(17.16, 360.0 / (2 * Math.PI), 2.16);
+		ProjectileSimulator sim = new ProjectileSimulator(params);
+		var lut = sim.generateLUT();
+
+		// Load Hub LUT from physics-generated values
+		for (LUTEntry entry : lut.entries()) {
+			if (entry.reachable()) {
+				hubCalculator.loadLUTEntry(entry.distanceM(), entry.rpm(), entry.tof());
+			}
+		}
+
+		// Load Passing LUT (reusing generated LUT for now as it's physics-based)
+		for (LUTEntry entry : lut.entries()) {
+			if (entry.reachable()) {
+				passingCalculator.loadLUTEntry(entry.distanceM(), entry.rpm(), entry.tof());
+			}
+		}
 	}
 
 	public LaunchingParameters getParameters(Pose2d robotPose, ChassisSpeeds robotVelocity) {
