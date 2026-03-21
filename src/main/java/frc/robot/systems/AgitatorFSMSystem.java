@@ -156,23 +156,17 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 					return AgitatorFSMState.OUTTAKE_CONVEYOR;
 				} else if (isShooterFeeding()) {
 					return AgitatorFSMState.SHOOT_CONVEYOR;
-				} else {
-					return AgitatorFSMState.IDLE;
 				}
 
 			case SHOOT_CONVEYOR:
-				if (isShooterFeeding()) {
-					return AgitatorFSMState.SHOOT_CONVEYOR;
-				} else if (isIntakeOuttaking() && !isShooterFeeding()) {
+				if (isIntakeOuttaking() && !isShooterFeeding()) {
 					return AgitatorFSMState.OUTTAKE_CONVEYOR;
 				} else {
 					return AgitatorFSMState.IDLE;
 				}
 
 			case OUTTAKE_CONVEYOR:
-				if (isIntakeOuttaking()) {
-					return AgitatorFSMState.OUTTAKE_CONVEYOR;
-				} else if (isShooterFeeding() && !isIntakeOuttaking()) {
+				if (isShooterFeeding() && !isIntakeOuttaking()) {
 					return AgitatorFSMState.SHOOT_CONVEYOR;
 				} else {
 					return AgitatorFSMState.IDLE;
