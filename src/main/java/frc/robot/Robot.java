@@ -14,12 +14,15 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import frc.robot.Constants.ModuleConstants;
+import com.pathplanner.lib.commands.FollowPathCommand;
+
 import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj2.command.Command;
 
 // WPILib Imports
 
@@ -55,6 +58,7 @@ public class Robot extends LoggedRobot {
 	private FSMSystem<ShooterFSMSystem.ShooterFSMState> shooterFSMSystem;
 
 	private Vision vision;
+	private Drivetrain drivetrain;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -79,7 +83,7 @@ public class Robot extends LoggedRobot {
 
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
-			Drivetrain drivetrain = new Drivetrain();
+			drivetrain = new Drivetrain();
 			drivetrainFSMSystem = drivetrain;
 			if (!AutoBuilder.isConfigured()){
 				AutoBuilder.configure(
@@ -154,6 +158,8 @@ public class Robot extends LoggedRobot {
 		climberFSMSystem = HardwareMap.isClimberEnabled()
 			? new ClimberFSMSystem(intake)
 			: new PlaceholderFSMSystem<>();
+		
+		FollowPathCommand.warmupCommand().schedule();
 
 	}
 
@@ -161,13 +167,19 @@ public class Robot extends LoggedRobot {
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
 
+		// Command path = drivetrain.followcommand("BlueS2_D");
+
+		// if (path != null) {
+		// 	path.schedule();
+		// }
+
 		AutoInput autoInput = new AutoInput();
 		input = autoInput;
 		input.reset();
 		drivetrainFSMSystem.reset();
-		climberFSMSystem.reset();
+		// climberFSMSystem.reset();
 		intakeFSMSystem.reset();
-		shooterFSMSystem.reset();
+		// shooterFSMSystem.reset();
 		if (drivetrainFSMSystem instanceof Drivetrain drive
 			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
 			// && climberFSMSystem instanceof ClimberFSMSystem climber

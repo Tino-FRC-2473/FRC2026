@@ -12,6 +12,7 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -186,7 +187,6 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		pivotMotorRight.setPosition(IntakeConstants.UPPER_TARGET_ANGLE);
 		intakeMotor.setPosition(0);
 
-		/*
 		if (RobotBase.isSimulation()) {
 			intakeSim = new SingleJointedArmSim(DCMotor.getKrakenX60(2),
 				IntakeConstants.INTAKE_PIVOT_GEARING,
@@ -198,7 +198,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				0);
 			simGroundLimitSwitch = new DIOSim(groundLimitSwitch);
 			simTopLimitSwitch = new DIOSim(topLimitSwitch);
-		}*/
+		}
 
 		// Reset state machine
 		reset();
@@ -552,6 +552,15 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		return (getCurrentState() == IntakeFSMState.IDLE_OUT_STATE
 			|| getCurrentState() == IntakeFSMState.INTAKE_STATE
 			|| getCurrentState() == IntakeFSMState.OUTTAKE_STATE);
+	}
+
+
+	/**
+	 * Setter for the intake state. Mainly used for testing to set the state 
+	 * @param state
+	 */
+	public void setIntakeState(IntakeFSMState state) {
+		setCurrentState(state);
 	}
 
 }
