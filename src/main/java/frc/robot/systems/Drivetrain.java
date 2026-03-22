@@ -490,7 +490,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	/**
 	 * Get the maple sim drivetrain.
-	 * 
+	 *
 	 * @return the maple sim swerve drivetrain
 	 */
 	public MapleSimSwerveDrivetrain getSimDrivetrain() {

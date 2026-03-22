@@ -266,7 +266,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Logger.recordOutput("Drive/MeasuredStates", getState().ModuleStates);
         Logger.recordOutput("Drive/MeasuredSpeeds", getState().Speeds);
         if (mapleSimSwerveDrivetrain != null)
-            Logger.recordOutput("Drive/SimulationPose", mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose());
+            Logger.recordOutput("Drive/SimulationPose", mapleSimSwerveDrivetrain.getMapleSimDrive().getSimulatedDriveTrainPose());
     }
 
     private MapleSimSwerveDrivetrain mapleSimSwerveDrivetrain = null;
@@ -294,7 +294,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void resetPose(Pose2d pose) {
-        if (this.mapleSimSwerveDrivetrain != null) mapleSimSwerveDrivetrain.mapleSimDrive.setSimulationWorldPose(pose);
+        if (this.mapleSimSwerveDrivetrain != null) mapleSimSwerveDrivetrain.getMapleSimDrive().setSimulationWorldPose(pose);
         Timer.delay(0.1); // wait for simulation to update
         super.resetPose(pose);
     }
