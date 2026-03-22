@@ -32,6 +32,7 @@ import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
+import frc.robot.Constants.SimConstants;
 
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Meters;
@@ -315,18 +316,18 @@ public class MapleSimSwerveDrivetrain {
 				.withEncoderInverted(false)
 				// Adjust steer motor PID gains for simulation
 				.withSteerMotorGains(new Slot0Configs()
-						.withKP(70)
-						.withKI(0)
-						.withKD(4.5)
-						.withKS(0)
-						.withKV(1.91)
-						.withKA(0)
+						.withKP(SimConstants.STEER_P)
+						.withKI(SimConstants.STEER_I)
+						.withKD(SimConstants.STEER_D)
+						.withKS(SimConstants.STEER_S)
+						.withKV(SimConstants.STEER_V)
+						.withKA(SimConstants.STEER_A)
 						.withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign))
-				.withSteerMotorGearRatio(16.0)
+				.withSteerMotorGearRatio(SimConstants.STEER_MOTOR_GEAR_RATIO)
 				// Adjust friction voltages
-				.withDriveFrictionVoltage(Volts.of(0.1))
-				.withSteerFrictionVoltage(Volts.of(0.05))
+				.withDriveFrictionVoltage(SimConstants.DRIVE_FRICTION_VOLTAGE)
+				.withSteerFrictionVoltage(SimConstants.STEER_FRICTION_VOLTAGE)
 				// Adjust steer inertia
-				.withSteerInertia(KilogramSquareMeters.of(0.05));
+				.withSteerInertia(SimConstants.STEER_INERTIA);
 	}
 }

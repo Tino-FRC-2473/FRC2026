@@ -348,6 +348,13 @@ public class Constants {
 		public static final Voltage STEER_FRICTION_VOLTAGE = Volts.of(0.51);
 		public static final MomentOfInertia STEER_INERTIA = KilogramSquareMeters.of(0.05);
 
+		public static final Distance TRACK_LENGTH = Inches.of(20);
+		public static final Distance TRACK_WIDTH = Inches.of(20);
+		public static final Pose2d SIM_START_POSE1 =
+			new Pose2d(1.5, 1.5, Rotation2d.fromDegrees(0));
+
+		public static final int SWERVE_RATIO = 3;
+
 		/* ================== PhotonSim Camera Properties ==================== */
 		public static final int CAM_FPS = 100;
 		public static final int CAM_RES_WIDTH_PIX = 640;
