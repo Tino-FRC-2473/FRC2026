@@ -9,6 +9,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Frequency;
 import edu.wpi.first.units.measure.MomentOfInertia;
+//import edu.wpi.first.units.measure.Time;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Hertz;
@@ -52,7 +53,8 @@ public class Constants {
 
 		public static final double TRANSLATION_DEADBAND = 0.05;
 		public static final double ROTATION_DEADBAND = 0.05;
-
+		// will move this to sim constants
+		public static final double WAIT_TIMER = 15;
 
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
 		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speed, and so on
