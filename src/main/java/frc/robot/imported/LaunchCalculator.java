@@ -1,4 +1,6 @@
-package frc.robot.util;
+// imported code from mech advantage (editted) for calculating launch numbers
+
+package frc.robot.imported;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
