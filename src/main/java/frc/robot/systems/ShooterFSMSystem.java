@@ -21,11 +21,11 @@ import edu.wpi.first.wpilibj.Timer;
 
 
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.imported.LaunchCalculator;
 import frc.robot.HardwareMap;
 import frc.robot.input.Input;
 // Robot Imports
 import frc.robot.motors.TalonFXWrapper;
-import frc.robot.util.LaunchCalculator;
 // import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 
