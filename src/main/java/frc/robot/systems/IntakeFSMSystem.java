@@ -2,6 +2,7 @@ package frc.robot.systems;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
@@ -13,6 +14,10 @@ import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
@@ -54,6 +59,21 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	private DigitalInput groundLimitSwitch;
 	private DigitalInput topLimitSwitch;
 
+	//instance fields for motor values
+	private final StatusSignal<Angle> pivotMotorLeftPos;
+	private final StatusSignal<Angle> pivotMotorRightPos;
+	private final StatusSignal<AngularVelocity> pivotMotorLeftVel;
+	private final StatusSignal<AngularVelocity> pivotMotorRightVel;
+	private final StatusSignal<AngularAcceleration> pivotMotorLeftAccel;
+	private final StatusSignal<AngularAcceleration> pivotMotorRightAccel;
+	private final StatusSignal<Voltage> pivotMotorLeftVol;
+	private final StatusSignal<Voltage> pivotMotorRightVol;
+	private final StatusSignal<Angle> intakeMotorPos;
+	private final StatusSignal<AngularVelocity> intakeMotorVel;
+	private final StatusSignal<AngularAcceleration> intakeMotorAccel;
+	private final StatusSignal<Voltage> intakeMotorVol;
+	private final StatusSignal<Current> pivotMotorRightCur;
+
 	private Angle posRadians;
 
 
@@ -82,11 +102,29 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		//initialize motors
 		pivotMotorLeft = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_PIVOT_LEFT);
 		pivotMotorRight = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_PIVOT_RIGHT);
+		intakeMotor = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_INTAKE);
+
+		// Set motor positions
+		pivotMotorLeft.setPosition(IntakeConstants.UPPER_TARGET_ANGLE);
+		pivotMotorRight.setPosition(IntakeConstants.UPPER_TARGET_ANGLE);
+		intakeMotor.setPosition(0);
+
+		pivotMotorLeftPos = pivotMotorLeft.getPosition();
+		pivotMotorRightPos = pivotMotorRight.getPosition();
+		pivotMotorLeftVel = pivotMotorLeft.getVelocity();
+		pivotMotorRightVel = pivotMotorRight.getVelocity();
+		pivotMotorLeftAccel = pivotMotorLeft.getAcceleration();
+		pivotMotorRightAccel = pivotMotorRight.getAcceleration();
+		pivotMotorRightCur = pivotMotorRight.getStatorCurrent();
+		pivotMotorLeftVol = pivotMotorLeft.getMotorVoltage();
+		pivotMotorRightVol = pivotMotorRight.getMotorVoltage();
+		intakeMotorPos = intakeMotor.getPosition();
+		intakeMotorVel = intakeMotor.getVelocity();
+		intakeMotorAccel = intakeMotor.getAcceleration();
+		intakeMotorVol = intakeMotor.getMotorVoltage();
 
 		pivotSimState = pivotMotorRight.getSimState();
 
-
-		intakeMotor = new TalonFXWrapper(HardwareMap.CAN_ID_SPARK_INTAKE);
 
 		var talonFXConfigs = new TalonFXConfiguration();
 		var intakeConfigs = new TalonFXConfiguration();
@@ -140,10 +178,10 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				IntakeConstants.UPDATE_FREQUENCY,
-				pivotMotorRight.getPosition(),
-				pivotMotorRight.getVelocity(),
-				pivotMotorRight.getAcceleration(),
-				pivotMotorRight.getMotorVoltage()
+				pivotMotorRightPos,
+				pivotMotorRightVel,
+				pivotMotorRightAccel,
+				pivotMotorRightVol
 		);
 
 		pivotMotorRight.optimizeBusUtilization();
@@ -152,10 +190,10 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				IntakeConstants.UPDATE_FREQUENCY,
-				pivotMotorLeft.getPosition(),
-				pivotMotorLeft.getVelocity(),
-				pivotMotorLeft.getAcceleration(),
-				pivotMotorLeft.getMotorVoltage()
+				pivotMotorLeftPos,
+				pivotMotorLeftVel,
+				pivotMotorLeftAccel,
+				pivotMotorLeftVol
 		);
 
 		pivotMotorLeft.optimizeBusUtilization();
@@ -164,10 +202,10 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				IntakeConstants.UPDATE_FREQUENCY,
-				intakeMotor.getPosition(),
-				intakeMotor.getVelocity(),
-				intakeMotor.getAcceleration(),
-				intakeMotor.getMotorVoltage()
+				intakeMotorPos,
+				intakeMotorVel,
+				intakeMotorAccel,
+				intakeMotorVol
 		);
 
 		intakeMotor.optimizeBusUtilization();
@@ -176,11 +214,6 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		//initialize limit switch
 		groundLimitSwitch = new DigitalInput(HardwareMap.INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT);
 		topLimitSwitch = new DigitalInput(HardwareMap.INTAKE_TOP_LIMIT_SWITCH_DIO_PORT);
-
-		// Set motor positions
-		pivotMotorLeft.setPosition(IntakeConstants.UPPER_TARGET_ANGLE);
-		pivotMotorRight.setPosition(IntakeConstants.UPPER_TARGET_ANGLE);
-		intakeMotor.setPosition(0);
 
 		/*
 		if (RobotBase.isSimulation()) {
@@ -224,6 +257,23 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		if (input == null) {
 			return;
 		}
+
+		BaseStatusSignal.refreshAll(
+			pivotMotorLeftPos,
+			pivotMotorLeftVel,
+			pivotMotorLeftAccel,
+			pivotMotorLeftVol,
+			pivotMotorRightPos,
+			pivotMotorRightVel,
+			pivotMotorRightAccel,
+			pivotMotorRightVol,
+			pivotMotorRightCur,
+			intakeMotorPos,
+			intakeMotorVel,
+			intakeMotorAccel,
+			intakeMotorVol
+		);
+
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
 				handleIdleState(input);
@@ -275,7 +325,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	@AutoLogOutput(key = "Intake/Intake Motor Vel", unit = "rps")
 	public double getIntakeMotorVelocity() {
-		return intakeMotor.getVelocity().getValueAsDouble();
+		return intakeMotorVel.getValueAsDouble();
 	}
 
 	/**
@@ -284,7 +334,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	@AutoLogOutput(key = "Intake/Pivot Motor Vel", unit = "rps")
 	public double getPivotMotorVelocity() {
-		return pivotMotorRight.getVelocity().getValueAsDouble();
+		return pivotMotorRightVel.getValueAsDouble();
 	}
 
 	/**
@@ -293,7 +343,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	@AutoLogOutput(key = "Intake/Pivot Motor Pos", unit = "radians")
 	public double getPivotMotorPos() {
-		return pivotMotorRight.getPosition().getValueAsDouble();
+		return pivotMotorRightPos.getValueAsDouble();
 	}
 
 	/**
@@ -302,7 +352,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	@AutoLogOutput(key = "Intake/Intake Motor Voltage", unit = "volts")
 	public double getIntakeMotorVolatge() {
-		return intakeMotor.getMotorVoltage().getValueAsDouble();
+		return intakeMotorVol.getValueAsDouble();
 	}
 
 	/**
@@ -311,7 +361,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	@AutoLogOutput(key = "Intake/Pivot Motor Left Voltage", unit = "volts")
 	public double getPivotMotorLeftVolatge() {
-		return pivotMotorLeft.getMotorVoltage().getValueAsDouble();
+		return pivotMotorLeftVol.getValueAsDouble();
 	}
 
 	/**
@@ -320,7 +370,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	@AutoLogOutput(key = "Intake/Pivot Motor Right Voltage", unit = "volts")
 	public double getPivotMotorRightVoltage() {
-		return pivotMotorRight.getMotorVoltage().getValueAsDouble();
+		return pivotMotorRightVol.getValueAsDouble();
 	}
 
 	/**
@@ -329,7 +379,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	@AutoLogOutput(key = "Intake/Pivot Motor Right Current", unit = "amps")
 	public double getPivotMotorRightCurrent() {
-		return pivotMotorRight.getStatorCurrent().getValueAsDouble();
+		return pivotMotorRightCur.getValueAsDouble();
 	}
 
 	/**
@@ -464,7 +514,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	private void handlePartialOutState(Input input) {
 		if (Math.abs(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE.in(Rotations)
-			- pivotMotorRight.getPosition().getValueAsDouble()) >= IntakeConstants.PIVOT_BUFFER) {
+			- pivotMotorRightPos.getValue().in(Radians)) >= IntakeConstants.PIVOT_BUFFER) {
 			pivotMotorRight.setControl(pivotMotionRequest.
 				withPosition(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE));
 		} else {
@@ -508,7 +558,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	private boolean isBottomLimitReached() {
 		if (RobotBase.isSimulation()) {
-			return pivotMotorRight.getPosition().getValueAsDouble()
+			return pivotMotorRightPos.getValue().in(Radians)
 				<= IntakeConstants.GROUND_TARGET_ANGLE.in(Radians);
 		}
 
@@ -526,7 +576,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	private boolean isTopLimitReached() {
 		if (RobotBase.isSimulation()) {
-			return pivotMotorRight.getPosition().getValueAsDouble()
+			return pivotMotorRightPos.getValue().in(Radians)
 				>= IntakeConstants.UPPER_TARGET_ANGLE.in(Radians);
 		}
 		return topLimitSwitch.get(); // switch is normally open
