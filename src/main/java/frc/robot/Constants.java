@@ -25,6 +25,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.LinearAcceleration;
@@ -183,9 +184,12 @@ public class Constants {
 			.inchesToMeters(0.75) * Math.PI;
 	}
 	public static final class ShooterConstants {
-		public static final Pose2d OUTPOST_POSE = new Pose2d();
-		public static final Pose2d TARGET3_POSE = new Pose2d();
-		public static final Pose2d HUB_POSE = new Pose2d();
+		public static final Transform3d ROBOT_TO_LAUNCHER =
+				new Transform3d(-0.276, 0.09, 0.599, new Rotation3d(0.0, 0.0, Math.PI));
+
+		public static final Pose2d OUTPOST_POSE = new Pose2d(8.2741742, 2.0346376, new Rotation2d());
+		public static final Pose2d TARGET3_POSE = new Pose2d(8.2741742, 6.0346376, new Rotation2d());
+		public static final Pose2d HUB_POSE = new Pose2d(11.9191774, 4.0346376, new Rotation2d());
 		//public static final double HOOD_GEAR_RATIO = 4;
 		public static final double SPINDEX_GEAR_RATIO = 3;
 		public static final double FLYWHEEL_GEAR_RATIO = 1;
