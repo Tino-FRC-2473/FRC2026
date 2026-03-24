@@ -67,7 +67,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
     private final SwerveRequest.FieldCentric driveFieldCentric = new SwerveRequest.FieldCentric()
             .withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
             .withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond) * DrivetrainConstants.ROTATIONAL_DEADBAND)
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+            .withDriveRequestType(DriveRequestType.Velocity);
 
     private final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
@@ -92,6 +92,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
         drivetrain = TunerConstants.createDrivetrain();
         filter = LinearFilter.singlePoleIIR(0.1, 0.02);
         SmartDashboard.putData(elasticfield);
+        driveFacingAngle.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
 
         RobotConfig config;
         try {
@@ -144,6 +145,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
         Logger.recordOutput("Drivetrain/Target Angle", targetAngle);
         Logger.recordOutput("Drivetrain/Target Angle Pose", getPose().rotateAround(getPose().getTranslation(), Rotation2d.fromRadians(targetAngle)));
+        Logger.recordOutput("Drivetrain/Current State", getCurrentState());
 
         switch (currentState) {
             case TELEOP:
@@ -222,15 +224,28 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
         // targetAngle = MathUtil.angleModulus(rawTarget);
         
         //double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
-    	//double angleError = Math.abs(MathUtil.angleModulus(targetAngle - currentAngle));
+        //double angleError = Math.abs(MathUtil.angleModulus(targetAngle - currentAngle));
         //Logger.recordOutput("Drivetrain/Error", angleError);
-        
-        drivetrain.setControl(
+
+        if (Math.abs(MathUtil.angleModulus(getRotation() - targetAngle + Math.PI/2)) > Math.toRadians(10)) {
+            //System.out.println("aaa");
+            drivetrain.setControl(
                 driveFacingAngle
                         .withTargetDirection(Rotation2d.fromRadians(targetAngle))
-                        .withHeadingPID(2.5, 5, 0)
+                        .withHeadingPID(2, 0, 0.4)
                         .withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
                         .withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
+        } else {
+
+            double thetaSpeed = MathUtil.applyDeadband(
+                input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE), DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+
+            drivetrain.setControl(
+                driveFieldCentric
+                        .withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+                        .withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+                        .withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP));
+        }
     }
 
     private void handleTeleopState(Input input) {
@@ -327,7 +342,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
         return MathUtil.angleModulus(drivetrain.getPigeon2().getRotation2d().getRadians() + Math.PI);
     }
 
-	public Rotation3d getRotation3d() { return drivetrain.getPigeon2().getRotation3d(); }
+    @AutoLogOutput(key = "Drivetrain/Rotation")
+    public double getRotation90() { 
+        return MathUtil.angleModulus(drivetrain.getPigeon2().getRotation2d().getRadians() + Math.PI + Math.PI/2);
+    }
+
+    public Rotation3d getRotation3d() { return drivetrain.getPigeon2().getRotation3d(); }
 
     private boolean hasDriverInput(Input input) {
         return Math.abs(input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X)) > 0.1
@@ -339,23 +359,59 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
         drivetrain.setControl(new SwerveRequest.Idle());
     }
 
-	/**
-	 * Adds a new timestamped vision measurement.
-	 *
-	 * @param visionPoseMeters The pose of the robot in the camera's coordinate
-	 *                         frame
-	 * @param timestampSeconds The timestamp of the measurement
-	 * @param visionStdDevs    The standard deviations of the measurement in the x,
-	 *                         y, and theta directions
-	 */
-	public void addVisionMeasurement(
-			Pose2d visionPoseMeters,
-			double timestampSeconds,
-			Matrix<N3, N1> visionStdDevs) {
-		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(),
-			visionPoseMeters.getY(),
-			visionPoseMeters.getRotation().plus(Rotation2d.k180deg)),
-			timestampSeconds, visionStdDevs);
-		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
-	}
+    
+    @AutoLogOutput(key = "Drivetrain/Swerve/Chassis Speeds")
+    public ChassisSpeeds getChassisSpeeds() {
+        return drivetrain.getState().Speeds;
+    }
+
+    /**
+     * Get the drivetrain swerve states.
+     *
+     * @return the swerve module states
+     */
+    @AutoLogOutput(key = "Drivetrain/Swerve/States")
+    public SwerveModuleState[] getModuleStates() {
+        return drivetrain.getState().ModuleStates;
+    }
+
+    /**
+     * Get the drivetrain swerve targets.
+     *
+     * @return the swerve module targets
+     */
+    @AutoLogOutput(key = "Drivetrain/Swerve/Targets")
+    public SwerveModuleState[] getModuleTargets() {
+        return drivetrain.getState().ModuleTargets;
+    }
+
+    /**
+     * Get the drivetrain swerve positions.
+     *
+     * @return the swerve module positions
+     */
+    @AutoLogOutput(key = "Drivetrain/Swerve/Positions")
+    public SwerveModulePosition[] getModulePositions() {
+        return drivetrain.getState().ModulePositions;
+    }
+
+    /**
+     * Adds a new timestamped vision measurement.
+     *
+     * @param visionPoseMeters The pose of the robot in the camera's coordinate
+     *                         frame
+     * @param timestampSeconds The timestamp of the measurement
+     * @param visionStdDevs    The standard deviations of the measurement in the x,
+     *                         y, and theta directions
+     */
+    public void addVisionMeasurement(
+            Pose2d visionPoseMeters,
+            double timestampSeconds,
+            Matrix<N3, N1> visionStdDevs) {
+        drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(),
+            visionPoseMeters.getY(),
+            visionPoseMeters.getRotation().plus(Rotation2d.k180deg)),
+            timestampSeconds, visionStdDevs);
+        //drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
+    }
 }
