@@ -186,13 +186,13 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void disabledInit() {
 		System.out.println("-------- Disabled Init --------");
+		//Pre-match/Disabled: Use mode 1 to continuously seed the internal IMU with external gyro
+		LimelightHelpers.SetIMUMode(VisionConstants.LIMELIGHT_NAME, VisionConstants.AUTO_IMU_MODE);
 	}
 
 	@Override
 	public void disabledPeriodic() {
 		CommandScheduler.getInstance().cancelAll();
-		//Pre-match/Disabled: Use mode 1 to continuously seed the internal IMU with external gyro
-		LimelightHelpers.SetIMUMode(VisionConstants.LIMELIGHT_NAME, VisionConstants.AUTO_IMU_MODE);
 	}
 
 	@Override
