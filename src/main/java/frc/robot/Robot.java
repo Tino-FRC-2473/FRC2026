@@ -81,7 +81,8 @@ public class Robot extends LoggedRobot {
 				drivetrain::addVisionMeasurement,
 				drivetrain.getDrivetrainRotation(),
 				VisionConstants.LIMELIGHT_NAME,
-				drivetrain
+				drivetrain::getAngularVelocity,
+				drivetrain::getLinearVelocityFromEncoders
 			);
 		} else {
 			drivetrainFSMSystem = new PlaceholderFSMSystem<>();

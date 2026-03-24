@@ -1,5 +1,7 @@
 package frc.robot.systems;
 
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.Matrix;
@@ -7,7 +9,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-
 import frc.robot.Constants.VisionConstants;
 import frc.robot.imported.LimelightHelpers;
 import frc.robot.imported.LimelightHelpers.PoseEstimate;
@@ -16,7 +17,8 @@ public class Vision {
 	private String limelightName;
 	private VisionConsumer visionConsumer;
 	private Rotation3d rotation;
-	private Drivetrain drivetrain;
+	private Supplier<Double> angVSupplier;
+	private Supplier<Double> linVSupplier;
 
 
 	/**
@@ -24,15 +26,17 @@ public class Vision {
 	 * @param consumer The consumer to accept vision observations.
 	 * @param rot The robot's rotation.
 	 * @param limeLightName The name of the Limelight
-	 * @param driv to obtain accessor methods.
+	 * @param angVelSupp to obtain accessor methods.
+	 * @param linVelSupp to obtain accessor methods.
 	 */
 	public Vision(
 		VisionConsumer consumer, Rotation3d rot,
-		String limeLightName, Drivetrain driv) {
+		String limeLightName, Supplier<Double> angVelSupp, Supplier<Double> linVelSupp) {
 		rotation = rot;
 		this.limelightName = limeLightName;
 		visionConsumer = consumer;
-		drivetrain = driv;
+		angVSupplier = angVelSupp;
+		linVSupplier = linVelSupp;
 
 		LimelightHelpers.setLEDMode_PipelineControl(limelightName);
 		LimelightHelpers.SetIMUAssistAlpha(limeLightName, VisionConstants.IMU_ASSIST_ALPHA);
@@ -47,10 +51,27 @@ public class Vision {
 		LimelightHelpers.SetRobotOrientation(
 			limelightName, rotation.getZ(), 0, rotation.getY(), 0, rotation.getX(), 0);
 
+		PoseEstimate selectedEstimate = getMegatagPose();
+
+		if (LimelightHelpers.validPoseEstimate(selectedEstimate) && selectedEstimate != null) {
+			Pose2d pose = selectedEstimate.pose;
+			Logger.recordOutput("Vision/Final Pose", pose);
+
+			if (pose.getX() > 1) {
+				visionConsumer.accept(
+					pose,
+					selectedEstimate.timestampSeconds,
+					VisionConstants.LL4_STDEVS
+				);
+			}
+		}
+	}
+
+	private PoseEstimate getMegatagPose() {
 		// Angular Velocity (deg/s); taken from pigeon
-		double angularVelocity = drivetrain.getAngularVelocity();
+		double angularVelocity = angVSupplier.get();
 		// Linear Velocity (m/s); calculated through motor encoders
-		double linearVelocity = drivetrain.getLinearVelocityFromEncoders();
+		double linearVelocity = linVSupplier.get();
 
 		// 3. Get Estimates (will decide later which one to choose)
 		PoseEstimate mt1Estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
@@ -77,19 +98,7 @@ public class Vision {
 				Logger.recordOutput("Vision/ActiveMethod", "MT2 (Stable Single-Tag)");
 			}
 		}
-
-		if (LimelightHelpers.validPoseEstimate(selectedEstimate) && selectedEstimate != null) {
-			Pose2d pose = selectedEstimate.pose;
-			Logger.recordOutput("Vision/Final Pose", pose);
-
-			if (pose.getX() > 1) {
-				visionConsumer.accept(
-					pose,
-					selectedEstimate.timestampSeconds,
-					VisionConstants.LL4_STDEVS
-				);
-			}
-		}
+		return selectedEstimate;
 	}
 
 
