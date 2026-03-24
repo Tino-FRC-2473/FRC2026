@@ -8,6 +8,8 @@ import frc.robot.HardwareMap;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.input.Input;
 
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.AutoLogOutput;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -38,13 +40,13 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 	private TalonFXWrapper conveyorMotor;
 	private MotionMagicVelocityVoltage conveyorMotionRequest;
 
-	private final IntakeFSMSystem intake;
-	private final ShooterFSMSystem shooter;
-
 	private final StatusSignal<Angle> conveyorMotorPos;
 	private final StatusSignal<AngularVelocity> conveyorMotorVel;
 	private final StatusSignal<AngularAcceleration> conveyorMotorAccel;
 	private final StatusSignal<Voltage> conveyorMotorVol;
+
+	private Supplier<Boolean> isOuttaking;
+	private Supplier<Boolean> isShooting;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -52,12 +54,14 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 *
-	 * @param intakeSystem  is the intake fsm system
-	 * @param shooterSystem is the shooter fsm system
+	 * @param isIntakeOuttaking  is the supplier for whether the intake is outtaking.
+	 * @param isShooterShooting is the supplier for whether shooting.
 	 */
-	public AgitatorFSMSystem(IntakeFSMSystem intakeSystem, ShooterFSMSystem shooterSystem) {
-		intake = intakeSystem;
-		shooter = shooterSystem;
+	public AgitatorFSMSystem(Supplier<Boolean> isIntakeOuttaking,
+		Supplier<Boolean> isShooterShooting) {
+
+		isOuttaking = isIntakeOuttaking;
+		isShooting = isShooterShooting;
 
 		var talonFXConfigs = new TalonFXConfiguration();
 
@@ -161,15 +165,19 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 			case SHOOT_CONVEYOR:
 				if (isIntakeOuttaking() && !isShooterFeeding()) {
 					return AgitatorFSMState.OUTTAKE_CONVEYOR;
-				} else {
+				} else if (!isIntakeOuttaking() && !isShooterFeeding()) {
 					return AgitatorFSMState.IDLE;
+				} else {
+					return AgitatorFSMState.SHOOT_CONVEYOR;
 				}
 
 			case OUTTAKE_CONVEYOR:
 				if (isShooterFeeding() && !isIntakeOuttaking()) {
 					return AgitatorFSMState.SHOOT_CONVEYOR;
-				} else {
+				} else if (!isIntakeOuttaking() && !isShooterFeeding()) {
 					return AgitatorFSMState.IDLE;
+				} else {
+					return AgitatorFSMState.OUTTAKE_CONVEYOR;
 				}
 
 			default:
@@ -180,15 +188,15 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 	//Second level getters to ensure that intake and shooter are not null
 
 	private boolean isIntakeOuttaking() {
-		if (intake != null) {
-			return intake.getIsIntakeOuttaking();
+		if (isOuttaking != null) {
+			return isOuttaking.get();
 		}
 		return false;
 	}
 
 	private boolean isShooterFeeding() {
-		if (intake != null) {
-			return shooter.getIsFeeding();
+		if (isShooting != null) {
+			return isShooting.get();
 		}
 		return false;
 	}

@@ -114,9 +114,10 @@ public class Robot extends LoggedRobot {
 		if (HardwareMap.isAgitatorEnabled()) {
 			agitator = Optional.of(
 				new AgitatorFSMSystem(
-					(IntakeFSMSystem) intakeFSMSystem,
-					(ShooterFSMSystem) shooterFSMSystem)
-				);
+					intake.isPresent() ? intake.get()::getIsIntakeOuttaking : null,
+					shooter.isPresent() ? shooter.get()::getIsFeeding : null
+				)
+			);
 			agitatorFSMSystem = agitator.get();
 		} else {
 			agitatorFSMSystem = new PlaceholderFSMSystem<>();
