@@ -53,7 +53,7 @@ public class Vision {
 
 		PoseEstimate selectedEstimate = getMegatagPose();
 
-		if (LimelightHelpers.validPoseEstimate(selectedEstimate) && selectedEstimate != null) {
+		if (checkIfValidPose(selectedEstimate)) {
 			Pose2d pose = selectedEstimate.pose;
 			Logger.recordOutput("Vision/Final Pose", pose);
 
