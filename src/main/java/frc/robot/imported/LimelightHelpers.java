@@ -1111,7 +1111,21 @@ public class LimelightHelpers {
     }
 
     public static Boolean validPoseEstimate(PoseEstimate pose) {
-        return pose != null && pose.rawFiducials != null && pose.rawFiducials.length != 0;
+        if  (pose != null && pose.rawFiducials != null && pose.rawFiducials.length != 0) {
+            return false;
+        }
+        // 2. Field Boundary Check 
+        // FRC Field is approx 17.5m x 8.0m. 
+        double x = pose.pose.getX();
+        double y = pose.pose.getY();
+
+        // Check if the X and Y are within the physical field limits (+ buffer)
+        boolean inBounds = (x > -0.5 && x < 18.0) && (y > -0.5 && y < 8.5);
+
+        if (!inBounds) {
+            return false;
+        }
+        return true;
     }
 
     public static NetworkTable getLimelightNTTable(String tableName) {
