@@ -22,7 +22,6 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 
 
@@ -95,7 +94,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		outpostPose = ShooterConstants.OUTPOST_POSE;
 		target3Pose = ShooterConstants.TARGET3_POSE;
 		hubPose = ShooterConstants.HUB_POSE;
-
 		flywheelRequest = new MotionMagicVelocityVoltage(0);
 		feederRequest = new MotionMagicVelocityVoltage(0);
 		flywheelMotor = new TalonFXWrapper(
@@ -117,8 +115,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feederMotorAccel = feederMotor.getAcceleration();
 		flywheelMotorVol = flywheelMotor.getMotorVoltage();
 		feederMotorVol = feederMotor.getMotorVoltage();
-		// spindexMotor = new SparkMax(HardwareMap.CAN_ID_SPINDEXER,
-		// 	MotorType.kBrushless);
 
 		var limitConfigs = new CurrentLimitsConfigs();
 
