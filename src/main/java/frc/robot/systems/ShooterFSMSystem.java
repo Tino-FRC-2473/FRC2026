@@ -3,6 +3,7 @@ package frc.robot.systems;
 import org.littletonrobotics.junction.Logger;
 // Third party Hardware Imports
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
@@ -17,7 +18,10 @@ import edu.wpi.first.units.AngularVelocityUnit;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import edu.wpi.first.units.Measure;
-import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Timer;
 
 
@@ -70,6 +74,15 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private boolean noFuelStored = false;
 	private boolean flywheelMotorStopped = false;
 
+	private final StatusSignal<Angle> feederMotorPos;
+	private final StatusSignal<Angle> flywheelMotorPos;
+	private final StatusSignal<AngularVelocity> feederMotorVel;
+	private final StatusSignal<AngularVelocity> flywheelMotorVel;
+	private final StatusSignal<AngularAcceleration> feederMotorAccel;
+	private final StatusSignal<AngularAcceleration> flywheelMotorAccel;
+	private final StatusSignal<Voltage> feederMotorVol;
+	private final StatusSignal<Voltage> flywheelMotorVol;
+
 	/* ======================== Constructor ======================== */
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
@@ -81,7 +94,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		outpostPose = ShooterConstants.OUTPOST_POSE;
 		target3Pose = ShooterConstants.TARGET3_POSE;
 		hubPose = ShooterConstants.HUB_POSE;
-
 		flywheelRequest = new MotionMagicVelocityVoltage(0);
 		feederRequest = new MotionMagicVelocityVoltage(0);
 		flywheelMotor = new TalonFXWrapper(
@@ -93,6 +105,16 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feederMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_FEEDER
 		);
+
+
+		flywheelMotorPos = flywheelMotor.getPosition();
+		feederMotorPos = feederMotor.getPosition();
+		flywheelMotorVel = flywheelMotor.getVelocity();
+		feederMotorVel = feederMotor.getVelocity();
+		flywheelMotorAccel = flywheelMotor.getAcceleration();
+		feederMotorAccel = feederMotor.getAcceleration();
+		flywheelMotorVol = flywheelMotor.getMotorVoltage();
+		feederMotorVol = feederMotor.getMotorVoltage();
 
 		var limitConfigs = new CurrentLimitsConfigs();
 
@@ -186,22 +208,18 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				ShooterConstants.UPDATE_FREQUENCY_HZ,
-				feederMotor.getPosition(),
-				feederMotor.getVelocity(),
-				feederMotor.getAcceleration(),
-				feederMotor.getMotorVoltage(),
-				feederMotor.getRotorPosition(),
-				feederMotor.getRotorVelocity()
+				feederMotorPos,
+				feederMotorVel,
+				feederMotorAccel,
+				feederMotorVol
 		);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				ShooterConstants.UPDATE_FREQUENCY_HZ,
-				flywheelMotor.getPosition(),
-				flywheelMotor.getVelocity(),
-				flywheelMotor.getAcceleration(),
-				flywheelMotor.getMotorVoltage(),
-				flywheelMotor.getRotorPosition(),
-				flywheelMotor.getRotorVelocity()
+				flywheelMotorPos,
+				flywheelMotorVel,
+				flywheelMotorAccel,
+				flywheelMotorVol
 		);
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
@@ -282,6 +300,18 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		if (drivetrain != null) {
 			curPose = drivetrain.getPose();
 		}
+
+		BaseStatusSignal.refreshAll(
+			feederMotorPos,
+			feederMotorVel,
+			feederMotorAccel,
+			feederMotorVol,
+			flywheelMotorPos,
+			flywheelMotorVel,
+			flywheelMotorAccel,
+			flywheelMotorVol
+		);
+
 		if (getCurrentState() != null) {
 			switch (getCurrentState()) {
 				case IDLE_STATE:
@@ -310,8 +340,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			}
 		}
 		Logger.recordOutput("Shooter/Shooter State", getCurrentState());
-		if (flywheelMotor.getVelocity() != null) {
-			double curSpeed = flywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
+		if (flywheelMotorVel != null) {
+			double curSpeed = flywheelMotorVel.getValue().in(RotationsPerSecond);
 			flywheelSpeed = RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
 			Logger.recordOutput("Shooter/Actual Motor 1 Speed",
 				flywheelSpeed.in(RotationsPerSecond));
