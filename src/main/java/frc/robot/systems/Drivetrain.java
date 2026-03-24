@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;
 import static frc.robot.imported.FieldConstants.TAG_LAYOUT;
+import static frc.robot.Constants.DrivetrainConstants.BLUE_HUB_POSE;
 
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -42,9 +43,9 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ModuleConstants;
-import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
+import frc.robot.imported.geom.AllianceFlipUtil;
 import frc.robot.input.Input;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.input.InputTypes.AxialInput;
@@ -477,11 +478,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	/**
-	 * Returns the target rotation needed given a target pose
-	 * @param targetPose the target pose 
+	 * Returns the target rotation needed given a target pose.
+	 * @param target the target pose
 	 * @return the rotation
 	 */
-	public Rotation2D getTargetHub(Pose2D target) {
+	public Rotation2d getTargetHub(Pose2d target) {
 		// Pose2d transformPose = getPose().relativeTo(ShooterConstants.HUB_POSE);
 		Transform2d distance = target.minus(getPose());
 		return Rotation2d.fromRadians(Math.atan2(distance.getY(), distance.getX()) + 90);
