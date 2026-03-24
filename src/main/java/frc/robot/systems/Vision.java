@@ -9,7 +9,6 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 
 import frc.robot.Constants.VisionConstants;
-import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.imported.LimelightHelpers;
 import frc.robot.imported.LimelightHelpers.PoseEstimate;
 
@@ -25,6 +24,7 @@ public class Vision {
 	 * @param consumer The consumer to accept vision observations.
 	 * @param rot The robot's rotation.
 	 * @param limeLightName The name of the Limelight
+	 * @param driv to obtain accessor methods.
 	 */
 	public Vision(
 		VisionConsumer consumer, Rotation3d rot,
