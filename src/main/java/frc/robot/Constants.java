@@ -219,7 +219,7 @@ public class Constants {
 		// public static final Angle HOOD_MOE = Degrees.of(0.1);
 		//margin of error, subject to change
 
-		public static final AngularVelocity FLYWHEEL_MAX_SPEED = RotationsPerSecond.of(160);
+		public static final AngularVelocity FLYWHEEL_MAX_SPEED = RotationsPerSecond.of(100);
 
 		public static final double FLYWHEEL_MM_CONSTANT_S = 0; // 0.1;
 		//need to test by recording small amount of input that allows any movement at all
@@ -231,7 +231,7 @@ public class Constants {
 		// public static final Angle HOOD_INCREMENTER = Degrees.of(5);
 		public static final Angle HOOD_ANGLE = Degrees.of(30); //from vertical
 
-		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(10);
+		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(5);
 		public static final Angle FLYWHEEL_MAX_DEGREES = Degrees.of(360);
 
 		public static final double FEEDER_MM_CONSTANT_S = 0.1;
@@ -241,8 +241,8 @@ public class Constants {
 		public static final double FEEDER_CONSTANT_SPEED = 20;
 
 		//All of these are placeholder values, all need to be changed
-		public static final double FLYWHEEL_MM_CONSTANT_P = 0.8;
-		public static final double FLYWHEEL_MM_CONSTANT_I = 0.02;
+		public static final double FLYWHEEL_MM_CONSTANT_P = 0.5;
+		public static final double FLYWHEEL_MM_CONSTANT_I = 0;
 		public static final double FLYWHEEL_MM_CONSTANT_D = 0;
 		// public static final double HOOD_MM_CONSTANT_P = 0;
 		// public static final double HOOD_MM_CONSTANT_I = 0;
