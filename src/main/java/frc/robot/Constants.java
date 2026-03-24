@@ -50,6 +50,10 @@ public class Constants {
 		public static final int NUM_MODULES = 4;
 		public static final double SYS_ID_VOLT_DAMP = 6;
 
+		//for accessor method and conversion
+		public static final double DRIVETRAIN_MOTOR_GEARING = 6.75;
+		public static final double METERS_TO_INCHES = 0.1016;
+
 		public static final double TRANSLATION_DEADBAND = 0.05;
 		public static final double ROTATION_DEADBAND = 0.05;
 

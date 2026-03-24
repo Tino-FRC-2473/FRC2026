@@ -50,7 +50,6 @@ import frc.robot.input.Input;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.input.InputTypes.AxialInput;
 
-
 import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;;
 
 
@@ -298,16 +297,17 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	public double getLinearVelocityFromEncoders() {
 		// 1. Calculate conversion (Wheel Circ / Gear Ratio)
-		double conversion = (Math.PI * 0.1016) / 6.75;
+		double conversion = (Math.PI * DrivetrainConstants.METERS_TO_INCHES)
+			/ DrivetrainConstants.DRIVETRAIN_MOTOR_GEARING;
 
 		// 2. Get speeds from all 4 drive motors (Rotations per Second)
 		double fl = drivetrain.getModule(0).getEncoder().getVelocity().getValueAsDouble();
 		double fr = drivetrain.getModule(1).getEncoder().getVelocity().getValueAsDouble();
 		double bl = drivetrain.getModule(2).getEncoder().getVelocity().getValueAsDouble();
-		double br = drivetrain.getModule(3).getEncoder().getVelocity().getValueAsDouble();
+		double br = drivetrain.getModule(2 + 1).getEncoder().getVelocity().getValueAsDouble();
 
 		// 3. Average the motor speeds and convert to m/s
-		double avgMotorSpeed = (fl + fr + bl + br) / 4;
+		double avgMotorSpeed = (fl + fr + bl + br) / (2 + 2);
 
 		return Math.abs(avgMotorSpeed * conversion);
 	}
