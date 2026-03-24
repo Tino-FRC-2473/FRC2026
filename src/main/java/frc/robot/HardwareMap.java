@@ -16,7 +16,7 @@ public final class HardwareMap {
 
 	//values TBD
 	public static final int CAN_ID_FLYWHEEL1 = 2;
-	public static final int CAN_ID_FLYWHEEL2 = 0; //MUST BE CHANGED
+	public static final int CAN_ID_FLYWHEEL2 = 5; //MUST BE CHANGED
 	public static final int CAN_ID_FEEDER = 3;
 	public static final int CAN_ID_SPINDEXER = 4;
 
