@@ -277,7 +277,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 */
 	public boolean flywheel2AtSpeed() {
 		double fly2Difference =
-			-flywheelTargetSpeed.in(RotationsPerSecond)
+			flywheelTargetSpeed.in(RotationsPerSecond)
 			- secondFlywheelSpeed.in(RotationsPerSecond);
 		return (
 			Math.abs(fly2Difference) <= ShooterConstants.FLYWHEEL_MOE.in(RotationsPerSecond)
