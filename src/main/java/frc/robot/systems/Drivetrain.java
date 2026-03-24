@@ -45,6 +45,7 @@ import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
+import frc.robot.imported.LaunchCalculator;
 import frc.robot.input.Input;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.input.InputTypes.AxialInput;
@@ -398,8 +399,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		if (input.getButtonValue(ButtonInput.FACE_HUB)) {
-			Transform2d distance = getPose().minus(hubPose);
-			double angle = Math.atan2(distance.getY(), distance.getX());
+			double angle = LaunchCalculator.getInstance()
+				.getParameters(getPose(), getChassisSpeeds(), hubPose.getTranslation(), false)
+				.driveAngle().getRadians();
 			drivetrain.setControl(
 				driveFacingAngle
 					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
@@ -449,8 +451,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				}
 			}
 
-			Transform2d distance = getPose().minus(correctTarget);
-			double angle = Math.atan2(distance.getY(), distance.getX());
+			double angle = LaunchCalculator.getInstance()
+				.getParameters(getPose(), getChassisSpeeds(), correctTarget.getTranslation(), true)
+				.driveAngle().getRadians();
 
 			drivetrain.setControl(
 				driveFacingAngle
