@@ -5,8 +5,10 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -230,6 +232,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		secondFlywheelMotor.optimizeBusUtilization();
 
 		breakBeam = new DigitalInput(HardwareMap.STORAGE_BREAK_BEAM_DIO_PORT);
+
+		secondFlywheelMotor.setControl(new Follower(flywheelMotor.getDeviceID(),
+			MotorAlignmentValue.Opposed));
 		reset();
 	}
 	/**
@@ -272,7 +277,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 */
 	public boolean flywheel2AtSpeed() {
 		double fly2Difference =
-			flywheelTargetSpeed.in(RotationsPerSecond) - secondFlywheelSpeed.in(RotationsPerSecond);
+			-flywheelTargetSpeed.in(RotationsPerSecond)
+			- secondFlywheelSpeed.in(RotationsPerSecond);
 		return (
 			Math.abs(fly2Difference) <= ShooterConstants.FLYWHEEL_MOE.in(RotationsPerSecond)
 			);
@@ -337,12 +343,12 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 			double curSpeed = secondFlywheelMotor.getVelocity().getValue().in(RotationsPerSecond);
 			secondFlywheelSpeed =
 				RotationsPerSecond.of(curSpeed * ShooterConstants.FLYWHEEL_GEAR_RATIO);
-			Logger.recordOutput("Shooter/Actual Motor 1 Speed",
+			Logger.recordOutput("Shooter/Actual Motor 2 Speed",
 				secondFlywheelSpeed.in(RotationsPerSecond));
 			if (secondFlywheelSpeed.in(RotationsPerSecond) <= 1) {
-				Logger.recordOutput("Shooter/Flywheel 1 at speed?", false);
+				Logger.recordOutput("Shooter/Flywheel 2 at speed?", false);
 			} else {
-				Logger.recordOutput("Shooter/Flywheel 1 at speed?", flywheel2AtSpeed());
+				Logger.recordOutput("Shooter/Flywheel 2 at speed?", flywheel2AtSpeed());
 			}
 		}
 		setCurrentState(nextState(input));
@@ -652,8 +658,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private void updateFlywheel() {
 		Logger.recordOutput("Flywheel Target Speed", flywheelTargetSpeed);
 		flywheelMotor.setControl(flywheelRequest.withVelocity(
-			flywheelTargetSpeed.in(RotationsPerSecond)));
-		secondFlywheelMotor.setControl(secondFlywheelRequest.withVelocity(
 			flywheelTargetSpeed.in(RotationsPerSecond)));
 
 	}
