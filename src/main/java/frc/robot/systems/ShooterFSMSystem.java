@@ -12,7 +12,6 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.AngularVelocityUnit;
 
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -57,26 +56,19 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	private TalonFXWrapper flywheelMotor;
 	private TalonFXWrapper secondFlywheelMotor;
 	private TalonFXWrapper feederMotor;
-	//private SparkMax spindexMotor;
 	private Measure<AngularVelocityUnit> flywheelSpeed; //Units.RotationsPerSecond
 	private Measure<AngularVelocityUnit> secondFlywheelSpeed; //Units.RotationsPerSecond
 	private Measure<AngularVelocityUnit> flywheelTargetSpeed; //Units.RotationsPerSecond
-	private Measure<AngleUnit> hoodAngle; //Units.Degrees
 	private ShooterFSMState pastState;
 	private TalonFXConfiguration flywheelConfigs;
 	private TalonFXConfiguration feederConfigs;
 	private TalonFXConfiguration secondFlywheelConfigs;
 	private Drivetrain drivetrain;
-	private MotionMagicVelocityVoltage secondFlywheelRequest;
 	private MotionMagicVelocityVoltage flywheelRequest;
 	private MotionMagicVelocityVoltage feederRequest;
-	private IntakeFSMSystem intake;
-	private DigitalInput breakBeam;
 	private Timer feedTimer = new Timer();
-	private Timer spindexTimer = new Timer();
 	private boolean noFuelStored = false;
 	private boolean flywheelMotorStopped = false;
-	private double spindexVoltage; //Volts
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -85,17 +77,13 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * the constructor is called only once when the robot boots.
 	 */
 	public ShooterFSMSystem() {
-		//spindexTimer.start();
-		//spindexVoltage = ShooterConstants.SPINDEX_CONSTANT_VOLTAGE; //Volts
 		curPose = new Pose2d();
 		outpostPose = ShooterConstants.OUTPOST_POSE;
 		target3Pose = ShooterConstants.TARGET3_POSE;
 		hubPose = ShooterConstants.HUB_POSE;
-		hoodAngle = ShooterConstants.HOOD_ANGLE;
 
 		flywheelRequest = new MotionMagicVelocityVoltage(0);
 		feederRequest = new MotionMagicVelocityVoltage(0);
-		secondFlywheelRequest = new MotionMagicVelocityVoltage(0);
 		flywheelMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_FLYWHEEL1
 		);
@@ -105,8 +93,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feederMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_FEEDER
 		);
-		// spindexMotor = new SparkMax(HardwareMap.CAN_ID_SPINDEXER,
-		// 	MotorType.kBrushless);
 
 		var limitConfigs = new CurrentLimitsConfigs();
 
@@ -231,8 +217,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		flywheelMotor.optimizeBusUtilization();
 		secondFlywheelMotor.optimizeBusUtilization();
 
-		breakBeam = new DigitalInput(HardwareMap.STORAGE_BREAK_BEAM_DIO_PORT);
-
 		secondFlywheelMotor.setControl(new Follower(flywheelMotor.getDeviceID(),
 			MotorAlignmentValue.Opposed));
 		reset();
@@ -244,15 +228,13 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * passes in the drivetrain to continuously update poses for shooter_prep
 	 * and passer_prep.
 	 * @param driveSystem The drive system to be used by our bot
-	 * @param intakeSystem The intake system to be used by our bot
 	 */
-	public ShooterFSMSystem(Drivetrain driveSystem, IntakeFSMSystem intakeSystem) {
+	public ShooterFSMSystem(Drivetrain driveSystem) {
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
 		this();
 		drivetrain = driveSystem;
 		curPose = drivetrain.getPose();
-		intake = intakeSystem;
 	}
 
 	/* ======================== Public methods ======================== */
