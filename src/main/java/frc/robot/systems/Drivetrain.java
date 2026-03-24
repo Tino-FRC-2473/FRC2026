@@ -477,6 +477,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
 	}
 
+	private static final double NINTY = 90;
+
 	/**
 	 * Returns the target rotation needed given a target pose.
 	 * @param target the target pose
@@ -485,7 +487,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public Rotation2d getTargetHub(Pose2d target) {
 		// Pose2d transformPose = getPose().relativeTo(ShooterConstants.HUB_POSE);
 		Transform2d distance = target.minus(getPose());
-		return Rotation2d.fromRadians(Math.atan2(distance.getY(), distance.getX()) + 90);
+		return Rotation2d.fromRadians(Math.atan2(distance.getY(), distance.getX()) + NINTY);
 	}
 
 	/**
