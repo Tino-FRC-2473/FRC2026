@@ -99,8 +99,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		SmartDashboard.putData(CommandScheduler.getInstance());
 		SmartDashboard.putData(simulatedField);
 
-		//System.out.println(DriverStation.getAlliance());
-
 
 		RobotConfig config;
 		try {
@@ -114,11 +112,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		// Configure AutoBuilder last
 		AutoBuilder.configure(
 			this::getPose, // Robot pose supplier
-			drivetrain::resetPose, /*Method to reset odometry
-			(will be called if your auto has a starting pose) */
+			// Method to reset odometry (will be called if your auto has a starting pose)
+			drivetrain::resetPose,
 			() -> {
 				return drivetrain.getState().Speeds;
-			}, /*ChassisSpeeds supplier. MUST BE ROBOT RELATIVE */
+			}, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
 			(speeds, feedforwards) -> {
 
 				ChassisSpeeds speedINeedThis = new ChassisSpeeds(
@@ -201,10 +199,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return DrivetrainState.CONTROLLED;
 		}
 
-		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_INVERT_CONTROLS)) {
-			invertControls = !invertControls;
-		}
-
 		switch (currentState) {
 			case AUTONOMOUS:
 				if (hasDriverInput(input)) {
@@ -235,8 +229,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 						DrivetrainConstants.getTagToAlignTo()).orElse(null).toPose2d();
 
 					Transform2d offsetTransform = new Transform2d(
-							-DrivetrainConstants.X_TAG_OFFSET, // Back to Front
-							DrivetrainConstants.Y_TAG_OFFSET, // Side to Side
+							-DrivetrainConstants.X_TAG_OFFSET,
+							DrivetrainConstants.Y_TAG_OFFSET,
 							Rotation2d.kZero);
 
 					startPathfinding(test.transformBy(offsetTransform));
@@ -258,6 +252,50 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				);
 		}
 	}
+
+	/**
+	 * Adds a new timestamped vision measurement.
+	 *
+	 * @param visionPoseMeters The pose of the robot in the camera's coordinate
+	 *                         frame
+	 * @param timestampSeconds The timestamp of the measurement
+	 * @param visionStdDevs    The standard deviations of the measurement in the x,
+	 *                         y, and theta directions
+	 */
+	public void addVisionMeasurement(
+			Pose2d visionPoseMeters,
+			double timestampSeconds,
+			Matrix<N3, N1> visionStdDevs) {
+		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(),
+			visionPoseMeters.getY(),
+			visionPoseMeters.getRotation().plus(Rotation2d.k180deg)),
+			timestampSeconds, visionStdDevs);
+		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
+	}
+
+	/**
+	 * Returns the target rotation needed given a target pose.
+	 * @param target the target pose
+	 * @return the rotation
+	 */
+	public Rotation2d getTargetHub(Pose2d target) {
+		Transform2d distance = target.minus(getPose());
+		return Rotation2d.fromRadians(Math.atan2(distance.getY(), distance.getX()))
+				.rotateBy(Rotation2d.kCCW_90deg);
+	}
+
+	/**
+	 * Aligns the bot to target the passing target.
+	 * @param targetPose the target passing pose
+	 */
+	public void targetPassZone(Pose2d targetPose) {
+		//toggleNumber = 1 for outpost, toggleNumber = 2 for other mirrored pose, etc
+		//TODO: Code to be finished in a seperate branch
+		Pose2d transformPose = getPose().relativeTo(targetPose);
+		//TODO: Code to be implemented differently later
+	}
+
+	/* ======================== Getset methods ======================== */
 
 	/**
 	 * Get the drivetrain pose.
@@ -319,6 +357,16 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return drivetrain.getState().ModulePositions;
 	}
 
+	/**
+	 * Get the current state of the Drivetrain subsystem.
+	 *
+	 * @return current state of the drivetrain
+	 */
+	@AutoLogOutput(key = "Drivetrain/Current State")
+	public DrivetrainState getCurrentState() {
+		return currentState;
+	}
+
 	/* ======================== Private methods ======================== */
 
 	private void stop() {
@@ -341,6 +389,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private void handleTeleopState(Input input) {
 		if (input == null) {
 			return;
+		}
+
+		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_INVERT_CONTROLS)) {
+			invertControls = !invertControls;
 		}
 
 		currentHubPose = AllianceFlipUtil.apply(BLUE_HUB_POSE);
@@ -443,58 +495,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 			);
 		}
-	}
-
-	/**
-	 * Get the current state of the Drivetrain subsystem.
-	 *
-	 * @return current state of the drivetrain
-	 */
-	//@AutoLogOutput(key = "Drivetrain/Current State")
-	public DrivetrainState getCurrentState() {
-		return currentState;
-	}
-
-	/**
-	 * Adds a new timestamped vision measurement.
-	 *
-	 * @param visionPoseMeters The pose of the robot in the camera's coordinate
-	 *                         frame
-	 * @param timestampSeconds The timestamp of the measurement
-	 * @param visionStdDevs    The standard deviations of the measurement in the x,
-	 *                         y, and theta directions
-	 */
-	public void addVisionMeasurement(
-			Pose2d visionPoseMeters,
-			double timestampSeconds,
-			Matrix<N3, N1> visionStdDevs) {
-		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(),
-			visionPoseMeters.getY(),
-			visionPoseMeters.getRotation().plus(Rotation2d.k180deg)),
-			timestampSeconds, visionStdDevs);
-		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
-	}
-
-	/**
-	 * Returns the target rotation needed given a target pose.
-	 * @param target the target pose
-	 * @return the rotation
-	 */
-	public Rotation2d getTargetHub(Pose2d target) {
-		Transform2d distance = target.minus(getPose());
-		return Rotation2d.fromRadians(Math.atan2(distance.getY(), distance.getX()))
-				.rotateBy(Rotation2d.kCCW_90deg);
-	}
-
-	/**
-	 * Aligns the bot to target the passing target.
-	 * @param targetPose the target passing pose
-	 */
-	public void targetPassZone(Pose2d targetPose) {
-		//toggleNumber = 1 for outpost, toggleNumber = 2 for other mirrored pose, etc
-		//TODO: Code to be finished in a seperate branch
-		Pose2d transformPose = getPose().relativeTo(targetPose);
-		//TODO: Code to be implemented differently later
 	}
 
 	private boolean hasDriverInput(Input input) {
