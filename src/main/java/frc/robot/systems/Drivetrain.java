@@ -10,6 +10,9 @@ import static frc.robot.Constants.DrivetrainConstants.ROTATIONAL_DEADBAND;
 import static frc.robot.Constants.DrivetrainConstants.TRANSLATIONAL_DEADBAND;
 import static frc.robot.imported.FieldConstants.TAG_LAYOUT;
 
+import java.io.IOException;
+
+import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -97,7 +100,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/**
 	 * Construct the drivetrain subsystem.
 	 */
-	public Drivetrain() {
+	public Drivetrain() throws IOException, ParseException {
 		drivetrain = TunerConstants.createDrivetrain();
 		//updateLimelightYaw();
 
@@ -105,14 +108,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		SmartDashboard.putData(simulatedField);
 
 
-		RobotConfig config;
-		try {
-			config = RobotConfig.fromGUISettings();
-		} catch (Exception e) {
-			// Handle exception as needed
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+		RobotConfig config = RobotConfig.fromGUISettings();
 
 		// Configure AutoBuilder last
 		AutoBuilder.configure(
