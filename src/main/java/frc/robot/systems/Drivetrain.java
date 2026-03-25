@@ -2,6 +2,7 @@ package frc.robot.systems;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static frc.robot.Constants.DrivetrainConstants.BLUE_ALLIANCE_TAG_26;
 import static frc.robot.Constants.DrivetrainConstants.BLUE_HUB_POSE;
 import static frc.robot.Constants.DrivetrainConstants.BLUE_OUTPOST_POSE;
 import static frc.robot.Constants.DrivetrainConstants.BLUE_TARGET3_POSE;
@@ -14,6 +15,7 @@ import static frc.robot.Constants.DrivetrainConstants.FACE_PASS_P;
 import static frc.robot.Constants.DrivetrainConstants.MAX_ANGULAR_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.MAX_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;
+import static frc.robot.Constants.DrivetrainConstants.RED_ALLIANCE_TAG_10;
 import static frc.robot.Constants.DrivetrainConstants.RED_OUTPOST_POSE;
 import static frc.robot.Constants.DrivetrainConstants.RED_TARGET3_POSE;
 import static frc.robot.Constants.DrivetrainConstants.ROTATIONAL_DAMP;
@@ -46,9 +48,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N10;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.numbers.N6;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -177,16 +177,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
 					if (alliance == null) {
 						if (isRedAlliance()) {
-							alignmentTargetTag = N10.instance.getNum();
+							alignmentTargetTag = RED_ALLIANCE_TAG_10;
 							System.out.println("RED ALLIANCE TAG 10");
 						} else {
-							alignmentTargetTag = N10.instance.getNum()
-									+ N10.instance.getNum()
-									+ N6.instance.getNum();
+							alignmentTargetTag = BLUE_ALLIANCE_TAG_26;
 							System.out.println("BLUE ALLIANCE TAG 26");
 						}
 					} else {
-						alignmentTargetTag = N10.instance.getNum();
+						alignmentTargetTag = RED_ALLIANCE_TAG_10;
 						System.out.println("Defaulting to red. Good luck");
 					}
 

@@ -77,6 +77,9 @@ public class Constants {
 			Voltage.ofBaseUnits(12, Volts)
 		);
 
+		public static final int RED_ALLIANCE_TAG_10 = 10;
+		public static final int BLUE_ALLIANCE_TAG_26 = 26;
+
 		public static final double X_TAG_OFFSET = 1;
 		public static final double Y_TAG_OFFSET = 0;
 
