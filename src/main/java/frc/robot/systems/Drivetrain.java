@@ -3,11 +3,21 @@ package frc.robot.systems;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static frc.robot.Constants.DrivetrainConstants.BLUE_HUB_POSE;
+import static frc.robot.Constants.DrivetrainConstants.BLUE_OUTPOST_POSE;
+import static frc.robot.Constants.DrivetrainConstants.BLUE_TARGET3_POSE;
 import static frc.robot.Constants.DrivetrainConstants.MAX_ANGULAR_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.MAX_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;
+import static frc.robot.Constants.DrivetrainConstants.RED_OUTPOST_POSE;
+import static frc.robot.Constants.DrivetrainConstants.RED_TARGET3_POSE;
+import static frc.robot.Constants.DrivetrainConstants.ROTATIONAL_DAMP;
 import static frc.robot.Constants.DrivetrainConstants.ROTATIONAL_DEADBAND;
+import static frc.robot.Constants.DrivetrainConstants.TRANSLATIONAL_DAMP;
 import static frc.robot.Constants.DrivetrainConstants.TRANSLATIONAL_DEADBAND;
+import static frc.robot.Constants.DrivetrainConstants.X_TAG_OFFSET;
+import static frc.robot.Constants.DrivetrainConstants.Y_TAG_OFFSET;
+import static frc.robot.Constants.DrivetrainConstants.getTagToAlignTo;
+import static frc.robot.Constants.DrivetrainConstants.setTagToAlignTo;
 import static frc.robot.imported.FieldConstants.TAG_LAYOUT;
 
 import java.io.IOException;
@@ -37,12 +47,11 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N6;
 import edu.wpi.first.math.numbers.N7;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.Constants;
-import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
@@ -91,7 +100,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private CommandSwerveDrivetrain drivetrain;
 	private Command pathfindCommand = null;
 
+	private Alliance alliance;
 	private boolean invertControls = false;
+	private double xSpeed;
+	private double ySpeed;
+	private double thetaSpeed;
 
 	private Field2d simulatedField = new Field2d();
 	private Pose2d currentHubPose;
@@ -117,6 +130,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@Override
 	public void reset() {
 		resetCurrentState();
+		grabAlliance();
 		stopDrivetrain();
 		update(null);
 	}
@@ -158,17 +172,17 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
 					if (DriverStation.getAlliance().isPresent()) {
 						if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-							DrivetrainConstants.setTagToAlignTo(N10.instance.getNum());
+							setTagToAlignTo(N10.instance.getNum());
 							System.out.println("RED ALLIANCE TAG 10");
 						} else {
-							DrivetrainConstants.setTagToAlignTo(N10.instance.getNum()
+							setTagToAlignTo(N10.instance.getNum()
 									+ N10.instance.getNum()
 									+ N6.instance.getNum()
 							);
 							System.out.println("BLUE ALLIANCE TAG 26");
 						}
 					} else {
-						DrivetrainConstants.setTagToAlignTo(N10.instance.getNum());
+						setTagToAlignTo(N10.instance.getNum());
 						System.out.println("Defaulting to red. Good luck");
 					}
 
@@ -296,12 +310,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	@AutoLogOutput(key = "Vision/Alignment Pose")
 	public Pose2d getPathfindingTarget() {
-		return TAG_LAYOUT.getTagPose(DrivetrainConstants.getTagToAlignTo())
+		return TAG_LAYOUT.getTagPose(getTagToAlignTo())
 				.orElse(null)
 				.toPose2d()
 				.transformBy(new Transform2d(
-					DrivetrainConstants.X_TAG_OFFSET,
-					DrivetrainConstants.Y_TAG_OFFSET,
+					X_TAG_OFFSET,
+					Y_TAG_OFFSET,
 					Rotation2d.kZero
 				));
 	}
@@ -351,8 +365,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 				drivetrain.setControl(
 					applyRobotSpeeds
-						.withSpeeds(speedINeedThis.times(
-							Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
+						.withSpeeds(speedINeedThis.times(TRANSLATIONAL_DAMP))
 						.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
 						.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
 				);
@@ -389,6 +402,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		currentState = getDefaultState();
 	}
 
+	private void grabAlliance() {
+		alliance = DriverStation.getAlliance().orElse(null);
+	}
+
 	private void stopDrivetrain() {
 		drivetrain.applyRequest(() -> driveFieldCentric
 				.withVelocityX(0)
@@ -414,112 +431,141 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
-		invertControlsIfPressed(input);
-
 		currentHubPose = getCurrentHubPose();
 
-		double flipAlliance = -1;
-		var alliance = DriverStation.getAlliance();
-		if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue) {
-			flipAlliance = 1.0;
+		handleDriveInputs(input);
+		applyDriveControl();
+
+		handleButtonInputs(input);
+	}
+
+	private void handleDriveInputs(Input input) {
+		xSpeed = getTranslationalSpeed(input, AxialInput.DRIVETRAIN_DRIVE_X);
+		ySpeed = getTranslationalSpeed(input, AxialInput.DRIVETRAIN_DRIVE_Y);
+		thetaSpeed = getRotationalSpeed(input, AxialInput.DRIVETRAIN_ROTATE);
+	}
+
+	private double getTranslationalSpeed(Input input, AxialInput inputType) {
+		double speed = MathUtil.applyDeadband(
+			input.getAxisValue(inputType),
+			TRANSLATIONAL_DEADBAND
+		) * MAX_SPEED.in(MetersPerSecond);
+
+		if (isRedAlliance()) {
+			speed *= -1;
 		}
-		double xSpeed = flipAlliance * MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
-				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
-
-		double ySpeed = flipAlliance * MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
-				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
-
-		double thetaSpeed = MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
-				DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
 
 		if (invertControls) {
-			xSpeed *= -1;
-			ySpeed *= -1;
+			speed *= -1;
 		}
 
+		return speed;
+	}
+
+	private boolean isRedAlliance() {
+		return alliance == DriverStation.Alliance.Red;
+	}
+
+	private double getRotationalSpeed(Input input, AxialInput inputType) {
+		return MathUtil.applyDeadband(
+			input.getAxisValue(inputType),
+			ROTATIONAL_DEADBAND
+		) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+	}
+
+	private void applyDriveControl() {
 		drivetrain.setControl(
 			driveFieldCentric
-					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-					.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
+					.withVelocityX(xSpeed * TRANSLATIONAL_DAMP)
+					.withVelocityY(ySpeed * TRANSLATIONAL_DAMP)
+					.withRotationalRate(thetaSpeed * ROTATIONAL_DAMP)
 		);
+	}
 
+	private void handleButtonInputs(Input input) {
+		handleInvertControlsButton(input);
+		handleReseedButton(input);
+		handleFaceHubButton(input);
+		handleFacePassButton(input);
+	}
+
+	private void handleInvertControlsButton(Input input) {
+		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_INVERT_CONTROLS)) {
+			invertControls = !invertControls;
+		}
+	}
+
+	private void handleReseedButton(Input input) {
 		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
 			drivetrain.seedFieldCentric();
 		}
+	}
 
+	private void handleFaceHubButton(Input input) {
 		if (input.getButtonValue(ButtonInput.FACE_HUB)) {
-			Transform2d distance = getPose().minus(currentHubPose);
-			double angle = Math.atan2(distance.getY(), distance.getX());
-			drivetrain.setControl(
-				driveFacingAngle
-					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
+			drivetrain.setControl(driveFacingAngle
+					.withTargetDirection(Rotation2d.fromRadians(getAngleToHub()))
 					.withHeadingPID(N7.instance.getNum(), 0, 0)
-					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-			);
-		}
-
-		if (input.getButtonValue(ButtonInput.FACE_PASS)) {
-			double outpostDistance;
-			double target3Distance;
-			boolean isRed = true;
-			Pose2d correctTarget;
-			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-				outpostDistance = Math.sqrt(
-						Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getX(), 2)
-						+ Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getY(), 2)
-					);
-				target3Distance = Math.sqrt(
-					Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getX(), 2)
-					+ Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getY(), 2)
-				);
-			} else {
-				outpostDistance = Math.sqrt(
-					Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getX(), 2)
-						+ Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getY(), 2)
-					);
-				target3Distance = Math.sqrt(
-					Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getX(), 2)
-					+ Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getY(), 2)
-				);
-				isRed = false;
-			}
-
-			if (outpostDistance < target3Distance) {
-				if (isRed) {
-					correctTarget = DrivetrainConstants.RED_OUTPOST_POSE;
-				} else {
-					correctTarget = DrivetrainConstants.BLUE_OUTPOST_POSE;
-				}
-			} else {
-				if (isRed) {
-					correctTarget = DrivetrainConstants.RED_POSE3_POSE;
-				} else {
-					correctTarget = DrivetrainConstants.BLUE_POSE3_POSE;
-				}
-			}
-
-			Transform2d distance = getPose().minus(correctTarget);
-			double angle = Math.atan2(distance.getY(), distance.getX());
-
-			drivetrain.setControl(
-				driveFacingAngle
-					.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
-					.withHeadingPID(N7.instance.getNum(), 0, 0)
-					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityX(xSpeed * TRANSLATIONAL_DAMP)
+					.withVelocityY(ySpeed * TRANSLATIONAL_DAMP)
 			);
 		}
 	}
 
-	private void invertControlsIfPressed(Input input) {
-		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_INVERT_CONTROLS)) {
-			invertControls = !invertControls;
+	private double getAngleToHub() {
+		Transform2d offset = getPose().minus(currentHubPose);
+		return Math.atan2(offset.getY(), offset.getX());
+	}
+
+	private void handleFacePassButton(Input input) {
+		if (input.getButtonValue(ButtonInput.FACE_PASS)) {
+			double outpostDistance = getOutpostDistance();
+			double target3Distance = getTarget3Distance();
+
+			Pose2d correctTarget;
+			if (outpostDistance < target3Distance) {
+				correctTarget = getTargetPose(RED_OUTPOST_POSE, BLUE_OUTPOST_POSE);
+			} else {
+				correctTarget = getTargetPose(BLUE_TARGET3_POSE, RED_TARGET3_POSE);
+			}
+
+			drivetrain.setControl(
+				driveFacingAngle
+					.withTargetDirection(Rotation2d.fromRadians(getAngleToPose(correctTarget)))
+					.withHeadingPID(N7.instance.getNum(), 0, 0)
+					.withVelocityX(xSpeed * TRANSLATIONAL_DAMP)
+					.withVelocityY(ySpeed * TRANSLATIONAL_DAMP)
+			);
 		}
+	}
+
+	private double getOutpostDistance() {
+		return getDistanceToPose(getTargetPose(RED_OUTPOST_POSE, BLUE_OUTPOST_POSE));
+	}
+
+	private double getTarget3Distance() {
+		return getDistanceToPose(getTargetPose(RED_TARGET3_POSE, BLUE_TARGET3_POSE));
+	}
+
+	private double getDistanceToPose(Pose2d pose) {
+		Transform2d offset = getOffsetToPose(pose);
+		return Math.hypot(offset.getX(), offset.getY());
+	}
+
+	private double getAngleToPose(Pose2d pose) {
+		Transform2d offset = getOffsetToPose(pose);
+		return Math.atan2(offset.getY(), offset.getX());
+	}
+
+	private Transform2d getOffsetToPose(Pose2d pose) {
+		return getPose().minus(pose);
+	}
+
+	private Pose2d getTargetPose(Pose2d redPose, Pose2d bluePose) {
+		if (isRedAlliance()) {
+			return redPose;
+		}
+		return bluePose;
 	}
 
 	// endregion
