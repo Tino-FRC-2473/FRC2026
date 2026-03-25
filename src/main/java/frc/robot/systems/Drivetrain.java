@@ -14,7 +14,6 @@ import java.io.IOException;
 
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -307,6 +306,16 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				));
 	}
 
+	/**
+	 * Get the current hub pose.
+	 *
+	 * @return the current hub pose
+	 */
+	@AutoLogOutput(key = "Drivetrain/Current Hub Pose")
+	public Pose2d getCurrentHubPose() {
+		return AllianceFlipUtil.apply(BLUE_HUB_POSE);
+	}
+
 	// endregion
 	/* ======================== Private methods ======================== */
 	// region
@@ -405,14 +414,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
-		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_INVERT_CONTROLS)) {
-			invertControls = !invertControls;
-		}
+		invertControlsIfPressed(input);
 
-		currentHubPose = AllianceFlipUtil.apply(BLUE_HUB_POSE);
-		Logger.recordOutput("Hub Pose Alignment", currentHubPose);
+		currentHubPose = getCurrentHubPose();
 
-		//TODO: Clean this jawn up it's for testing
 		double flipAlliance = -1;
 		var alliance = DriverStation.getAlliance();
 		if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue) {
@@ -508,6 +513,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 			);
+		}
+	}
+
+	private void invertControlsIfPressed(Input input) {
+		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_INVERT_CONTROLS)) {
+			invertControls = !invertControls;
 		}
 	}
 
