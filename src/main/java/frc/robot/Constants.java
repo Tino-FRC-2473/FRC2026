@@ -238,11 +238,11 @@ public class Constants {
 		public static final double FEEDER_MM_CONSTANT_P = 0;
 		public static final double FEEDER_MM_CONSTANT_I = 0;
 		public static final double FEEDER_MM_CONSTANT_D = 0;
-		public static final double FEEDER_CONSTANT_SPEED = 20;
+		public static final double FEEDER_CONSTANT_SPEED = 40;
 
 		//All of these are placeholder values, all need to be changed
 		public static final double FLYWHEEL_MM_CONSTANT_P = 0.5;
-		public static final double FLYWHEEL_MM_CONSTANT_I = 0;
+		public static final double FLYWHEEL_MM_CONSTANT_I = 0.05;
 		public static final double FLYWHEEL_MM_CONSTANT_D = 0;
 		// public static final double HOOD_MM_CONSTANT_P = 0;
 		// public static final double HOOD_MM_CONSTANT_I = 0;
