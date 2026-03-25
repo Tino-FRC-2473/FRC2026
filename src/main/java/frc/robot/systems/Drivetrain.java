@@ -216,17 +216,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		);
 	}
 
-	/**
-	 * Aligns the bot to target the passing target.
-	 * @param targetPose the target passing pose
-	 */
-	public void targetPassZone(Pose2d targetPose) {
-		//toggleNumber = 1 for outpost, toggleNumber = 2 for other mirrored pose, etc
-		//TODO: Code to be finished in a seperate branch
-		Pose2d transformPose = getPose().relativeTo(targetPose);
-		//TODO: Code to be implemented differently later
-	}
-
 	// endregion
 	/* ======================== Getset methods ======================== */
 	// region
