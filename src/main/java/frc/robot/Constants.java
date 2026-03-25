@@ -67,7 +67,8 @@ public class Constants {
 		public static final AngularAcceleration MAX_PATHING_ANGULAR_ACCELERATION =
 				RotationsPerSecondPerSecond.of(4);
 
-		//TODO: Get some actual values for this
+		// TODO: Get some actual values for this
+		// new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
 		public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
 				MAX_SPEED,
 				MAX_PATHING_LINEAR_ACCELERATION,
@@ -76,7 +77,6 @@ public class Constants {
 				Voltage.ofBaseUnits(12, Volts)
 		);
 
-		//new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
 		private static int tagToAlignTo;
 
 		/**
