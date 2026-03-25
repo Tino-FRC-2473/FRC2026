@@ -105,7 +105,25 @@ public class Vision {
 		if (pose != null && pose.rawFiducials != null && pose.rawFiducials.length != 0) {
 			return false;
 		}
-		return false;
+
+		// 1. check number of tags
+		if (pose.tagCount == 0) {
+			return false;
+		}
+
+		// 3. check average tag distance
+		if (pose.avgTagDist > 4.0) {
+			return false;
+		}
+
+		// 5. Reject if the pose is outside the actual field boundaries
+		// Field is roughly 16.5m x 8.1m. Adjust constants as needed.
+		if (pose.pose.getX() < 0.0 || pose.pose.getX() > 16.5
+			|| pose.pose.getY() < 0.0 || pose.pose.getY() > 8.1) {
+			return false;
+		}
+
+		return true;
 	}
 
 
