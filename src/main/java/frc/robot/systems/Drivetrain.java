@@ -53,6 +53,7 @@ import frc.robot.input.InputTypes.ButtonInput;
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	/* ======================== Enums ======================== */
+	// region
 
 	public enum DrivetrainState {
 		AUTONOMOUS,
@@ -60,7 +61,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		PATHFINDING
 	}
 
+	// endregion
 	/* ======================== Constants ======================== */
+	// region
 
 	private final SwerveRequest.FieldCentric driveFieldCentric = new SwerveRequest.FieldCentric()
 			.withDeadband(MAX_SPEED.in(MetersPerSecond) * TRANSLATIONAL_DEADBAND)
@@ -78,7 +81,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond) * ROTATIONAL_DEADBAND)
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
+	// endregion
 	/* ======================== Private variables ======================== */
+	// region
 
 	private DrivetrainState currentState;
 	private CommandSwerveDrivetrain drivetrain;
@@ -163,7 +168,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		reset();
 	}
 
+	// endregion
 	/* ======================== Public methods ======================== */
+	// region
 
 	@Override
 	public void reset() {
@@ -295,7 +302,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		//TODO: Code to be implemented differently later
 	}
 
+	// endregion
 	/* ======================== Getset methods ======================== */
+	// region
 
 	/**
 	 * Get the drivetrain pose.
@@ -367,7 +376,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return currentState;
 	}
 
+	// endregion
 	/* ======================== Private methods ======================== */
+	// region
 
 	private void stop() {
 		drivetrain.applyRequest(() -> driveFieldCentric
@@ -503,4 +514,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			|| input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE) != 0;
 	}
 
+	// endregion
+	/* ======================== End ======================== */
 }
