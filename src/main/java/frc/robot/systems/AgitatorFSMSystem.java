@@ -11,8 +11,6 @@ import frc.robot.input.Input;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.Logger;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -99,10 +97,6 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 		);
 
 		conveyorMotor.optimizeBusUtilization();
-
-		// Perform hardware init using a wrapper class
-		// this is so we can see motor outputs during simulatiuons
-		
 
 		// Reset state machine
 		reset();
