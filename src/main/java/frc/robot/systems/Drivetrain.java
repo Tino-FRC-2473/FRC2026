@@ -22,8 +22,6 @@ import static frc.robot.Constants.DrivetrainConstants.TRANSLATIONAL_DAMP;
 import static frc.robot.Constants.DrivetrainConstants.TRANSLATIONAL_DEADBAND;
 import static frc.robot.Constants.DrivetrainConstants.X_TAG_OFFSET;
 import static frc.robot.Constants.DrivetrainConstants.Y_TAG_OFFSET;
-import static frc.robot.Constants.DrivetrainConstants.getTagToAlignTo;
-import static frc.robot.Constants.DrivetrainConstants.setTagToAlignTo;
 import static frc.robot.imported.FieldConstants.TAG_LAYOUT;
 
 import java.io.IOException;
@@ -104,15 +102,17 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private DrivetrainState currentState;
 	private CommandSwerveDrivetrain drivetrain;
 	private Command pathfindCommand = null;
+	private Field2d simulatedField = new Field2d();
+
 
 	private Alliance alliance;
 	private boolean invertControls = false;
 	private double xSpeed;
 	private double ySpeed;
 	private double thetaSpeed;
-
-	private Field2d simulatedField = new Field2d();
 	private Pose2d currentHubPose;
+	private int alignmentTargetTag;
+
 
 	/**
 	 * Construct the drivetrain subsystem.
@@ -175,19 +175,18 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				return DrivetrainState.AUTONOMOUS;
 			case CONTROLLED:
 				if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
-					if (DriverStation.getAlliance().isPresent()) {
-						if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-							setTagToAlignTo(N10.instance.getNum());
+					if (alliance == null) {
+						if (isRedAlliance()) {
+							alignmentTargetTag = N10.instance.getNum();
 							System.out.println("RED ALLIANCE TAG 10");
 						} else {
-							setTagToAlignTo(N10.instance.getNum()
+							alignmentTargetTag = N10.instance.getNum()
 									+ N10.instance.getNum()
-									+ N6.instance.getNum()
-							);
+									+ N6.instance.getNum();
 							System.out.println("BLUE ALLIANCE TAG 26");
 						}
 					} else {
-						setTagToAlignTo(N10.instance.getNum());
+						alignmentTargetTag = N10.instance.getNum();
 						System.out.println("Defaulting to red. Good luck");
 					}
 
@@ -315,7 +314,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	@AutoLogOutput(key = "Vision/Alignment Pose")
 	public Pose2d getPathfindingTarget() {
-		return TAG_LAYOUT.getTagPose(getTagToAlignTo())
+		return TAG_LAYOUT.getTagPose(alignmentTargetTag)
 				.orElse(null)
 				.toPose2d()
 				.transformBy(new Transform2d(

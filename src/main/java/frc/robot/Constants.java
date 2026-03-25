@@ -77,22 +77,6 @@ public class Constants {
 			Voltage.ofBaseUnits(12, Volts)
 		);
 
-		private static int tagToAlignTo;
-
-		/**
-		 * @return the tag to align to
-		 */
-		public static int getTagToAlignTo() {
-			return tagToAlignTo;
-		}
-
-		/**
-		 * @param newTagToAlignTo the new value to set
-		 */
-		public static void setTagToAlignTo(int newTagToAlignTo) {
-			DrivetrainConstants.tagToAlignTo = newTagToAlignTo;
-		}
-
 		public static final double X_TAG_OFFSET = 1;
 		public static final double Y_TAG_OFFSET = 0;
 
