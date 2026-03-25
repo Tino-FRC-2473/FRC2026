@@ -2,11 +2,13 @@ package frc.robot.systems;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-
-import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;
-import static frc.robot.imported.FieldConstants.TAG_LAYOUT;
 import static frc.robot.Constants.DrivetrainConstants.BLUE_HUB_POSE;
-
+import static frc.robot.Constants.DrivetrainConstants.MAX_ANGULAR_SPEED;
+import static frc.robot.Constants.DrivetrainConstants.MAX_SPEED;
+import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;
+import static frc.robot.Constants.DrivetrainConstants.ROTATIONAL_DEADBAND;
+import static frc.robot.Constants.DrivetrainConstants.TRANSLATIONAL_DEADBAND;
+import static frc.robot.imported.FieldConstants.TAG_LAYOUT;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -32,12 +34,9 @@ import edu.wpi.first.math.numbers.N10;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N6;
 import edu.wpi.first.math.numbers.N7;
-import edu.wpi.first.units.measure.AngularVelocity;
-
-import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants;
@@ -47,8 +46,8 @@ import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
 import frc.robot.imported.geom.AllianceFlipUtil;
 import frc.robot.input.Input;
-import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.input.InputTypes.AxialInput;
+import frc.robot.input.InputTypes.ButtonInput;
 
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
@@ -61,43 +60,31 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		PATHFINDING
 	}
 
-	// Max linear & angular speeds
-	private static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
-	private static final AngularVelocity MAX_ANGULAR_SPEED =
-		DrivetrainConstants.MAX_ANGULAR_VELOCITY;
-
-	// Drive swerve requests
 	private final SwerveRequest.FieldCentric driveFieldCentric = new SwerveRequest.FieldCentric()
-			.withDeadband(MAX_SPEED.in(MetersPerSecond)
-					* DrivetrainConstants.TRANSLATIONAL_DEADBAND)
-			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
-					* DrivetrainConstants.ROTATIONAL_DEADBAND)
+			.withDeadband(MAX_SPEED.in(MetersPerSecond) * TRANSLATIONAL_DEADBAND)
+			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond) * ROTATIONAL_DEADBAND)
 			// Use open-loop for drive motors
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	private final SwerveRequest.ApplyRobotSpeeds
-			applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
-		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+	private final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds = new SwerveRequest
+			.ApplyRobotSpeeds()
+			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle =
-		new SwerveRequest.FieldCentricFacingAngle()
-		.withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
-		.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
-					* DrivetrainConstants.ROTATIONAL_DEADBAND)
-		.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle = new SwerveRequest
+			.FieldCentricFacingAngle()
+			.withDeadband(MAX_SPEED.in(MetersPerSecond) * TRANSLATIONAL_DEADBAND)
+			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond) * ROTATIONAL_DEADBAND)
+			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
 	/* ======================== Private variables ======================== */
 
-	// Current FSM state
 	private DrivetrainState currentState;
-	// Drivetrain subsystem instance
 	private CommandSwerveDrivetrain drivetrain;
-	//Pathfind command
 	private Command pathfindCommand = null;
-	//Flip controls if needed
+
 	private double invertControls = 1;
 
-	private Field2d elasticfield = new Field2d();
+	private Field2d elasticField = new Field2d();
 	private Pose2d hubPose;
 
 	/**
@@ -108,7 +95,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		//updateLimelightYaw();
 
 		SmartDashboard.putData(CommandScheduler.getInstance());
-		SmartDashboard.putData(elasticfield);
+		SmartDashboard.putData(elasticField);
 
 		//System.out.println(DriverStation.getAlliance());
 
@@ -190,7 +177,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public void update(Input input) {
 		drivetrain.periodic();
 		CommandScheduler.getInstance().run();
-		elasticfield.setRobotPose(drivetrain.getState().Pose);
+		elasticField.setRobotPose(drivetrain.getState().Pose);
 
 		switch (currentState) {
 			case CONTROLLED:
@@ -310,8 +297,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 						DrivetrainConstants.getTagToAlignTo()).orElse(null).toPose2d();
 
 					Transform2d offsetTransform = new Transform2d(
-							-DrivetrainConstants.X_TRANFORM_FROM_TAG, // Back to Front
-							DrivetrainConstants.Y_TRANFORM_FROM_TAG, // Side to Side
+							-DrivetrainConstants.X_TAG_OFFSET, // Back to Front
+							DrivetrainConstants.Y_TAG_OFFSET, // Side to Side
 							Rotation2d.kZero);
 
 					startPathfinding(test.transformBy(offsetTransform));
@@ -359,11 +346,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 		double xSpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
-				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double ySpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
-				DrivetrainConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
