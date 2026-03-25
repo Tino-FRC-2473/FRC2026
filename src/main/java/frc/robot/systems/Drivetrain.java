@@ -51,16 +51,14 @@ import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.input.InputTypes.AxialInput;
 
 
-
-
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
+
 	/* ======================== Constants ======================== */
 
-	// FSM states enum
 	public enum DrivetrainState {
-		TELEOP,
-		PATHFIND,
-		ENTRY // so the robot isn't controlled in auto
+		AUTONOMOUS,
+		CONTROLLED,
+		PATHFINDING
 	}
 
 	// Max linear & angular speeds
@@ -182,7 +180,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	@Override
 	public void reset() {
-		currentState = DrivetrainState.ENTRY;
+		currentState = DrivetrainState.AUTONOMOUS;
 		stop();
 
 		update(null);
@@ -195,10 +193,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		elasticfield.setRobotPose(drivetrain.getState().Pose);
 
 		switch (currentState) {
-			case TELEOP:
+			case CONTROLLED:
 				handleTeleopState(input);
 				break;
-			case ENTRY: case PATHFIND:
+			case AUTONOMOUS: case PATHFINDING:
 				break;
 			default:
 				throw new IllegalStateException(
@@ -275,7 +273,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@Override
 	protected DrivetrainState nextState(Input input) {
 		if (input == null) {
-			return DrivetrainState.TELEOP;
+			return DrivetrainState.CONTROLLED;
 		}
 
 		if (input.getButtonPressed(ButtonInput.INVERT_DRIVETRAIN_CONTROLS)) {
@@ -283,12 +281,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		switch (currentState) {
-			case ENTRY:
+			case AUTONOMOUS:
 				if (hasDriverInput(input)) {
-					return DrivetrainState.TELEOP;
+					return DrivetrainState.CONTROLLED;
 				}
-				return DrivetrainState.ENTRY;
-			case TELEOP:
+				return DrivetrainState.AUTONOMOUS;
+			case CONTROLLED:
 				if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
 
 					if (DriverStation.getAlliance().isPresent()) {
@@ -317,16 +315,16 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 							Rotation2d.kZero);
 
 					startPathfinding(test.transformBy(offsetTransform));
-					return DrivetrainState.PATHFIND;
+					return DrivetrainState.PATHFINDING;
 				} else {
-					return DrivetrainState.TELEOP;
+					return DrivetrainState.CONTROLLED;
 				}
-			case PATHFIND:
+			case PATHFINDING:
 				if (input.getButtonValue(ButtonInput.DRIVETRAIN_PATHFIND)) {
-					return DrivetrainState.PATHFIND;
+					return DrivetrainState.PATHFINDING;
 				} else {
 					pathfindCommand.cancel();
-					return DrivetrainState.TELEOP;
+					return DrivetrainState.CONTROLLED;
 				}
 			default:
 				throw new IllegalStateException(
@@ -477,7 +475,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
 	}
 
-	private static final double NINTY = 90;
+	private static final double NINETY = 90;
 
 	/**
 	 * Returns the target rotation needed given a target pose.
@@ -487,7 +485,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public Rotation2d getTargetHub(Pose2d target) {
 		// Pose2d transformPose = getPose().relativeTo(ShooterConstants.HUB_POSE);
 		Transform2d distance = target.minus(getPose());
-		return Rotation2d.fromRadians(Math.atan2(distance.getY(), distance.getX()) + NINTY);
+		return Rotation2d.fromRadians(Math.atan2(distance.getY(), distance.getX()) + NINETY);
 	}
 
 	/**
