@@ -93,7 +93,7 @@ public class Constants {
 			DrivetrainConstants.tagToAlignTo = newTagToAlignTo;
 		}
 
-		public static final double X_TAG_OFFSET = -1;
+		public static final double X_TAG_OFFSET = 1;
 		public static final double Y_TAG_OFFSET = 0;
 
 		public static final double FACE_HUB_P = 7.0;

@@ -111,6 +111,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/* ======================== Public methods ======================== */
 	// region
 
+	protected DrivetrainState getDefaultState() {
+		return DrivetrainState.AUTONOMOUS;
+	}
+
 	@Override
 	public void reset() {
 		resetCurrentState();
@@ -142,7 +146,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@Override
 	protected DrivetrainState nextState(Input input) {
 		if (input == null) {
-			return DrivetrainState.AUTONOMOUS;
+			return getDefaultState();
 		}
 
 		switch (currentState) {
@@ -153,33 +157,24 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				return DrivetrainState.AUTONOMOUS;
 			case CONTROLLED:
 				if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
-
 					if (DriverStation.getAlliance().isPresent()) {
-
 						if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
 							DrivetrainConstants.setTagToAlignTo(N10.instance.getNum());
 							System.out.println("RED ALLIANCE TAG 10");
 						} else {
 							DrivetrainConstants.setTagToAlignTo(N10.instance.getNum()
-								+ N10.instance.getNum()
-								+ N6.instance.getNum());
+									+ N10.instance.getNum()
+									+ N6.instance.getNum()
+							);
 							System.out.println("BLUE ALLIANCE TAG 26");
 						}
-
 					} else {
-						System.out.println("Defaulting to red. Good luck");
 						DrivetrainConstants.setTagToAlignTo(N10.instance.getNum());
+						System.out.println("Defaulting to red. Good luck");
 					}
 
-					Pose2d test = TAG_LAYOUT.getTagPose(
-						DrivetrainConstants.getTagToAlignTo()).orElse(null).toPose2d();
+					startPathfinding();
 
-					Transform2d offsetTransform = new Transform2d(
-							-DrivetrainConstants.X_TAG_OFFSET,
-							DrivetrainConstants.Y_TAG_OFFSET,
-							Rotation2d.kZero);
-
-					startPathfinding(test.transformBy(offsetTransform));
 					return DrivetrainState.PATHFINDING;
 				} else {
 					return DrivetrainState.CONTROLLED;
@@ -193,8 +188,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				}
 			default:
 				throw new IllegalStateException(
-					"[DRIVETRAIN] Cannot get next state of an invalid current state: "
-					+ currentState.toString()
+					"[DRIVETRAIN] Cannot get next state from an invalud state: "
+						+ currentState.toString()
 				);
 		}
 	}
@@ -308,11 +303,28 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/**
 	 * Get the current state of the Drivetrain subsystem.
 	 *
-	 * @return current state of the drivetrain
+	 * @return the current state of the drivetrain
 	 */
 	@AutoLogOutput(key = "Drivetrain/Current State")
 	public DrivetrainState getCurrentState() {
 		return currentState;
+	}
+
+	/**
+	 * Get the current pathfinding target.
+	 *
+	 * @return the current pathfinding target
+	 */
+	@AutoLogOutput(key = "Vision/Alignment Pose")
+	public Pose2d getPathfindingTarget() {
+		return TAG_LAYOUT.getTagPose(DrivetrainConstants.getTagToAlignTo())
+				.orElse(null)
+				.toPose2d()
+				.transformBy(new Transform2d(
+					DrivetrainConstants.X_TAG_OFFSET,
+					DrivetrainConstants.Y_TAG_OFFSET,
+					Rotation2d.kZero
+				));
 	}
 
 	// endregion
@@ -385,7 +397,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	private void resetCurrentState() {
-		currentState = DrivetrainState.AUTONOMOUS;
+		currentState = getDefaultState();
 	}
 
 	private void stopDrivetrain() {
@@ -396,12 +408,15 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		);
 	}
 
-	private void startPathfinding(Pose2d target) {
+	private boolean hasDriverInput(Input input) {
+		return input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X) != 0
+				|| input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y) != 0
+				|| input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE) != 0;
+	}
 
-		Logger.recordOutput("Vision/AlignmentPose", target);
-
-		pathfindCommand = AutoBuilder.pathfindToPose(target,
-					PATH_CONSTRAINTS);
+	private void startPathfinding() {
+		Pose2d target = getPathfindingTarget();
+		pathfindCommand = AutoBuilder.pathfindToPose(target, PATH_CONSTRAINTS);
 		CommandScheduler.getInstance().schedule(pathfindCommand);
 	}
 
@@ -514,12 +529,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 			);
 		}
-	}
-
-	private boolean hasDriverInput(Input input) {
-		return input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X) != 0
-			|| input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y) != 0
-			|| input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE) != 0;
 	}
 
 	// endregion
