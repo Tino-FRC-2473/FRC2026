@@ -63,18 +63,18 @@ public class Constants {
 		public static final double ROTATIONAL_DEADBAND = 0.05;
 
 		public static final LinearAcceleration MAX_PATHING_LINEAR_ACCELERATION =
-				MetersPerSecondPerSecond.of(4);
+			MetersPerSecondPerSecond.of(4);
 		public static final AngularAcceleration MAX_PATHING_ANGULAR_ACCELERATION =
-				RotationsPerSecondPerSecond.of(4);
+			RotationsPerSecondPerSecond.of(4);
 
 		// TODO: Get some actual values for this
 		// new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
 		public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
-				MAX_SPEED,
-				MAX_PATHING_LINEAR_ACCELERATION,
-				MAX_ANGULAR_SPEED,
-				MAX_PATHING_ANGULAR_ACCELERATION,
-				Voltage.ofBaseUnits(12, Volts)
+			MAX_SPEED,
+			MAX_PATHING_LINEAR_ACCELERATION,
+			MAX_ANGULAR_SPEED,
+			MAX_PATHING_ANGULAR_ACCELERATION,
+			Voltage.ofBaseUnits(12, Volts)
 		);
 
 		private static int tagToAlignTo;
@@ -101,18 +101,18 @@ public class Constants {
 		public static final double FACE_HUB_D = 0.0;
 
 		public static final Pose2d RED_HUB_POSE =
-				new Pose2d(11.9191774, 4.0346376, new Rotation2d());
+			new Pose2d(11.9191774, 4.0346376, new Rotation2d());
 		public static final Pose2d RED_OUTPOST_POSE =
-				new Pose2d(8.2741742, 2.0346376, new Rotation2d());
+			new Pose2d(8.2741742, 2.0346376, new Rotation2d());
 		public static final Pose2d RED_POSE3_POSE =
-				new Pose2d(2.54, 6.0346376, new Rotation2d());
+			new Pose2d(2.54, 6.0346376, new Rotation2d());
 
 		public static final Pose2d BLUE_HUB_POSE =
-				new Pose2d(14.001, 4.0346376, new Rotation2d());
+			new Pose2d(14.001, 4.0346376, new Rotation2d());
 		public static final Pose2d BLUE_OUTPOST_POSE =
-				new Pose2d(2.54, 2.0346376, new Rotation2d());
+			new Pose2d(2.54, 2.0346376, new Rotation2d());
 		public static final Pose2d BLUE_POSE3_POSE =
-				new Pose2d(8.2741742, 6.0346376, new Rotation2d());
+			new Pose2d(8.2741742, 6.0346376, new Rotation2d());
 	}
 
 	public static final class ModuleConstants {

@@ -52,13 +52,15 @@ import frc.robot.input.InputTypes.ButtonInput;
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
-	/* ======================== Constants ======================== */
+	/* ======================== Enums ======================== */
 
 	public enum DrivetrainState {
 		AUTONOMOUS,
 		CONTROLLED,
 		PATHFINDING
 	}
+
+	/* ======================== Constants ======================== */
 
 	private final SwerveRequest.FieldCentric driveFieldCentric = new SwerveRequest.FieldCentric()
 			.withDeadband(MAX_SPEED.in(MetersPerSecond) * TRANSLATIONAL_DEADBAND)
@@ -82,7 +84,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private CommandSwerveDrivetrain drivetrain;
 	private Command pathfindCommand = null;
 
-	private double invertControls = 1;
+	private boolean invertControls = false;
 
 	private Field2d elasticField = new Field2d();
 	private Pose2d hubPose;
@@ -264,7 +266,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		if (input.getButtonPressed(ButtonInput.INVERT_DRIVETRAIN_CONTROLS)) {
-			invertControls *= -1;
+			invertControls = !invertControls;
 		}
 
 		switch (currentState) {
@@ -344,11 +346,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue) {
 			flipAlliance = 1.0;
 		}
-		double xSpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
+		double xSpeed = flipAlliance * MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
 				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
-		double ySpeed = -invertControls * flipAlliance * MathUtil.applyDeadband(
+		double ySpeed = flipAlliance * MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 				DrivetrainConstants.TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
@@ -356,11 +358,16 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
 				DrivetrainConstants.ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
 
+		if (invertControls) {
+			xSpeed *= -1;
+			ySpeed *= -1;
+		}
+
 		drivetrain.setControl(
 			driveFieldCentric
-				.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-				.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-				.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
+					.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+					.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP)
 		);
 
 		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_RESEED)) {
