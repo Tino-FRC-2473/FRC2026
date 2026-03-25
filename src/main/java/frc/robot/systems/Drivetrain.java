@@ -101,66 +101,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 * Construct the drivetrain subsystem.
 	 */
 	public Drivetrain() throws IOException, ParseException {
-		drivetrain = TunerConstants.createDrivetrain();
-		//updateLimelightYaw();
-
-		SmartDashboard.putData(CommandScheduler.getInstance());
-		SmartDashboard.putData(simulatedField);
-
-
-		RobotConfig config = RobotConfig.fromGUISettings();
-
-		// Configure AutoBuilder last
-		AutoBuilder.configure(
-			this::getPose, // Robot pose supplier
-			// Method to reset odometry (will be called if your auto has a starting pose)
-			drivetrain::resetPose,
-			() -> {
-				return drivetrain.getState().Speeds;
-			}, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-			(speeds, feedforwards) -> {
-
-				ChassisSpeeds speedINeedThis = new ChassisSpeeds(
-					speeds.vxMetersPerSecond,
-					speeds.vyMetersPerSecond,
-					-speeds.omegaRadiansPerSecond);
-
-				drivetrain.setControl(
-					applyRobotSpeeds
-						.withSpeeds(speedINeedThis.times(
-							Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
-						.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
-						.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
-				);
-
-			}, /* Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
-			optionally outputs individual module feedforwards*/
-			new PPHolonomicDriveController(/*PPHolonomicController is the built in path
-				following controller for holonomic drive trains */
-				// Translation PID constants
-				new PIDConstants(ModuleConstants.DRIVE_P,
-					ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D),
-				// Rotation PID constants
-				new PIDConstants(ModuleConstants.STEER_P,
-					ModuleConstants.STEER_I, ModuleConstants.STEER_D)
-			),
-			config, // The robot configuration
-			() -> {
-				/* Boolean supplier that controls when the
-				path will be mirrored for the red alliance*/
-				// This will flip the path being followed to the red side of the field.
-				// THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
-				// var alliance = DriverStation.getAlliance();
-				// if (alliance.isPresent()) {
-				// 	return alliance.get() == DriverStation.Alliance.Red;
-				// }
-				return false;
-			},
-			drivetrain // Reference to the subsystem to set requirements
-		);
-
-		//shooter = shooterFSMSystem.orElse(null);
+		createDrivetrain();
+		updateSmartDashboard();
+		configureAutoBuilder();
 		reset();
 	}
 
@@ -170,8 +113,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	@Override
 	public void reset() {
-		currentState = DrivetrainState.AUTONOMOUS;
-		stop();
+		resetCurrentState();
+		stopDrivetrain();
 		update(null);
 	}
 
@@ -182,10 +125,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		simulatedField.setRobotPose(drivetrain.getState().Pose);
 
 		switch (currentState) {
+			case AUTONOMOUS: case PATHFINDING:
+				break;
 			case CONTROLLED:
 				handleTeleopState(input);
-				break;
-			case AUTONOMOUS: case PATHFINDING:
 				break;
 			default:
 				throw new IllegalStateException(
@@ -376,7 +319,71 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/* ======================== Private methods ======================== */
 	// region
 
-	private void stop() {
+	private void createDrivetrain() {
+		drivetrain = TunerConstants.createDrivetrain();
+	}
+
+	private void updateSmartDashboard() {
+		SmartDashboard.putData(CommandScheduler.getInstance());
+		SmartDashboard.putData(simulatedField);
+	}
+
+	private void configureAutoBuilder() throws IOException, ParseException {
+		AutoBuilder.configure(
+			this::getPose, // Robot pose supplier
+			// Method to reset odometry (will be called if your auto has a starting pose)
+			drivetrain::resetPose,
+			() -> {
+				return drivetrain.getState().Speeds;
+			}, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+			(speeds, feedforwards) -> {
+
+				ChassisSpeeds speedINeedThis = new ChassisSpeeds(
+					speeds.vxMetersPerSecond,
+					speeds.vyMetersPerSecond,
+					-speeds.omegaRadiansPerSecond);
+
+				drivetrain.setControl(
+					applyRobotSpeeds
+						.withSpeeds(speedINeedThis.times(
+							Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
+						.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+						.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
+				);
+
+			}, /* Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
+			optionally outputs individual module feedforwards*/
+			new PPHolonomicDriveController(/*PPHolonomicController is the built in path
+				following controller for holonomic drive trains */
+				// Translation PID constants
+				new PIDConstants(ModuleConstants.DRIVE_P,
+					ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D),
+				// Rotation PID constants
+				new PIDConstants(ModuleConstants.STEER_P,
+					ModuleConstants.STEER_I, ModuleConstants.STEER_D)
+			),
+			RobotConfig.fromGUISettings(), // The robot configuration
+			() -> {
+				/* Boolean supplier that controls when the
+				path will be mirrored for the red alliance*/
+				// This will flip the path being followed to the red side of the field.
+				// THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+				// var alliance = DriverStation.getAlliance();
+				// if (alliance.isPresent()) {
+				// 	return alliance.get() == DriverStation.Alliance.Red;
+				// }
+				return false;
+			},
+			drivetrain // Reference to the subsystem to set requirements
+		);
+	}
+
+	private void resetCurrentState() {
+		currentState = DrivetrainState.AUTONOMOUS;
+	}
+
+	private void stopDrivetrain() {
 		drivetrain.applyRequest(() -> driveFieldCentric
 				.withVelocityX(0)
 				.withVelocityY(0)
