@@ -197,32 +197,23 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/**
 	 * Adds a new timestamped vision measurement.
 	 *
-	 * @param visionPoseMeters The pose of the robot in the camera's coordinate
-	 *                         frame
-	 * @param timestampSeconds The timestamp of the measurement
-	 * @param visionStdDevs    The standard deviations of the measurement in the x,
-	 *                         y, and theta directions
+	 * @param visionPose the pose of the robot in the camera's coordinate frame
+	 * @param timestamp the timestamp of the measurement
+	 * @param visionStdDevs the standard deviations of the measurement in the
+	 * 					   x, y, and theta directions
 	 */
 	public void addVisionMeasurement(
-			Pose2d visionPoseMeters,
-			double timestampSeconds,
-			Matrix<N3, N1> visionStdDevs) {
-		drivetrain.addVisionMeasurement(new Pose2d(visionPoseMeters.getX(),
-			visionPoseMeters.getY(),
-			visionPoseMeters.getRotation().plus(Rotation2d.k180deg)),
-			timestampSeconds, visionStdDevs);
-		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
-	}
-
-	/**
-	 * Returns the target rotation needed given a target pose.
-	 * @param target the target pose
-	 * @return the rotation
-	 */
-	public Rotation2d getTargetHub(Pose2d target) {
-		Transform2d distance = target.minus(getPose());
-		return Rotation2d.fromRadians(Math.atan2(distance.getY(), distance.getX()))
-				.rotateBy(Rotation2d.kCCW_90deg);
+			Pose2d visionPose,
+			double timestamp,
+			Matrix<N3, N1> visionStdDevs
+	) {
+		drivetrain.addVisionMeasurement(new Pose2d(
+				visionPose.getX(),
+				visionPose.getY(),
+				visionPose.getRotation().plus(Rotation2d.k180deg)
+			),
+			timestamp, visionStdDevs
+		);
 	}
 
 	/**
