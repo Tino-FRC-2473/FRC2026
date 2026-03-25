@@ -286,6 +286,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return drivetrain.getPigeon2().getRotation3d();
 	}
 
+	@AutoLogOutput(key = "Drivetrain/RotationDouble")
+	public double getRotation() {
+		return drivetrain.getPigeon2().getRotation2d().getDegrees();
+	}
+
 	/* ======================== Private methods ======================== */
 
 	@Override

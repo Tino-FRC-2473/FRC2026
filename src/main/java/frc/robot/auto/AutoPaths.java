@@ -319,13 +319,12 @@ public class AutoPaths {
 
 		return Commands
 				.sequence(
-					drivetrain.followcommand("BlueS2_NZ"),
+					drivetrain.followcommand("BlueS1_HUB")//,
 					//startIntakeCommand(input, intake),
-					waitFor(5),
+					// waitFor(1),
 					//stopIntakeCommand(input, intake),
-					drivetrain.followcommand("NZ_BlueS1"),
-					drivetrain.followcommand("BlueS1_HUB"),
-					drivetrain.followcommand("BlueHUB_T")
+					// /
+					//drivetrain.followcommand("BlueHUB_T")
 				);
 	}
 	
