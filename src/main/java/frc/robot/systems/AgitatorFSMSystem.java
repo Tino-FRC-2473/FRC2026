@@ -11,6 +11,7 @@ import frc.robot.input.Input;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -60,6 +61,9 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 	public AgitatorFSMSystem(Supplier<Boolean> isIntakeOuttaking,
 		Supplier<Boolean> isShooterShooting) {
 
+		conveyorMotor = new TalonFXWrapper(HardwareMap.CAN_ID_CONVEYOR);
+		conveyorMotionRequest = new MotionMagicVelocityVoltage(0);
+
 		isOuttaking = isIntakeOuttaking;
 		isShooting = isShooterShooting;
 
@@ -98,8 +102,7 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
-		conveyorMotor = new TalonFXWrapper(HardwareMap.CAN_ID_CONVEYOR);
-		conveyorMotionRequest = new MotionMagicVelocityVoltage(0);
+		
 
 		// Reset state machine
 		reset();
@@ -266,8 +269,9 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 	 *              the robot is in autonomous mode.
 	 */
 	private void handleShootConveyorState(Input input) {
-		conveyorMotor.setControl(conveyorMotionRequest.
-			withVelocity(AgitatorConstants.SHOOT_CONVEYOR_TARGET_VELOCITY));
+		conveyorMotor.set(AgitatorConstants.AGITATOR_SETPOINT);
+		// conveyorMotor.setControl(conveyorMotionRequest.
+		// 	withVelocity(AgitatorConstants.SHOOT_CONVEYOR_TARGET_VELOCITY));
 	}
 
 	/**
@@ -277,8 +281,9 @@ public class AgitatorFSMSystem extends FSMSystem<AgitatorFSMSystem.AgitatorFSMSt
 	 *              the robot is in autonomous mode.
 	 */
 	private void handleOuttakeConveyorState(Input input) {
-		conveyorMotor.setControl(conveyorMotionRequest.
-			withVelocity(AgitatorConstants.OUTTAKE_CONVEYOR_TARGET_VELOCITY));
+		conveyorMotor.set(-AgitatorConstants.AGITATOR_SETPOINT);
+		// conveyorMotor.setControl(conveyorMotionRequest.
+		// 	withVelocity(AgitatorConstants.OUTTAKE_CONVEYOR_TARGET_VELOCITY));
 	}
 
 }

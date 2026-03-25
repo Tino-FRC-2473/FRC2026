@@ -13,7 +13,7 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_PIVOT_LEFT = 52;
 	public static final int CAN_ID_SPARK_PIVOT_RIGHT = 51;
 	public static final int CAN_ID_SPARK_INTAKE = 53;
-	public static final int CAN_ID_CONVEYOR = 53;
+	public static final int CAN_ID_CONVEYOR = 54;
 
 	//values TBD
 	public static final int CAN_ID_FLYWHEEL = 2;

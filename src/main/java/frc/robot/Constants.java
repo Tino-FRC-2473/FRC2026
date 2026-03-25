@@ -340,6 +340,8 @@ public class Constants {
 		public static final double CONVEYOR_TARGET_ACCEL = 10;
 		public static final double CONVEYOR_EXPO_KV = 0.12;
 
+		public static final double AGITATOR_SETPOINT = 0.2;
+
 		//other
 		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
 	}
