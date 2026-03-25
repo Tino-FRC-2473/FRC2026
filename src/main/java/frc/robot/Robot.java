@@ -30,6 +30,7 @@ import frc.robot.systems.Vision;
 import frc.robot.systems.FSMSystem;
 import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.PlaceholderFSMSystem;
+import frc.robot.systems.AgitatorFSMSystem;
 import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
 
@@ -48,6 +49,7 @@ public class Robot extends LoggedRobot {
 	private FSMSystem<ClimberFSMSystem.ClimberFSMState> climberFSMSystem;
 	private FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem;
 	private FSMSystem<ShooterFSMSystem.ShooterFSMState> shooterFSMSystem;
+	private FSMSystem<AgitatorFSMSystem.AgitatorFSMState> agitatorFSMSystem;
 
 	private Vision vision;
 
@@ -112,11 +114,34 @@ public class Robot extends LoggedRobot {
 		// 	? new ClimberFSMSystem(intake)
 		// 	: new PlaceholderFSMSystem<>();
 
+		Optional<IntakeFSMSystem> intake;
+		if (HardwareMap.isIntakeEnabled()) {
+			intake = Optional.of(new IntakeFSMSystem());
+			intakeFSMSystem = intake.get();
+		} else {
+			intakeFSMSystem = new PlaceholderFSMSystem<>();
+			intake = Optional.empty();
+		}
+
 		Optional<ShooterFSMSystem> shooter;
 		shooter = Optional.of(
 			new ShooterFSMSystem()
 		);
 		shooterFSMSystem = shooter.get();
+
+		Optional<AgitatorFSMSystem> agitator;
+		if (HardwareMap.isAgitatorEnabled()) {
+			agitator = Optional.of(
+				new AgitatorFSMSystem(
+					intake.isPresent() ? intake.get()::getIsIntakeOuttaking : null,
+					shooter.isPresent() ? shooter.get()::getIsFeeding : null
+				)
+			);
+			agitatorFSMSystem = agitator.get();
+		} else {
+			agitatorFSMSystem = new PlaceholderFSMSystem<>();
+			agitator = Optional.empty();
+		}
 
 	}
 
@@ -131,6 +156,7 @@ public class Robot extends LoggedRobot {
 		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
+		agitatorFSMSystem.reset();
 		if (drivetrainFSMSystem instanceof Drivetrain drive
 			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
 			&& climberFSMSystem instanceof ClimberFSMSystem climber
@@ -150,6 +176,7 @@ public class Robot extends LoggedRobot {
 		climberFSMSystem.update(input);
 		intakeFSMSystem.update(input);
 		shooterFSMSystem.update(input);
+		agitatorFSMSystem.update(input);
 
 		input.update();
 		CommandScheduler.getInstance().run();
@@ -168,6 +195,7 @@ public class Robot extends LoggedRobot {
 		// climberFSMSystem.reset();
 		// intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
+		agitatorFSMSystem.reset();
 	}
 
 	@Override
@@ -176,6 +204,7 @@ public class Robot extends LoggedRobot {
 		// climberFSMSystem.update(input);
 		// intakeFSMSystem.update(input);
 		shooterFSMSystem.update(input);
+		agitatorFSMSystem.update(input);
 
 		input.update();
 

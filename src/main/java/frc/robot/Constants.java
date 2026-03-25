@@ -327,4 +327,28 @@ public class Constants {
 		public static final Pose3d LL4_OFFSET =
 			new Pose3d(0.096, -0.03, 0.55, new Rotation3d(0, 0, 270));
 	}
+
+	public static final class AgitatorConstants {
+		//Conveyor gearing
+		public static final double CONVEYOR_GEARING = 2;
+
+
+		// Conveyor Motor PID
+		public static final double CONVEYOR_KV = 0.12;
+		public static final double CONVEYOR_KA = 0.0;
+		public static final double CONVEYOR_KP = 0.2;
+		public static final double CONVEYOR_KI = 0.0;
+		public static final double CONVEYOR_KD = 0.0;
+		public static final double SHOOT_CONVEYOR_TARGET_VELOCITY = 10;
+		public static final double OUTTAKE_CONVEYOR_TARGET_VELOCITY = -10.0;
+
+		public static final double CONVEYOR_CRUISE_VELO = 5;
+		public static final double CONVEYOR_TARGET_ACCEL = 10;
+		public static final double CONVEYOR_EXPO_KV = 0.12;
+
+		public static final double AGITATOR_SETPOINT = 0.2;
+
+		//other
+		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
+	}
 }
