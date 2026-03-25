@@ -107,12 +107,18 @@ public class Vision {
 		}
 
 		// 1. check number of tags
-		if (pose.tagCount == 0) {
+		if (pose.tagCount == 0 || pose.tagCount == 1) {
 			return false;
 		}
 
 		// 3. check average tag distance
-		if (pose.avgTagDist > 4.0) {
+		if (pose.avgTagDist > 4.0){
+			return false;
+		}
+
+
+
+		if (pose.rawFiducials[0].ambiguity > 4.0 && pose.rawFiducials[1].ambiguity > 4.0) {
 			return false;
 		}
 
