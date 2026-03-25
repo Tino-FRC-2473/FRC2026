@@ -86,18 +86,18 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	private boolean invertControls = false;
 
-	private Field2d elasticField = new Field2d();
-	private Pose2d hubPose;
+	private Field2d simulatedField = new Field2d();
+	private Pose2d currentHubPose;
 
 	/**
-	 * Constructs the drivetrain subsystem.
+	 * Construct the drivetrain subsystem.
 	 */
 	public Drivetrain() {
 		drivetrain = TunerConstants.createDrivetrain();
 		//updateLimelightYaw();
 
 		SmartDashboard.putData(CommandScheduler.getInstance());
-		SmartDashboard.putData(elasticField);
+		SmartDashboard.putData(simulatedField);
 
 		//System.out.println(DriverStation.getAlliance());
 
@@ -171,7 +171,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public void reset() {
 		currentState = DrivetrainState.AUTONOMOUS;
 		stop();
-
 		update(null);
 	}
 
@@ -179,7 +178,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public void update(Input input) {
 		drivetrain.periodic();
 		CommandScheduler.getInstance().run();
-		elasticField.setRobotPose(drivetrain.getState().Pose);
+		simulatedField.setRobotPose(drivetrain.getState().Pose);
 
 		switch (currentState) {
 			case CONTROLLED:
@@ -189,75 +188,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				break;
 			default:
 				throw new IllegalStateException(
-					"[DRIVETRAIN] Cannot update an invalid current state: "
-					+ currentState.toString()
+					"[DRIVETRAIN] Cannot update an invalid state: " + currentState.toString()
 				);
 		}
 
 		currentState = nextState(input);
 	}
-
-	/**
-	 * Get the drivetrain pose.
-	 *
-	 * @return the pose
-	 */
-	@AutoLogOutput(key = "Drivetrain/Pose")
-	public Pose2d getPose() {
-		return drivetrain.getState().Pose;
-	}
-
-	/**
-	 * Get the drivetrain chassis speeds.
-	 *
-	 * @return the chassis speeds
-	 */
-	@AutoLogOutput(key = "Drivetrain/Swerve/Chassis Speeds")
-	public ChassisSpeeds getChassisSpeeds() {
-		return drivetrain.getState().Speeds;
-	}
-
-	/**
-	 * Get the drivetrain swerve states.
-	 *
-	 * @return the swerve module states
-	 */
-	@AutoLogOutput(key = "Drivetrain/Swerve/States")
-	public SwerveModuleState[] getModuleStates() {
-		return drivetrain.getState().ModuleStates;
-	}
-
-	/**
-	 * Get the drivetrain swerve targets.
-	 *
-	 * @return the swerve module targets
-	 */
-	@AutoLogOutput(key = "Drivetrain/Swerve/Targets")
-	public SwerveModuleState[] getModuleTargets() {
-		return drivetrain.getState().ModuleTargets;
-	}
-
-	/**
-	 * Get the drivetrain swerve positions.
-	 *
-	 * @return the swerve module positions
-	 */
-	@AutoLogOutput(key = "Drivetrain/Swerve/Positions")
-	public SwerveModulePosition[] getModulePositions() {
-		return drivetrain.getState().ModulePositions;
-	}
-
-	/**
-	 * Get the drivetrain's rotation.
-	 *
-	 * @return The drivetrain's rotation as a Pose2D
-	 */
-	@AutoLogOutput(key = "Drivetrain/Rotation")
-	public Rotation3d getDrivetrainRotation() {
-		return drivetrain.getPigeon2().getRotation3d();
-	}
-
-	/* ======================== Private methods ======================== */
 
 	@Override
 	protected DrivetrainState nextState(Input input) {
@@ -265,7 +201,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return DrivetrainState.CONTROLLED;
 		}
 
-		if (input.getButtonPressed(ButtonInput.INVERT_DRIVETRAIN_CONTROLS)) {
+		if (input.getButtonPressed(ButtonInput.DRIVETRAIN_INVERT_CONTROLS)) {
 			invertControls = !invertControls;
 		}
 
@@ -323,6 +259,76 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 	}
 
+	/**
+	 * Get the drivetrain pose.
+	 *
+	 * @return the pose
+	 */
+	@AutoLogOutput(key = "Drivetrain/Pose")
+	public Pose2d getPose() {
+		return drivetrain.getState().Pose;
+	}
+
+	/**
+	 * Get the drivetrain rotation.
+	 *
+	 * @return the rotation
+	 */
+	@AutoLogOutput(key = "Drivetrain/Rotation")
+	public Rotation3d getRotation() {
+		return drivetrain.getPigeon2().getRotation3d();
+	}
+
+	/**
+	 * Get the drivetrain swerve states.
+	 *
+	 * @return the swerve module states
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/States")
+	public SwerveModuleState[] getSwerveStates() {
+		return drivetrain.getState().ModuleStates;
+	}
+
+	/**
+	 * Get the drivetrain swerve targets.
+	 *
+	 * @return the swerve module targets
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/Targets")
+	public SwerveModuleState[] getSwerveTargets() {
+		return drivetrain.getState().ModuleTargets;
+	}
+
+	/**
+	 * Get the drivetrain swerve speeds.
+	 *
+	 * @return the swerve module speeds
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/Speeds")
+	public ChassisSpeeds getSwerveSpeeds() {
+		return drivetrain.getState().Speeds;
+	}
+
+	/**
+	 * Get the drivetrain swerve positions.
+	 *
+	 * @return the swerve module positions
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/Positions")
+	public SwerveModulePosition[] getSwervePositions() {
+		return drivetrain.getState().ModulePositions;
+	}
+
+	/* ======================== Private methods ======================== */
+
+	private void stop() {
+		drivetrain.applyRequest(() -> driveFieldCentric
+				.withVelocityX(0)
+				.withVelocityY(0)
+				.withRotationalRate(0)
+		);
+	}
+
 	private void startPathfinding(Pose2d target) {
 
 		Logger.recordOutput("Vision/AlignmentPose", target);
@@ -337,8 +343,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
-		hubPose = AllianceFlipUtil.apply(BLUE_HUB_POSE);
-		Logger.recordOutput("Hub Pose Alignment", hubPose);
+		currentHubPose = AllianceFlipUtil.apply(BLUE_HUB_POSE);
+		Logger.recordOutput("Hub Pose Alignment", currentHubPose);
 
 		//TODO: Clean this jawn up it's for testing
 		double flipAlliance = -1;
@@ -375,7 +381,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		if (input.getButtonValue(ButtonInput.FACE_HUB)) {
-			Transform2d distance = getPose().minus(hubPose);
+			Transform2d distance = getPose().minus(currentHubPose);
 			double angle = Math.atan2(distance.getY(), distance.getX());
 			drivetrain.setControl(
 				driveFacingAngle
@@ -469,17 +475,15 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		//drivetrain.addVisionMeasurement(visionPoseMeters, timestampSeconds,visionStdDevs);
 	}
 
-	private static final double NINETY = 90;
-
 	/**
 	 * Returns the target rotation needed given a target pose.
 	 * @param target the target pose
 	 * @return the rotation
 	 */
 	public Rotation2d getTargetHub(Pose2d target) {
-		// Pose2d transformPose = getPose().relativeTo(ShooterConstants.HUB_POSE);
 		Transform2d distance = target.minus(getPose());
-		return Rotation2d.fromRadians(Math.atan2(distance.getY(), distance.getX()) + NINETY);
+		return Rotation2d.fromRadians(Math.atan2(distance.getY(), distance.getX()))
+				.rotateBy(Rotation2d.kCCW_90deg);
 	}
 
 	/**
@@ -499,11 +503,4 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			|| input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE) != 0;
 	}
 
-	/**
-	 * Stops the drivetrain.
-	 */
-	public void stop() {
-		drivetrain.applyRequest(
-			() -> driveFieldCentric.withVelocityX(0).withVelocityY(0).withRotationalRate(0));
-	}
 }

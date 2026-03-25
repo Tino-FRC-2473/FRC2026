@@ -35,8 +35,8 @@ import frc.robot.generated.TunerConstants;
 import static edu.wpi.first.units.Units.Seconds;
 
 
-
 public class Constants {
+	
 	public static final class LimelightConstants {
 		public static final long AUTO_UPDATE_INTERVAL_MS = 20L;
 	}
