@@ -5,6 +5,12 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static frc.robot.Constants.DrivetrainConstants.BLUE_HUB_POSE;
 import static frc.robot.Constants.DrivetrainConstants.BLUE_OUTPOST_POSE;
 import static frc.robot.Constants.DrivetrainConstants.BLUE_TARGET3_POSE;
+import static frc.robot.Constants.DrivetrainConstants.FACE_HUB_D;
+import static frc.robot.Constants.DrivetrainConstants.FACE_HUB_I;
+import static frc.robot.Constants.DrivetrainConstants.FACE_HUB_P;
+import static frc.robot.Constants.DrivetrainConstants.FACE_PASS_D;
+import static frc.robot.Constants.DrivetrainConstants.FACE_PASS_I;
+import static frc.robot.Constants.DrivetrainConstants.FACE_PASS_P;
 import static frc.robot.Constants.DrivetrainConstants.MAX_ANGULAR_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.MAX_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;
@@ -45,7 +51,6 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N10;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N6;
-import edu.wpi.first.math.numbers.N7;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -505,7 +510,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		if (input.getButtonValue(ButtonInput.FACE_HUB)) {
 			drivetrain.setControl(driveFacingAngle
 					.withTargetDirection(Rotation2d.fromRadians(getAngleToHub()))
-					.withHeadingPID(N7.instance.getNum(), 0, 0)
+					.withHeadingPID(FACE_HUB_P, FACE_HUB_I, FACE_HUB_D)
 					.withVelocityX(xSpeed * TRANSLATIONAL_DAMP)
 					.withVelocityY(ySpeed * TRANSLATIONAL_DAMP)
 			);
@@ -532,7 +537,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			drivetrain.setControl(
 				driveFacingAngle
 					.withTargetDirection(Rotation2d.fromRadians(getAngleToPose(correctTarget)))
-					.withHeadingPID(N7.instance.getNum(), 0, 0)
+					.withHeadingPID(FACE_PASS_P, FACE_PASS_I, FACE_PASS_D)
 					.withVelocityX(xSpeed * TRANSLATIONAL_DAMP)
 					.withVelocityY(ySpeed * TRANSLATIONAL_DAMP)
 			);
