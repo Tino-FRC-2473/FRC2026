@@ -100,7 +100,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	/**
 	 * Construct the drivetrain subsystem.
 	 */
-	public Drivetrain() throws IOException, ParseException {
+	public Drivetrain() {
 		createDrivetrain();
 		updateSmartDashboard();
 		configureAutoBuilder();
@@ -142,7 +142,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@Override
 	protected DrivetrainState nextState(Input input) {
 		if (input == null) {
-			return DrivetrainState.CONTROLLED;
+			return DrivetrainState.AUTONOMOUS;
 		}
 
 		switch (currentState) {
@@ -328,7 +328,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		SmartDashboard.putData(simulatedField);
 	}
 
-	private void configureAutoBuilder() throws IOException, ParseException {
+	private void configureAutoBuilder() {
+		RobotConfig config;
+		try {
+			config = RobotConfig.fromGUISettings();
+		} catch (IOException | ParseException e) { }
+
 		AutoBuilder.configure(
 			this::getPose, // Robot pose supplier
 			// Method to reset odometry (will be called if your auto has a starting pose)
@@ -362,7 +367,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				new PIDConstants(ModuleConstants.STEER_P,
 					ModuleConstants.STEER_I, ModuleConstants.STEER_D)
 			),
-			RobotConfig.fromGUISettings(), // The robot configuration
+			config, // The robot configuration
 			() -> {
 				/* Boolean supplier that controls when the
 				path will be mirrored for the red alliance*/
