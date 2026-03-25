@@ -329,7 +329,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	private void configureAutoBuilder() {
-		RobotConfig config;
+		RobotConfig config = null;
 		try {
 			config = RobotConfig.fromGUISettings();
 		} catch (IOException | ParseException e) { }
