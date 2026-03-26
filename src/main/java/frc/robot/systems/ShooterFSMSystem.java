@@ -21,8 +21,9 @@ import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation;
 
-
+import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.HardwareMap;
 import frc.robot.input.Input;
@@ -253,6 +254,17 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		if (drivetrain != null) {
 			curPose = drivetrain.getPose();
 		}
+
+		if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+			hubPose = DrivetrainConstants.RED_HUB_POSE;
+			outpostPose = DrivetrainConstants.RED_OUTPOST_POSE;
+			target3Pose = DrivetrainConstants.RED_POSE3_POSE;
+		} else {
+			hubPose = DrivetrainConstants.BLUE_HUB_POSE;
+			outpostPose = DrivetrainConstants.BLUE_OUTPOST_POSE;
+			target3Pose = DrivetrainConstants.BLUE_POSE3_POSE;
+		}
+
 		if (getCurrentState() != null) {
 			switch (getCurrentState()) {
 				case IDLE_STATE:
