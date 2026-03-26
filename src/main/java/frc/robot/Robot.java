@@ -75,44 +75,18 @@ public class Robot extends LoggedRobot {
 			VisionConstants.RESOLUTION_Y);
 
 		// Instantiate all systems here
-		// if (HardwareMap.isDrivetrainEnabled()) {
-		// 	Drivetrain drivetrain = new Drivetrain();
-		// 	drivetrainFSMSystem = drivetrain;
-		// 	vision = new Vision(
-		// 		drivetrain::addVisionMeasurement,
-		// 		drivetrain.getDrivetrainRotation(),
-		// 		VisionConstants.LIMELIGHT_NAME
-		// 	);
-		// } else {
-		// 	drivetrainFSMSystem = new PlaceholderFSMSystem<>();
-		// 	vision = null;
-		// }
-
-		// Optional<IntakeFSMSystem> intake;
-		// if (HardwareMap.isIntakeEnabled()) {
-		// 	intake = Optional.of(new IntakeFSMSystem());
-		// 	intakeFSMSystem = intake.get();
-		// } else {
-		// 	intakeFSMSystem = new PlaceholderFSMSystem<>();
-		// 	intake = Optional.empty();
-		// }
-
-		// Optional<ShooterFSMSystem> shooter;
-		// if (HardwareMap.isShooterEnabled()) {
-		// 	shooter = Optional.of(
-		// 		new ShooterFSMSystem(
-		// 			(Drivetrain) drivetrainFSMSystem,
-		// 			(IntakeFSMSystem) intakeFSMSystem)
-		// 		);
-		// 	shooterFSMSystem = shooter.get();
-		// } else {
-		// 	shooterFSMSystem = new PlaceholderFSMSystem<>();
-		// 	shooter = Optional.empty();
-		// }
-
-		// climberFSMSystem = HardwareMap.isClimberEnabled()
-		// 	? new ClimberFSMSystem(intake)
-		// 	: new PlaceholderFSMSystem<>();
+		if (HardwareMap.isDrivetrainEnabled()) {
+			Drivetrain drivetrain = new Drivetrain();
+			drivetrainFSMSystem = drivetrain;
+			vision = new Vision(
+				drivetrain::addVisionMeasurement,
+				drivetrain.getDrivetrainRotation(),
+				VisionConstants.LIMELIGHT_NAME
+			);
+		} else {
+			drivetrainFSMSystem = new PlaceholderFSMSystem<>();
+			vision = null;
+		}
 
 		Optional<IntakeFSMSystem> intake;
 		if (HardwareMap.isIntakeEnabled()) {
@@ -124,10 +98,22 @@ public class Robot extends LoggedRobot {
 		}
 
 		Optional<ShooterFSMSystem> shooter;
-		shooter = Optional.of(
-			new ShooterFSMSystem()
-		);
-		shooterFSMSystem = shooter.get();
+		if (HardwareMap.isShooterEnabled()) {
+			if (HardwareMap.isDrivetrainEnabled()) {
+				shooter = Optional.of(
+					new ShooterFSMSystem((Drivetrain) drivetrainFSMSystem)
+				);
+			} else {
+				shooter = Optional.of(
+					new ShooterFSMSystem()
+				);
+			}
+
+			shooterFSMSystem = shooter.get();
+		} else {
+			shooterFSMSystem = new PlaceholderFSMSystem<>();
+			shooter = Optional.empty();
+		}
 
 		Optional<AgitatorFSMSystem> agitator;
 		if (HardwareMap.isAgitatorEnabled()) {
@@ -191,18 +177,18 @@ public class Robot extends LoggedRobot {
 		input = new TeleopInput();
 		input.reset();
 		CommandScheduler.getInstance().cancelAll();
-		// drivetrainFSMSystem.reset();
-		// climberFSMSystem.reset();
-		// intakeFSMSystem.reset();
+		drivetrainFSMSystem.reset();
+		climberFSMSystem.reset();
+		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
 		agitatorFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		// drivetrainFSMSystem.update(input);
-		// climberFSMSystem.update(input);
-		// intakeFSMSystem.update(input);
+		drivetrainFSMSystem.update(input);
+		climberFSMSystem.update(input);
+		intakeFSMSystem.update(input);
 		shooterFSMSystem.update(input);
 		agitatorFSMSystem.update(input);
 
