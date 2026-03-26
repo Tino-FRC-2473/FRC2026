@@ -19,6 +19,8 @@ public final class HardwareMap {
 	public static final int CAN_ID_FEEDER = 3;
 	public static final int CAN_ID_SPINDEXER = 4;
 
+	public static final int CAN_ID_POWER_DISTRIBUTION_HUB = 33;
+
 	//rio - dio ports
 	public static final int INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT = 1;
 	public static final int INTAKE_TOP_LIMIT_SWITCH_DIO_PORT = 3;
@@ -63,7 +65,7 @@ public final class HardwareMap {
 	 * @return if the hardware for the intake is present
 	 */
 	public static boolean isIntakeEnabled() {
-		return true;
+		return false;
 	}
 
 	/**

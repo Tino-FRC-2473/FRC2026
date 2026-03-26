@@ -51,6 +51,8 @@ public class Robot extends LoggedRobot {
 	private FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem;
 	private FSMSystem<ShooterFSMSystem.ShooterFSMState> shooterFSMSystem;
 
+	private EnergyLogger energyLogger;
+
 	private Vision vision;
 	private Drivetrain drivetrain;
 
@@ -76,6 +78,8 @@ public class Robot extends LoggedRobot {
 			VisionConstants.RESOLUTION_Y);
 
 		// Instantiate all systems here
+		energyLogger = new EnergyLogger();
+
 		if (HardwareMap.isDrivetrainEnabled()) {
 			drivetrain = new Drivetrain();
 			drivetrainFSMSystem = drivetrain;
@@ -114,7 +118,7 @@ public class Robot extends LoggedRobot {
 		climberFSMSystem = HardwareMap.isClimberEnabled()
 			? new ClimberFSMSystem(intake)
 			: new PlaceholderFSMSystem<>();
-		
+
 		FollowPathCommand.warmupCommand().schedule();
 
 	}
@@ -222,5 +226,6 @@ public class Robot extends LoggedRobot {
 		if (vision != null) {
 			vision.periodic();
 		}
+		energyLogger.log();
 	}
 }

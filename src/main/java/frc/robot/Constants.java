@@ -61,7 +61,7 @@ public class Constants {
 
 		// drive velocity limits
 		// Max linear & angular speeds
-		public static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
+		public static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
 		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(1.5);
 
 		// pathing acceleration limits
@@ -72,7 +72,7 @@ public class Constants {
 			= RotationsPerSecondPerSecond.of(4);
 
 		public static final int PIGEON2_CAN_ID = 1;
-		public static final String CAN_BUS_NAME = "Drivetrain";
+		public static final String CAN_BUS_NAME = "rio";
 		//TODO: Get some actual values for this
 		public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
 				MAX_SPEED,
