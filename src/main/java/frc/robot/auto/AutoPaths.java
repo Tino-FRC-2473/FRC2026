@@ -1,9 +1,9 @@
 package frc.robot.auto;
 
 import java.io.IOException;
+
 import org.json.simple.parser.ParseException;
 
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FileVersionException;
 
@@ -16,411 +16,188 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 // import frc.robot.Constants.DrivetrainConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.input.AutoInput;
-import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.Drivetrain;
 import frc.robot.systems.ShooterFSMSystem;
 import frc.robot.systems.IntakeFSMSystem.IntakeFSMState;
 import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
-import frc.robot.Constants.AutoPathsConstants;
-import frc.robot.Constants.DrivetrainConstants;
-
 
 public class AutoPaths {
-
-	enum DrivePaths {
-
-		BlueS1_D,
-		RedS1_D(BlueS1_D),
-
-		BlueS2_D,
-		RedS2_D(BlueS2_D),
-
-		BlueS3_D,
-		RedS3_D(BlueS3_D),
-
-		BlueD_T,
-		RedD_T(BlueD_T),
-
-		BlueHUB_T,
-		RedHUB_T(BlueHUB_T),
-
-		BlueD_HUB,
-		RedD_HUB(BlueD_HUB),
-
-		BlueD_INTAKE,
-		RedD_INTAKE(BlueD_INTAKE),
-
-		NZ_BlueS3,
-		NZ_RedS3(NZ_BlueS3),
-
-		BlueS3_HUB,
-		RedS3_HUB(BlueS3_HUB),
-
-		NZ_BlueS1,
-		NZ_RedS1(NZ_BlueS1),
-
-		BlueS3_NZ,
-		RedS3_NZ(BlueS3_NZ),
-
-		HUB_BlueS1,
-		HUB_RedS1(HUB_BlueS1),
-
-		BlueNZ_INTAKE,
-		RedNZ_INTAKE(BlueNZ_INTAKE),
-
-		HUB_BlueS2,
-		HUB_RedS2(HUB_BlueS2),
-
-		BlueS1_HUB,
-		RedS1_HUB(BlueS1_HUB),
-
-		HUB_BlueS3,
-		HUB_RedS3(HUB_BlueS3),
-
-		NZ_BlueS2,
-		NZ_RedS2(NZ_BlueS2),
-
-		BlueS1_NZ,
-		RedS1_NZ(BlueS1_NZ),
-
-		BlueS2_HUB,
-		RedS2_HUB(BlueS2_HUB),
-
-		BlueS2_NZ,
-		RedS2_NZ(BlueS2_NZ);
-
-		private PathPlannerPath path;
-		private DrivePaths mirror;
-
-		DrivePaths(DrivePaths mirroredPath) {
-			mirror = mirroredPath;
-			try {
-				path = PathPlannerPath.fromChoreoTrajectory(this.name());
-			} catch (FileVersionException | IOException | ParseException e) {
-				System.err.printf("Failure to load path: %s", this.name());
-			}
-		}
-
-		DrivePaths() {
-			this(null);
-		}
-
-		Command get() {
-			return (path == null || !AutoBuilder.isConfigured())
-					? new InstantCommand()
-					: AutoBuilder.followPath(path);
-		}
-
-		DrivePaths mirror() {
-			if (mirror == null) {
-				for (DrivePaths other : DrivePaths.values()) {
-					if (other.mirror != null && other.mirror == this) {
-						mirror = other;
-						return mirror;
-					}
-				}
-			}
-			return mirror;
-		}
-
-		Command get(boolean shouldMirror) {
-			return shouldMirror ? mirror().get() : get();
-		}
-
-	}
-
-	public enum Start {
-		S1(
-				DrivePaths.BlueS1_D,
-				DrivePaths.BlueS1_NZ,
-				DrivePaths.NZ_BlueS1,
-				DrivePaths.BlueS1_HUB),
-		S2(
-				DrivePaths.BlueS2_D,
-				DrivePaths.BlueS2_NZ,
-				DrivePaths.NZ_BlueS2,
-				DrivePaths.BlueS2_HUB),
-		S3(
-				DrivePaths.BlueS3_D,
-				DrivePaths.BlueS3_NZ,
-				DrivePaths.NZ_BlueS3,
-				DrivePaths.BlueS3_HUB);
-
-		private DrivePaths depotPath;
-		private DrivePaths nzPath;
-		private DrivePaths nzPathBack;
-		private DrivePaths hubPath;
-
-		Start(
-				DrivePaths pathToDepot,
-				DrivePaths pathToNZ,
-				DrivePaths pathFromNZ,
-				DrivePaths pathToHub) {
-			// mirror matches what we tested on the bot
-			// not sure why/if this works and whether I should mirror the others
-			depotPath = pathToDepot.mirror();
-
-			nzPath = pathToNZ;
-			nzPathBack = pathFromNZ;
-			hubPath = pathToHub;
-		}
-	}
-
-	public record GetShootClimbSettings(
-			boolean shouldShoot, boolean isRed) {
-	}
-
-	public record GetShootSettings() {
-	}
+	private static PathPlannerPath blueS1D;
+	private static PathPlannerPath blueS2D;
+	private static PathPlannerPath blueS3D;
+	private static PathPlannerPath blueDT;
+	private static PathPlannerPath blueHUBT;
+	private static PathPlannerPath blueDHUB;
+	private static PathPlannerPath blueDINTAKE;
+	private static PathPlannerPath nzBlueS3;
+	private static PathPlannerPath blueS3HUB;
+	private static PathPlannerPath nzBlueS1;
+	private static PathPlannerPath blueS3NZ;
+	private static PathPlannerPath hubBlueS1;
+	private static PathPlannerPath blueNZINTAKE;
+	private static PathPlannerPath hubBlueS2;
+	private static PathPlannerPath blueS1HUB;
+	private static PathPlannerPath hubBlueS3;
+	private static PathPlannerPath nzBlueS2;
+	private static PathPlannerPath blueS1NZ;
+	private static PathPlannerPath blueS2HUB;
+	private static PathPlannerPath blueS2NZ;
 
 	/**
-	 * Returns an auto command that goes from a start position to depot,
-	 * intakes, optionally shoots into the hub, then climbs.
-	 *
-	 * @param input      the auto input
-	 * @param drivetrain the drivetrain
-	 * @param shooter    the shooter
-	 *                   // * @param climber the climber
-	 * @param intake     the intake
-	 * @param settings   some settings
-	 *                   starting postion, and whether it should shoot during auto
-	 * @return the auto as a command
+	 * Loads all the paths from the PathPlanner trajectories.
 	 */
-	public static Command getShootCommand(
-			AutoInput input,
-			Drivetrain drivetrain,
-			ShooterFSMSystem shooter,
-			// ClimberFSMSystem climber,
-			IntakeFSMSystem intake,
-			GetShootSettings settings
-
-	) {
-
-		return Commands
-				.sequence(
-						Commands.waitSeconds(AutoPathsConstants.SHOOT_WAIT_TIME_SECONDS),
-						input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0),
-						shootFor(input, shooter, N10.instance.getNum()),
-						input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 1 / 2));
-
+	public AutoPaths() {
+		try {
+			blueS1D = PathPlannerPath.fromChoreoTrajectory("BlueS1_D");
+			blueS2D = PathPlannerPath.fromChoreoTrajectory("BlueS2_D");
+			blueS3D = PathPlannerPath.fromChoreoTrajectory("BlueS3_D");
+			blueDT = PathPlannerPath.fromChoreoTrajectory("BlueD_T");
+			blueHUBT = PathPlannerPath.fromChoreoTrajectory("BlueHUB_T");
+			blueDHUB = PathPlannerPath.fromChoreoTrajectory("BlueD_HUB");
+			blueDINTAKE = PathPlannerPath.fromChoreoTrajectory("BlueD_INTAKE");
+			nzBlueS3 = PathPlannerPath.fromChoreoTrajectory("NZ_BlueS3");
+			blueS3HUB = PathPlannerPath.fromChoreoTrajectory("BlueS3_HUB");
+			nzBlueS1 = PathPlannerPath.fromChoreoTrajectory("NZ_BlueS1");
+			blueS3NZ = PathPlannerPath.fromChoreoTrajectory("BlueS3_NZ");
+			hubBlueS1 = PathPlannerPath.fromChoreoTrajectory("HUB_BlueS1");
+			blueNZINTAKE = PathPlannerPath.fromChoreoTrajectory("BlueNZ_INTAKE");
+			hubBlueS2 = PathPlannerPath.fromChoreoTrajectory("HUB_BlueS2");
+			blueS1HUB = PathPlannerPath.fromChoreoTrajectory("BlueS1_HUB");
+			hubBlueS3 = PathPlannerPath.fromChoreoTrajectory("HUB_BlueS3");
+			nzBlueS2 = PathPlannerPath.fromChoreoTrajectory("NZ_BlueS2");
+			blueS1NZ = PathPlannerPath.fromChoreoTrajectory("BlueS1_NZ");
+			blueS2HUB = PathPlannerPath.fromChoreoTrajectory("BlueS2_HUB");
+			blueS2NZ = PathPlannerPath.fromChoreoTrajectory("BlueS2_NZ");
+		} catch (FileVersionException | IOException | ParseException e) {
+			System.err.println("Failure to load paths");
+		}
 	}
 
 	/**
-	 * Returns an auto command that goes from a start position to depot,
-	 * intakes, optionally shoots into the hub, then climbs.
-	 *
-	 * @param input      the auto input
-	 * @param drivetrain the drivetrain
-	 * @param shooter    the shooter
-	 * @param intake     the intake
-	 * @param settings   settings
-	 *                   starting postion, and whether it should shoot during auto
-	 * @return the auto as a command
-	 */
-	public static Command getShootClimbCommand(
-			AutoInput input,
-			Drivetrain drivetrain,
-			ShooterFSMSystem shooter,
-			IntakeFSMSystem intake,
-			GetShootClimbSettings settings
-
-	) {
-
-		boolean isRed = settings.isRed();
-
-		// right now isRed = true means blue and isRed = false means red ;(
-		System.out.println("Reach 1");
-
-		return Commands
-				.sequence(
-						shootFor(input, shooter, AutoPathsConstants.SHOOT_CLIMB_SECONDS),
-						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
-						DrivePaths.BlueHUB_T.get(isRed),
-						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2),
-						DrivePaths.BlueS2_HUB.get(isRed));
-
-	}
-
-	public record NZShootClimbSettings(
-			boolean shouldShoot, boolean isRed, Start startingPositon) {
-	}
-
-	public record DepotShootClimbSettings(
-			boolean shouldShoot, boolean isRed, Start startingPositon) {
-	}
-
-	/**
-	 * Returns an auto command that goes from a start position to depot,
-	 * intakes, optionally shoots into the hub, then climbs.
-	 *
-	 * @param input      the auto input
-	 * @param drivetrain the drivetrain
-	 * @param shooter    the shooter
-	 * @param intake     the intake
-	 * @param settings   the setttings, including Blue/Red,
-	 *                   starting postion, and whether it should shoot during auto
-	 * @return the auto as a command
-	 */
-	public static Command getDepotShootClimb(
-			AutoInput input,
-			Drivetrain drivetrain,
-			ShooterFSMSystem shooter,
-			IntakeFSMSystem intake,
-			DepotShootClimbSettings settings
-
-	) {
-		// right now isRed = true means blue and isRed = false means red ;(
-		boolean isRed = settings.isRed();
-		boolean shouldShoot = settings.shouldShoot();
-
-		return Commands
-				.sequence(
-						Commands.parallel(
-								settings.startingPositon().depotPath.get(!isRed),
-								startIntakeCommand(input, intake)),
-						DrivePaths.BlueD_INTAKE.get(isRed),
-						stopIntakeCommand(input, intake),
-						Commands.either(
-							shootFor(input, shooter, 2),
-							Commands.none(),
-							() -> shouldShoot),
-						DrivePaths.BlueHUB_T.get(isRed),
-						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2));
-	}
-
-	/**
-	 * Returns an auto command that goes from a start position to neutral zone,
-	 * intakes, optionally shoots into the hub, then climbs.
-	 *
-	 * @param input      the auto input
-	 * @param drivetrain the drivetrain
-	 * @param shooter    the shooter
-	 * @param intake     the intake
-	 * @param settings   the setttings, including Blue/Red,
-	 *                   starting postion, and whether it should shoot during auto
-	 * @return the auto as a command
-	 */
-	public static Command getNZShootClimbCommand(
-			AutoInput input,
-			Drivetrain drivetrain,
-			ShooterFSMSystem shooter,
-			IntakeFSMSystem intake,
-			NZShootClimbSettings settings
-
-	) {
-		// right now isRed = true means blue and isRed = false means red ;(
-		boolean isRed = settings.isRed();
-		boolean shouldShoot = settings.shouldShoot();
-
-		return Commands
-				.sequence(
-					settings.startingPositon().nzPath.get(isRed),
-					startIntakeCommand(input, intake),
-					DrivePaths.BlueNZ_INTAKE.get(shouldShoot),
-					stopIntakeCommand(input, intake),
-					settings.startingPositon().nzPathBack.get(isRed),
-					settings.startingPositon().hubPath.get(isRed),
-					Commands.either(
-						shootFor(input, shooter, 2),
-						Commands.none(),
-						() -> shouldShoot),
-					DrivePaths.BlueHUB_T.get(isRed),
-					input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2));
-	}
-	/**
-	 * Default autonomous routine that intentionally does nothing.
-	 * @param input the autonomous input handler
-	 * @param drivetrain the drivetrain system
-	 * @param shooter the shooter system
-	 * @param intake the intake system
-	 * @return a command that performs no actions for the duration of auto
-	 */
-	public static Command doNothingAuto(
-		AutoInput input,
-		Drivetrain drivetrain,
-		ShooterFSMSystem shooter,
-		IntakeFSMSystem intake
-	) {
-		return Commands.sequence(
-			Commands.runOnce(() -> {
-				System.out.println("⚠️ WARNING: DO NOTHING AUTO SELECTED ⚠️");
-				edu.wpi.first.wpilibj.smartdashboard.SmartDashboard.putString(
-					"AUTO WARNING",
-					"DO NOTHING SELECTED"
-				);
-			}),
-			Commands.waitSeconds(DrivetrainConstants.WAIT_TIMER)
-		);
-	}
-
-	/**
-	 * Returns a test auto that drives with the the BlueHubNZCimb2 trajectory,
+	 * Returns a test auto that drives with the the BlueS1HUB trajectory,
 	 * and then shoots in the direction its facing for 10 seconds.
-	 *
-	 * @param input      the auto input
-	 * @param drivetrain the drivetrain
-	 * @param shooter    the shooter
-	 * @return the auto as a command
+	 * @param input
+	 * @param drivetrain
+	 * @param shooter
+	 * @param intake
+	 * @return Command
 	 */
-	public static Command getTestAuto(
+	private static Command getS1HUBShootCommand(
 			AutoInput input,
 			Drivetrain drivetrain,
-			ShooterFSMSystem shooter) {
+			ShooterFSMSystem shooter,
+			IntakeFSMSystem intake
+	) {
+		System.out.println("Getting S1 HUB Shoot Command");
 		return Commands
-			.sequence(shootFor(input, shooter, N10.instance.getNum()));
+				.sequence(
+					drivetrain.followcommand("BlueS1_HUB"),
+					shootFor(input, shooter, N10.instance.getNum())
+				);
 	}
+
+	/**
+	 * Returns a test auto that drives with the the BlueS1HUB trajectory,
+	 * and then shoots in the direction its facing for 10 seconds.
+	 * @param input
+	 * @param drivetrain
+	 * @param shooter
+	 * @param intake
+	 * @return Command
+	 */
+	private static Command getS2HUBShootCommand(
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			IntakeFSMSystem intake
+	) {
+		return Commands
+				.sequence(
+					drivetrain.followcommand("blueS2HUB"),
+					shootFor(input, shooter, N10.instance.getNum())
+				);
+	}
+
+	/**
+	 * Returns a test auto that drives with the the BlueS1HUB trajectory,
+	 * and then shoots in the direction its facing for 10 seconds.
+	 * @param input
+	 * @param drivetrain
+	 * @param shooter
+	 * @param intake
+	 * @return Command
+	 */
+	private static Command getS3HUBShootCommand(
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			IntakeFSMSystem intake
+	) {
+		return Commands
+				.sequence(
+					drivetrain.followcommand("blueS3HUB"),
+					shootFor(input, shooter, N10.instance.getNum())
+				);
+	}
+
+
 
 	private static Command startShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return Commands
 				.sequence(
-					input.pressButtonCommand(ButtonInput.PASSER_PREP_TOGGLE),
-					input.setButtonCommand(ButtonInput.REV_FEEDER, true),
-					shooter.watchForStatesCommand(ShooterFSMState.FEED_STATE));
+						input.pressButtonCommand(ButtonInput.PASSER_PREP_TOGGLE),
+						input.setButtonCommand(ButtonInput.REV_FEEDER, true),
+						shooter.watchForStatesCommand(ShooterFSMState.FEED_STATE));
 	}
 
 	private static Command startIntakeCommand(AutoInput input, IntakeFSMSystem intake) {
 		return Commands
 				.sequence(
-					Commands.parallel(
-						input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON),
-						intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE)),
-					Commands.parallel(
-						input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true),
-						intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE)));
+						Commands.parallel(
+								input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON),
+								intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE)),
+						Commands.parallel(
+								input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true),
+								intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE)));
 	}
 
 	private static Command stopIntakeCommand(AutoInput input, IntakeFSMSystem intake) {
 		return Commands
 				.sequence(
-					input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false),
-					intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE),
-					input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON),
-					intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE));
+						input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false),
+						intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE),
+						input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON),
+						intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE));
 	}
 
 	private static Command stopShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return Commands
 				.sequence(
-					input.setButtonCommand(ButtonInput.REV_FEEDER, false),
-					Commands.waitSeconds(1 / N10.instance.getNum()),
-					input.pressButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE),
-					shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE));
+						input.setButtonCommand(ButtonInput.REV_FEEDER, false),
+						Commands.waitSeconds(1 / N10.instance.getNum()),
+						input.pressButtonCommand(ButtonInput.IDLE_SHOOTER_TOGGLE),
+						shooter.watchForStatesCommand(ShooterFSMState.IDLE_STATE));
 	}
 
 	private static Command shootFor(AutoInput input, ShooterFSMSystem shooter, double time) {
 		return Commands
 				.sequence(
-					startShootingCommand(input, shooter),
-					Commands.waitSeconds(time),
-					stopShootingCommand(input, shooter));
+						startShootingCommand(input, shooter),
+						Commands.waitSeconds(time),
+						stopShootingCommand(input, shooter));
 	}
+
+	private static Command waitFor(double time) {
+		return Commands.waitSeconds(time);
+	}
+
 	/**
 	 * Returns a test auto that drives with the the BlueHubNZCimb2 trajectory,
 	 * and then shoots in the direction its facing for 10 seconds.
+	 *
 	 * @param chooser    the auto chooser
 	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
@@ -429,40 +206,20 @@ public class AutoPaths {
 	 */
 
 	public static void loadCommands(
-		SendableChooser<Command> chooser,
-		AutoInput input,
-		Drivetrain drivetrain,
-		ShooterFSMSystem shooter,
-		IntakeFSMSystem intake
-	) {
+			SendableChooser<Command> chooser,
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			IntakeFSMSystem intake) {
 		chooser.setDefaultOption(
-			"Shoot + Climb",
-			getShootClimbCommand(
-				input, drivetrain, shooter, intake,
-				new GetShootClimbSettings(true, true)
-			)
-		);
+				"S1 Shoot",
+				getS1HUBShootCommand(input, drivetrain, shooter, intake));
 		chooser.addOption(
-			"Shoot Only",
-			getShootCommand(
-				input, drivetrain, shooter, intake,
-				new GetShootSettings()
-			)
-		);
+				"S2 Shoot",
+				getS2HUBShootCommand(input, drivetrain, shooter, intake));
 		chooser.addOption(
-			"Depot Shoot Climb",
-			getDepotShootClimb(
-				input, drivetrain, shooter, intake,
-				new DepotShootClimbSettings(true, true, Start.S1)
-			)
-		);
-		chooser.addOption(
-			"NZ Shoot Climb",
-			getNZShootClimbCommand(
-				input, drivetrain, shooter, intake,
-				new NZShootClimbSettings(true, true, Start.S1)
-			)
-		);
+				"S3 Shoot",
+				getS3HUBShootCommand(input, drivetrain, shooter, intake));
 	}
 
 	// on the fly path example
