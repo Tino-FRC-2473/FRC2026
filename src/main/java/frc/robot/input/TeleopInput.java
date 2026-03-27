@@ -57,7 +57,7 @@ public final class TeleopInput extends Input {
 			// Drivetrain
 			case DRIVETRAIN_RESEED -> driveController::start;
 			case DRIVETRAIN_PATHFIND -> driveController::x;
-			case INVERT_DRIVETRAIN_CONTROLS -> driveController::back;
+			case DRIVETRAIN_INVERT_CONTROLS -> driveController::back;
 
 			case FACE_HUB -> driveController::rightTrigger;
 			case FACE_PASS -> driveController::leftTrigger;
