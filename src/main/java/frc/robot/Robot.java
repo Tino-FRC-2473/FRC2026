@@ -29,7 +29,6 @@ import frc.robot.systems.Vision;
 import frc.robot.systems.FSMSystem;
 import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.PlaceholderFSMSystem;
-import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
 //imports for auto chooser
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -49,7 +48,6 @@ public class Robot extends LoggedRobot {
 
 	// Systems
 	private FSMSystem<Drivetrain.DrivetrainState> drivetrainFSMSystem;
-	private FSMSystem<ClimberFSMSystem.ClimberFSMState> climberFSMSystem;
 	private FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem;
 	private FSMSystem<ShooterFSMSystem.ShooterFSMState> shooterFSMSystem;
 
@@ -114,20 +112,14 @@ public class Robot extends LoggedRobot {
 			shooter = Optional.empty();
 		}
 
-		climberFSMSystem = HardwareMap.isClimberEnabled()
-			? new ClimberFSMSystem(intake)
-			: new PlaceholderFSMSystem<>();
-
 		autoInput = new AutoInput();
 		teleopInput = new TeleopInput();
 
 		if (drivetrainFSMSystem instanceof Drivetrain
 			&& shooterFSMSystem instanceof ShooterFSMSystem
-			&& climberFSMSystem instanceof ClimberFSMSystem
 			&& intakeFSMSystem instanceof IntakeFSMSystem) {
 
 			Drivetrain drive = (Drivetrain) drivetrainFSMSystem;
-			ClimberFSMSystem climber = (ClimberFSMSystem) climberFSMSystem;
 			ShooterFSMSystem shooterAuto = (ShooterFSMSystem) shooterFSMSystem;
 			IntakeFSMSystem intakeAuto = (IntakeFSMSystem) intakeFSMSystem;
 			AutoPaths.loadCommands(
@@ -135,7 +127,6 @@ public class Robot extends LoggedRobot {
 				autoInput,
 				drive,
 				shooterAuto,
-				climber,
 				intakeAuto
 			);
 		}
@@ -147,10 +138,9 @@ public class Robot extends LoggedRobot {
 		System.out.println("-------- Autonomous Init --------");
 		autoInput.reset();
 		drivetrainFSMSystem.reset();
-		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
-		System.out.println("Reach 3");
+
 		//get the selected auto
 		autonomousCommand = autoChooser.getSelected();
 		//scudule auto command
@@ -162,7 +152,6 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void autonomousPeriodic() {
 		drivetrainFSMSystem.update(autoInput);
-		climberFSMSystem.update(autoInput);
 		intakeFSMSystem.update(autoInput);
 		shooterFSMSystem.update(autoInput);
 		autoInput.update();
@@ -178,7 +167,6 @@ public class Robot extends LoggedRobot {
 		teleopInput.reset();
 		CommandScheduler.getInstance().cancelAll();
 		drivetrainFSMSystem.reset();
-		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
 	}
@@ -186,7 +174,6 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopPeriodic() {
 		drivetrainFSMSystem.update(teleopInput);
-		climberFSMSystem.update(teleopInput);
 		intakeFSMSystem.update(teleopInput);
 		shooterFSMSystem.update(teleopInput);
 		teleopInput.update();
