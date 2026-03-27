@@ -27,7 +27,6 @@ import frc.robot.systems.IntakeFSMSystem.IntakeFSMState;
 import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
 import frc.robot.Constants.AutoPathsConstants;
 import frc.robot.Constants.DrivetrainConstants;
-import java.lang.reflect.Method;
 
 
 public class AutoPaths {
@@ -191,7 +190,6 @@ public class AutoPaths {
 	 *                   starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
-	@DashboardChoosable(key = "Shoot Only")
 	public static Command getShootCommand(
 			AutoInput input,
 			Drivetrain drivetrain,
@@ -223,7 +221,6 @@ public class AutoPaths {
 	 *                   starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
-	@DashboardChoosable(key = "Shoot Climb")
 	public static Command getShootClimbCommand(
 			AutoInput input,
 			Drivetrain drivetrain,
@@ -268,7 +265,6 @@ public class AutoPaths {
 	 *                   starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
-	@DashboardChoosable(key = "Depot Shoot Climb")
 	public static Command getDepotShootClimb(
 			AutoInput input,
 			Drivetrain drivetrain,
@@ -308,7 +304,6 @@ public class AutoPaths {
 	 *                   starting postion, and whether it should shoot during auto
 	 * @return the auto as a command
 	 */
-	@DashboardChoosable(key = "NZ Shoot Climb")
 	public static Command getNZShootClimbCommand(
 			AutoInput input,
 			Drivetrain drivetrain,
@@ -344,7 +339,6 @@ public class AutoPaths {
 	 * @param intake the intake system
 	 * @return a command that performs no actions for the duration of auto
 	 */
-	@DashboardChoosable(key = "DO NOTHING")
 	public static Command doNothingAuto(
 		AutoInput input,
 		Drivetrain drivetrain,
@@ -372,7 +366,6 @@ public class AutoPaths {
 	 * @param shooter    the shooter
 	 * @return the auto as a command
 	 */
-	@DashboardChoosable(key = "Test Auto")
 	public static Command getTestAuto(
 			AutoInput input,
 			Drivetrain drivetrain,
@@ -442,31 +435,34 @@ public class AutoPaths {
 		ShooterFSMSystem shooter,
 		IntakeFSMSystem intake
 	) {
-		boolean defaultSet = false;
-		for (Method method : AutoPaths.class.getDeclaredMethods()) {
-			if (method.isAnnotationPresent(DashboardChoosable.class)) {
-				DashboardChoosable annotation =
-					method.getAnnotation(DashboardChoosable.class);
-				try {
-					Command cmd = (Command) method.invoke(
-						null,
-						input,
-						drivetrain,
-						shooter,
-						intake
-					);
-					if (annotation.key().equals("DO NOTHING")) {
-						chooser.setDefaultOption(annotation.key(), cmd);
-						defaultSet = true;
-					} else {
-						chooser.addOption(annotation.key(), cmd);
-					}
-				} catch (Exception e) {
-					System.err.println("Failed to load auto: " + method.getName());
-					e.printStackTrace();
-				}
-			}
-		}
+		chooser.setDefaultOption(
+			"Shoot + Climb",
+			getShootClimbCommand(
+				input, drivetrain, shooter, intake,
+				new GetShootClimbSettings(true, true)
+			)
+		);
+		chooser.addOption(
+			"Shoot Only",
+			getShootCommand(
+				input, drivetrain, shooter, intake,
+				new GetShootSettings()
+			)
+		);
+		chooser.addOption(
+			"Depot Shoot Climb",
+			getDepotShootClimb(
+				input, drivetrain, shooter, intake,
+				new DepotShootClimbSettings(true, true, Start.S1)
+			)
+		);
+		chooser.addOption(
+			"NZ Shoot Climb",
+			getNZShootClimbCommand(
+				input, drivetrain, shooter, intake,
+				new NZShootClimbSettings(true, true, Start.S1)
+			)
+		);
 	}
 
 	// on the fly path example
