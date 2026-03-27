@@ -19,13 +19,11 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.input.AutoInput;
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
-import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.Drivetrain;
 import frc.robot.systems.ShooterFSMSystem;
 import frc.robot.systems.IntakeFSMSystem.IntakeFSMState;
 import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
-import frc.robot.systems.ClimberFSMSystem.ClimberFSMState;
 import frc.robot.Constants.AutoPathsConstants;
 
 public class AutoPaths {
@@ -215,7 +213,6 @@ public class AutoPaths {
 	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
 	 * @param shooter    the shooter
-	 * @param climber    the climber
 	 * @param intake     the intake
 	 * @param settings   settings
 	 *                   starting postion, and whether it should shoot during auto
@@ -225,7 +222,6 @@ public class AutoPaths {
 			AutoInput input,
 			Drivetrain drivetrain,
 			ShooterFSMSystem shooter,
-			ClimberFSMSystem climber,
 			IntakeFSMSystem intake,
 			GetShootClimbSettings settings
 
@@ -240,8 +236,6 @@ public class AutoPaths {
 				.sequence(
 						shootFor(input, shooter, AutoPathsConstants.SHOOT_CLIMB_SECONDS),
 						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
-						climber.watchForStatesCommand(ClimberFSMState.AUTO_UP_1,
-								ClimberFSMState.AUTO_IDLE),
 						DrivePaths.BlueHUB_T.get(isRed),
 						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2),
 						DrivePaths.BlueS2_HUB.get(isRed));
@@ -263,7 +257,6 @@ public class AutoPaths {
 	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
 	 * @param shooter    the shooter
-	 * @param climber    the climber
 	 * @param intake     the intake
 	 * @param settings   the setttings, including Blue/Red,
 	 *                   starting postion, and whether it should shoot during auto
@@ -273,7 +266,6 @@ public class AutoPaths {
 			AutoInput input,
 			Drivetrain drivetrain,
 			ShooterFSMSystem shooter,
-			ClimberFSMSystem climber,
 			IntakeFSMSystem intake,
 			DepotShootClimbSettings settings
 
@@ -293,10 +285,6 @@ public class AutoPaths {
 							shootFor(input, shooter, 2),
 							Commands.none(),
 							() -> shouldShoot),
-						Commands.parallel(
-							input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
-							climber.watchForStatesCommand(
-									ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)),
 						DrivePaths.BlueHUB_T.get(isRed),
 						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2));
 	}
@@ -308,7 +296,6 @@ public class AutoPaths {
 	 * @param input      the auto input
 	 * @param drivetrain the drivetrain
 	 * @param shooter    the shooter
-	 * @param climber    the climber
 	 * @param intake     the intake
 	 * @param settings   the setttings, including Blue/Red,
 	 *                   starting postion, and whether it should shoot during auto
@@ -318,7 +305,6 @@ public class AutoPaths {
 			AutoInput input,
 			Drivetrain drivetrain,
 			ShooterFSMSystem shooter,
-			ClimberFSMSystem climber,
 			IntakeFSMSystem intake,
 			NZShootClimbSettings settings
 
@@ -339,10 +325,6 @@ public class AutoPaths {
 						shootFor(input, shooter, 2),
 						Commands.none(),
 						() -> shouldShoot),
-					Commands.parallel(
-						input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_1),
-						climber.watchForStatesCommand(
-								ClimberFSMState.AUTO_UP_1, ClimberFSMState.AUTO_IDLE)),
 					DrivePaths.BlueHUB_T.get(isRed),
 					input.pressButtonCommand(ButtonInput.CLIMBER_AUTO_UP_2));
 	}
