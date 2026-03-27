@@ -3,25 +3,51 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
+import java.util.Optional;
+
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
+import frc.robot.Constants.VisionConstants;
+import frc.robot.auto.AutoPaths;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.CvSink;
+import edu.wpi.first.cscore.CvSource;
+
+
 // WPILib Imports
 
 // Systems
+
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.input.AutoInput;
+import frc.robot.input.Input;
+import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
+import frc.robot.systems.Vision;
+import frc.robot.systems.FSMSystem;
+import frc.robot.systems.IntakeFSMSystem;
+import frc.robot.systems.PlaceholderFSMSystem;
+import frc.robot.systems.ShooterFSMSystem;
+
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation.
  */
 public class Robot extends LoggedRobot {
-	private TeleopInput input;
+
+	// Robot input
+	private Input input;
 
 	// Systems
-	private Drivetrain drivetrain;
+	private FSMSystem<Drivetrain.DrivetrainState> drivetrainFSMSystem;
+	private FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem;
+	private FSMSystem<ShooterFSMSystem.ShooterFSMState> shooterFSMSystem;
+
+	private Vision vision;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -30,25 +56,88 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void robotInit() {
 		System.out.println("robotInit");
-		input = new TeleopInput();
 
 		Logger.recordMetadata("FRC 2473", "REBUILT");
 		Logger.addDataReceiver(new NT4Publisher());
 		Logger.start();
 
+		// Creates UsbCamera and MjpegServer [1] and connects them
+		CameraServer.startAutomaticCapture(0);
+		// Creates the CvSink and connects it to the UsbCamera
+		CvSink cvSink = CameraServer.getVideo();
+		// Creates the CvSource and MjpegServer [2] and connects them
+		CvSource outputStream = CameraServer.putVideo("Driver Camera",
+			VisionConstants.RESOLUTION_X,
+			VisionConstants.RESOLUTION_Y);
+
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
-			drivetrain = new Drivetrain();
+			Drivetrain drivetrain = new Drivetrain();
+			drivetrainFSMSystem = drivetrain;
+			vision = new Vision(
+				drivetrain::addVisionMeasurement,
+				drivetrain.getRotation(),
+				VisionConstants.LIMELIGHT_NAME
+			);
+		} else {
+			drivetrainFSMSystem = new PlaceholderFSMSystem<>();
+			vision = null;
 		}
+
+		Optional<IntakeFSMSystem> intake;
+		if (HardwareMap.isIntakeEnabled()) {
+			intake = Optional.of(new IntakeFSMSystem());
+			intakeFSMSystem = intake.get();
+		} else {
+			intakeFSMSystem = new PlaceholderFSMSystem<>();
+			intake = Optional.empty();
+		}
+
+		Optional<ShooterFSMSystem> shooter;
+		if (HardwareMap.isShooterEnabled()) {
+			shooter = Optional.of(
+				new ShooterFSMSystem(
+					(Drivetrain) drivetrainFSMSystem,
+					(IntakeFSMSystem) intakeFSMSystem)
+				);
+			shooterFSMSystem = shooter.get();
+		} else {
+			shooterFSMSystem = new PlaceholderFSMSystem<>();
+			shooter = Optional.empty();
+		}
+
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
+
+		AutoInput autoInput = new AutoInput();
+		input = autoInput;
+		input.reset();
+		drivetrainFSMSystem.reset();
+		intakeFSMSystem.reset();
+		shooterFSMSystem.reset();
+		if (drivetrainFSMSystem instanceof Drivetrain drive
+			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
+			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
+			System.out.println("Reach 3");
+			CommandScheduler.getInstance().schedule(
+				AutoPaths.getShootClimbCommand(
+					autoInput, drive, shooter, intake,
+					new AutoPaths.GetShootClimbSettings(true, true))
+			);
+		}
 	}
 
 	@Override
 	public void autonomousPeriodic() {
+		drivetrainFSMSystem.update(input);
+		intakeFSMSystem.update(input);
+		shooterFSMSystem.update(input);
+
+		input.update();
+		CommandScheduler.getInstance().run();
 
 		// logs motor values
 		MotorManager.update();
@@ -57,12 +146,21 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
-		drivetrain.reset();
+		input = new TeleopInput();
+		input.reset();
+		CommandScheduler.getInstance().cancelAll();
+		drivetrainFSMSystem.reset();
+		intakeFSMSystem.reset();
+		shooterFSMSystem.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		drivetrain.update(input);
+		drivetrainFSMSystem.update(input);
+		intakeFSMSystem.update(input);
+		shooterFSMSystem.update(input);
+
+		input.update();
 
 		// logs motor values
 		MotorManager.update();
@@ -75,7 +173,7 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void disabledPeriodic() {
-
+		CommandScheduler.getInstance().cancelAll();
 	}
 
 	@Override
@@ -101,5 +199,9 @@ public class Robot extends LoggedRobot {
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
-	public void robotPeriodic() { }
+	public void robotPeriodic() {
+		if (vision != null) {
+			vision.periodic();
+		}
+	}
 }

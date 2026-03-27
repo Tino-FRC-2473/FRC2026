@@ -1,0 +1,113 @@
+package frc.robot.input;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+import edu.wpi.first.wpilibj.event.BooleanEvent;
+import edu.wpi.first.wpilibj.event.EventLoop;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.input.InputTypes.AxialInput;
+import frc.robot.input.InputTypes.ButtonInput;
+
+public final class AutoInput extends Input {
+
+	public static final int DEFAULT_PRESS_DURATION_CYCLES = 5;
+
+	private final Map<ButtonInput, Boolean> buttonValues;
+	private final Map<AxialInput, Double> axesValues;
+
+	/**
+	 * Constructs an AutonInput to store input from commands
+	 * for the FSMs. Uses wpi event loops to handle pressed / released / raw behavior.
+	 */
+	public AutoInput() {
+		buttonValues = new HashMap<>();
+		axesValues = new HashMap<>();
+	}
+
+	/**
+	 * Setter for a button value.
+	 * @param button the button
+	 * @param value the value
+	 */
+	public void setButton(ButtonInput button, boolean value) {
+		buttonValues.put(button, value);
+	}
+
+	/**
+	 * Returns an instant command that toggles the button value.
+	 * @param button the button to toggle
+	 * @return the command
+	 */
+	public Command toggleButtonCommand(ButtonInput button) {
+		return new InstantCommand(() -> buttonValues.put(button, !getButtonValue(button)));
+	}
+
+	/**
+	 * Returns an instant command that briefly presses a button.
+	 * @param button the button to press
+	 * @return the command
+	 */
+	public Command pressButtonCommand(ButtonInput button) {
+		return pressButtonCommand(button, DEFAULT_PRESS_DURATION_CYCLES);
+	}
+
+	/**
+	 * Returns an instant command that sets the button value.
+	 * @param button the button to set
+	 * @param value the button value
+	 * @return the command
+	 */
+	public Command setButtonCommand(ButtonInput button, boolean value) {
+		return new InstantCommand(() -> buttonValues.put(button, value));
+	}
+
+	/**
+	 * Returns an instant command that briefly presses a button.
+	 * @param button the button to press
+	 * @param duration the duration of the press in seconds
+	 * @return the command
+	 */
+	public Command pressButtonCommand(ButtonInput button, int duration) {
+		return new SequentialCommandGroup(
+			toggleButtonCommand(button),
+			//new WaitCommand(duration * Robot.defaultPeriodSecs),
+			new WaitCommand(duration),
+			toggleButtonCommand(button)
+		);
+	}
+
+	/**
+	 * Returns an instant command that sets the button value.
+	 * @param axis the axis to set
+	 * @param value the button value
+	 * @return the command
+	 */
+	public Command setAxisCommand(AxialInput axis, double value) {
+		return new InstantCommand(() -> axesValues.put(axis, value));
+	}
+
+	/**
+	 * Setter for an axis value.
+	 * @param axis the axis
+	 * @param value the value
+	 */
+	public void setAxis(AxialInput axis, double value) {
+		axesValues.put(axis, value);
+	}
+
+	@Override
+	public double getAxisValue(AxialInput key) {
+		return axesValues.getOrDefault(key, Double.valueOf(0));
+	}
+
+	@Override
+	protected Function<EventLoop, BooleanEvent> getButtonEvent(ButtonInput key) {
+		return (e) -> new BooleanEvent(e, () -> buttonValues.getOrDefault(key, false));
+	}
+
+}

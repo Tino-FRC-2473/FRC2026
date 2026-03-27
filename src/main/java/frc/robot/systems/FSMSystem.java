@@ -1,83 +1,99 @@
 package frc.robot.systems;
 
-import frc.robot.TeleopInput;
-import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
+// Libary imports
+import edu.wpi.first.wpilibj2.command.Command;
+
+// Robot imports
+import frc.robot.input.Input;
 
 /**
- * This is a superclass for FSMs with NECCESARY methods to implement
- *
- * Start implementing an FSM by writing this in a new java file:
- *
- * <code>
- * enum FSMState {
- *	  // add states here
- * }
- * public class _______ extends FSMSystem&lt;FSMState&gt; {
- *	  ...
- * }
- * </code>
- *
- * Your compiler / IDE will tell you what methods you need to implement
- * You should also have state handlers shown in the example
- * @param <S> the type of state
+ * A superclass that all FSM systems should inherit from.
+ * @param <S> the enum containing all FSM states
  */
 public abstract class FSMSystem<S> {
 
-	/**
-	 * the current state, defined as part of the provided statespace.
-	 */
+	/* ======================== Private variables ======================== */
+
+	// Current FSM state
 	private S currentState;
 
+	/* ======================== Public methods ======================== */
+
 	/**
-	 * Return current FSM state.
-	 * @return Current FSM state
+	 * Get the current FSM state.
+	 * @return the current FSM state
 	 */
 	public S getCurrentState() {
 		return currentState;
 	}
 
 	/**
-	 * Sets the current state.
+	 * Set the current FSM state.
 	 * @param newState the new state
 	 */
-	protected void setCurrentState(S newState) {
+	public void setCurrentState(S newState) {
 		currentState = newState;
 	}
 
 	/**
-	 * Reset this system to its start state. This may be called from mode init
-	 * when the robot is enabled.
-	 *
-	 * Note this is distinct from the one-time initialization in the constructor
-	 * as it may be called multiple times in a boot cycle,
-	 * Ex. if the robot is enabled, disabled, then reenabled.
+	 * Get a command that waits for a sequence of states to be observed.
+	 * @param states the sequence of states
+	 * @return the command
+	 */
+	public ObservedStateCommand watchForStatesCommand(
+			@SuppressWarnings("unchecked") S... states) {
+		return new ObservedStateCommand(states);
+	}
+
+	/* ======================== Abstract methods ======================== */
+
+	/**
+	 * Reset the current FSM state.
 	 */
 	public abstract void reset();
 
 	/**
-	 * Update FSM based on new inputs. This function only calls the FSM state
-	 * specific handlers.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *		the robot is in autonomous mode.
+	 * Update the FSM state periodically based on inputs.
+	 * @param input the input object
 	 */
-	public abstract void update(TeleopInput input);
+	public abstract void update(Input input);
 
 	/**
-	 * Performs specific action based on the autoState passed in.
-	 * @param autoState autoState that the subsystem executes.
-	 * @return if the action carried out in this state has finished executing
+	 * Get the next state for the FSM based on inputs.
+	 * @param input the input object
+	 * @return the next state
 	 */
-	public abstract boolean updateAutonomous(AutoFSMState autoState);
+	protected abstract S nextState(Input input);
 
-	/**
-	 * Decide the next state to transition to. This is a function of the inputs
-	 * and the current state of this FSM. This method should not have any side
-	 * effects on outputs. In other words, this method should only read or get
-	 * values to decide what state to go to.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *		the robot is in autonomous mode.
-	 * @return FSM state for the next iteration
-	 */
-	protected abstract S nextState(TeleopInput input);
+	/* ======================== Command classes ======================== */
+
+	private final class ObservedStateCommand extends Command {
+		private S[] targetSequence;
+		private int sequenceProgress;
+
+		/**
+		 * Create a command that waits for a sequence of states to be observed.
+		 * @param states the sequence of states
+		 */
+		private ObservedStateCommand(@SuppressWarnings("unchecked") S... states) {
+			targetSequence = states;
+			sequenceProgress = 0;
+		}
+
+		@Override
+		public void execute() {
+			if (getCurrentState() == targetSequence[sequenceProgress]) {
+				sequenceProgress++;
+			} else if (sequenceProgress > 0
+					&& getCurrentState() != targetSequence[sequenceProgress - 1]) {
+				sequenceProgress = 0;
+			}
+		}
+
+		@Override
+		public boolean isFinished() {
+			return sequenceProgress >= targetSequence.length;
+		}
+	}
 
 }

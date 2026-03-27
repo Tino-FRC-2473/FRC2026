@@ -1,33 +1,22 @@
 package frc.robot.systems;
 
-import frc.robot.TeleopInput;
-import frc.robot.systems.AutoHandlerSystem.AutoFSMState;
-
-enum IdentityStateSpace {
-	STATE
-}
+import frc.robot.input.Input;
 
 /**
  * this is intended to be used in place of an FSM when the hardware is not present.
+ * @param <StateSpace> the state space to mirror
  */
-public class PlaceholderFSMSystem extends FSMSystem<IdentityStateSpace> {
+public class PlaceholderFSMSystem<StateSpace> extends FSMSystem<StateSpace> {
 
 	@Override
-	public void reset() {
-		setCurrentState(IdentityStateSpace.STATE);
+	public void update(Input input) { }
+
+	@Override
+	protected StateSpace nextState(Input input) {
+		return null;
 	}
 
 	@Override
-	public void update(TeleopInput input) { }
-
-	@Override
-	public boolean updateAutonomous(AutoFSMState autoState) {
-		return false;
-	}
-
-	@Override
-	protected IdentityStateSpace nextState(TeleopInput input) {
-		return IdentityStateSpace.STATE;
-	}
+	public void reset() { }
 
 }
