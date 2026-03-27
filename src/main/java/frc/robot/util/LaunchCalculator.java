@@ -89,6 +89,53 @@ public class LaunchCalculator {
 		passingTimeOfFlightMap.put(11.0, 1.75);
 		passingTimeOfFlightMap.put(13.0, 1.76);
 		passingTimeOfFlightMap.put(17.16, 2.16);
+
+		applyPhysicsCorrection(1.5); // TODO: Tune this target height! (1.5m used here because the original empirical data physically cannot reach a 2m+ height based on its ToF)
+	}
+
+	/**
+	 * Physically corrects the empirical floor-hitting data to target-hitting data.
+	 * 
+	 * @param targetHeight The height of the target to aim at in meters.
+	 */
+	private static void applyPhysicsCorrection(double targetHeight) {
+		double hLaunch = ShooterConstants.ROBOT_TO_LAUNCHER.getZ();
+		double deltaY = targetHeight - hLaunch;
+		double g = 9.81;
+
+		double[] empiricalDistances = {
+			0.96, 1.16, 1.58, 2.07, 2.37, 2.47, 2.70, 2.94, 3.48, 3.92, 4.35, 4.84
+		};
+
+		java.util.TreeMap<Double, Double> newFlywheel = new java.util.TreeMap<>();
+		java.util.TreeMap<Double, Double> newTOF = new java.util.TreeMap<>();
+
+		for (double dFloor : empiricalDistances) {
+			double rps = flywheelSpeedMap.get(dFloor);
+			double tFloor = timeOfFlightMap.get(dFloor);
+			
+			double vx = dFloor / tFloor;
+			double vy0 = (-hLaunch + 0.5 * g * tFloor * tFloor) / tFloor;
+
+			double det = vy0 * vy0 - 2 * g * deltaY;
+			if (det >= 0) {
+				double tTarget = (vy0 + Math.sqrt(det)) / g;
+				double dTarget = vx * tTarget;
+				
+				newFlywheel.put(dTarget, rps);
+				newTOF.put(dTarget, tTarget);
+			}
+		}
+
+		flywheelSpeedMap.clear();
+		timeOfFlightMap.clear();
+		
+		for (java.util.Map.Entry<Double, Double> entry : newFlywheel.entrySet()) {
+			flywheelSpeedMap.put(entry.getKey(), entry.getValue());
+		}
+		for (java.util.Map.Entry<Double, Double> entry : newTOF.entrySet()) {
+			timeOfFlightMap.put(entry.getKey(), entry.getValue());
+		}
 	}
 
 	private double getEffectiveTOF(double distance, boolean isPassing) {
