@@ -113,25 +113,25 @@ public class Vision {
 		}
 
 		// 3. check average tag distance
-		if (pose.avgTagDist > 4.0){
+		if (pose.avgTagDist > VisionConstants.MAX_AVG_TAG_DIST) {
 			return false;
 		}
 
-		double ambiguityCheck = false;
 		//check ambiguity of all tags. if one is good enough ambiguity keep it
+		boolean ambiguityCheck = false;
 		for (RawFiducial check: pose.rawFiducials) {
-			if (check.ambiguity < 4){
+			if (check.ambiguity < VisionConstants.MAX_TAG_AMBIGUITY) {
 				ambiguityCheck = true;
 			}
 		}
-		if (pose.rawFiducials[0].ambiguity > 4.0) {
+		if (!ambiguityCheck) {
 			return false;
 		}
 
 		// 5. Reject if the pose is outside the actual field boundaries
 		// Field is roughly 16.5m x 8.1m. Adjust constants as needed.
-		if (pose.pose.getX() < 0.0 || pose.pose.getX() > 16.5
-			|| pose.pose.getY() < 0.0 || pose.pose.getY() > 8.1) {
+		if (pose.pose.getX() < 0.0 || pose.pose.getX() > VisionConstants.FIELD_BOUND_BUFFER_X
+			|| pose.pose.getY() < 0.0 || pose.pose.getY() > VisionConstants.FIELD_BOUND_BUFFER_Y) {
 			return false;
 		}
 

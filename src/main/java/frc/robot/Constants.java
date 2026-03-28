@@ -319,6 +319,12 @@ public class Constants {
 		public static final double MAX_ANGULAR_SPEED = 300; //angular speed
 		public static final double MAX_LINEAR_SPEED = 2.5; //meters per sec
 
+		public static final double MAX_AVG_TAG_DIST = 5;
+		public static final double MAX_TAG_AMBIGUITY = 0.2;
+
+		public static final double FIELD_BOUND_BUFFER_X = 16.5;
+		public static final double FIELD_BOUND_BUFFER_Y = 8.5;
+
 		public static final int RESOLUTION_X = 640;
 		public static final int RESOLUTION_Y = 480;
 		public static final double IMU_ASSIST_ALPHA = 0.01;
