@@ -1,11 +1,5 @@
 package frc.robot.auto;
 
-import java.io.IOException;
-
-import org.json.simple.parser.ParseException;
-
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.util.FileVersionException;
 
 import edu.wpi.first.math.numbers.N10;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -25,56 +19,7 @@ import frc.robot.systems.IntakeFSMSystem.IntakeFSMState;
 import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
 
 public class AutoPaths {
-	private static PathPlannerPath blueS1D;
-	private static PathPlannerPath blueS2D;
-	private static PathPlannerPath blueS3D;
-	private static PathPlannerPath blueDT;
-	private static PathPlannerPath blueHUBT;
-	private static PathPlannerPath blueDHUB;
-	private static PathPlannerPath blueDINTAKE;
-	private static PathPlannerPath nzBlueS3;
-	private static PathPlannerPath blueS3HUB;
-	private static PathPlannerPath nzBlueS1;
-	private static PathPlannerPath blueS3NZ;
-	private static PathPlannerPath hubBlueS1;
-	private static PathPlannerPath blueNZINTAKE;
-	private static PathPlannerPath hubBlueS2;
-	private static PathPlannerPath blueS1HUB;
-	private static PathPlannerPath hubBlueS3;
-	private static PathPlannerPath nzBlueS2;
-	private static PathPlannerPath blueS1NZ;
-	private static PathPlannerPath blueS2HUB;
-	private static PathPlannerPath blueS2NZ;
 
-	/**
-	 * Loads all the paths from the PathPlanner trajectories.
-	 */
-	public AutoPaths() {
-		try {
-			blueS1D = PathPlannerPath.fromChoreoTrajectory("BlueS1_D");
-			blueS2D = PathPlannerPath.fromChoreoTrajectory("BlueS2_D");
-			blueS3D = PathPlannerPath.fromChoreoTrajectory("BlueS3_D");
-			blueDT = PathPlannerPath.fromChoreoTrajectory("BlueD_T");
-			blueHUBT = PathPlannerPath.fromChoreoTrajectory("BlueHUB_T");
-			blueDHUB = PathPlannerPath.fromChoreoTrajectory("BlueD_HUB");
-			blueDINTAKE = PathPlannerPath.fromChoreoTrajectory("BlueD_INTAKE");
-			nzBlueS3 = PathPlannerPath.fromChoreoTrajectory("NZ_BlueS3");
-			blueS3HUB = PathPlannerPath.fromChoreoTrajectory("BlueS3_HUB");
-			nzBlueS1 = PathPlannerPath.fromChoreoTrajectory("NZ_BlueS1");
-			blueS3NZ = PathPlannerPath.fromChoreoTrajectory("BlueS3_NZ");
-			hubBlueS1 = PathPlannerPath.fromChoreoTrajectory("HUB_BlueS1");
-			blueNZINTAKE = PathPlannerPath.fromChoreoTrajectory("BlueNZ_INTAKE");
-			hubBlueS2 = PathPlannerPath.fromChoreoTrajectory("HUB_BlueS2");
-			blueS1HUB = PathPlannerPath.fromChoreoTrajectory("BlueS1_HUB");
-			hubBlueS3 = PathPlannerPath.fromChoreoTrajectory("HUB_BlueS3");
-			nzBlueS2 = PathPlannerPath.fromChoreoTrajectory("NZ_BlueS2");
-			blueS1NZ = PathPlannerPath.fromChoreoTrajectory("BlueS1_NZ");
-			blueS2HUB = PathPlannerPath.fromChoreoTrajectory("BlueS2_HUB");
-			blueS2NZ = PathPlannerPath.fromChoreoTrajectory("BlueS2_NZ");
-		} catch (FileVersionException | IOException | ParseException e) {
-			System.err.println("Failure to load paths");
-		}
-	}
 
 	/**
 	 * Returns a test auto that drives with the the BlueS1HUB trajectory,
@@ -116,7 +61,7 @@ public class AutoPaths {
 	) {
 		return Commands
 				.sequence(
-					drivetrain.followcommand("blueS2HUB"),
+					drivetrain.followcommand("BlueS2_HUB"),
 					shootFor(input, shooter, N10.instance.getNum())
 				);
 	}
@@ -138,11 +83,61 @@ public class AutoPaths {
 	) {
 		return Commands
 				.sequence(
-					drivetrain.followcommand("blueS3HUB"),
+					drivetrain.followcommand("BlueS3_HUB"),
 					shootFor(input, shooter, N10.instance.getNum())
 				);
 	}
 
+	private static Command getS1NZHUBShootCommand(
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			IntakeFSMSystem intake
+	) {
+		return Commands
+				.sequence(
+					drivetrain.followcommand("BlueS1_NZ"),
+					startIntakeCommand(input, intake),
+					drivetrain.followcommand("BlueNZ_INTAKE"),
+					stopIntakeCommand(input, intake),
+					drivetrain.followcommand("BlueNZ_HUB"),
+					shootFor(input, shooter, N10.instance.getNum())
+				);
+	}
+
+	private static Command getS2NZHUBShootCommand(
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			IntakeFSMSystem intake
+	) {
+		return Commands
+				.sequence(
+					drivetrain.followcommand("BlueS2_NZ"),
+					startIntakeCommand(input, intake),
+					drivetrain.followcommand("BlueNZ_INTAKE"),
+					stopIntakeCommand(input, intake),
+					drivetrain.followcommand("BlueNZ_HUB"),
+					shootFor(input, shooter, N10.instance.getNum())
+				);
+	}
+
+	private static Command getS3NZHUBShootCommand(
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			IntakeFSMSystem intake
+	) {
+		return Commands
+				.sequence(
+					drivetrain.followcommand("BlueS3_NZ"),
+					startIntakeCommand(input, intake),
+					drivetrain.followcommand("BlueNZ_INTAKE"),
+					stopIntakeCommand(input, intake),
+					drivetrain.followcommand("BlueNZ_HUB"),
+					shootFor(input, shooter, N10.instance.getNum())
+				);
+	}
 
 
 	private static Command startShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
@@ -220,6 +215,15 @@ public class AutoPaths {
 		chooser.addOption(
 				"S3 Shoot",
 				getS3HUBShootCommand(input, drivetrain, shooter, intake));
+		chooser.addOption(
+				"S1 NZ Shoot",
+				getS1NZHUBShootCommand(input, drivetrain, shooter, intake));
+		chooser.addOption(
+				"S2 NZ Shoot",
+				getS2NZHUBShootCommand(input, drivetrain, shooter, intake));
+		chooser.addOption(
+				"S3 NZ Shoot",
+				getS3NZHUBShootCommand(input, drivetrain, shooter, intake));
 	}
 
 	// on the fly path example

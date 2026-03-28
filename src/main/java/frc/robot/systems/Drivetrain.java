@@ -14,7 +14,6 @@ import static frc.robot.Constants.DrivetrainConstants.FACE_PASS_I;
 import static frc.robot.Constants.DrivetrainConstants.FACE_PASS_P;
 import static frc.robot.Constants.DrivetrainConstants.MAX_ANGULAR_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.MAX_SPEED;
-import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;
 import static frc.robot.Constants.DrivetrainConstants.RED_ALLIANCE_TAG_10;
 import static frc.robot.Constants.DrivetrainConstants.RED_OUTPOST_POSE;
 import static frc.robot.Constants.DrivetrainConstants.RED_TARGET3_POSE;
@@ -22,9 +21,7 @@ import static frc.robot.Constants.DrivetrainConstants.ROTATIONAL_DAMP;
 import static frc.robot.Constants.DrivetrainConstants.ROTATIONAL_DEADBAND;
 import static frc.robot.Constants.DrivetrainConstants.TRANSLATIONAL_DAMP;
 import static frc.robot.Constants.DrivetrainConstants.TRANSLATIONAL_DEADBAND;
-import static frc.robot.Constants.DrivetrainConstants.X_TAG_OFFSET;
-import static frc.robot.Constants.DrivetrainConstants.Y_TAG_OFFSET;
-import static frc.robot.imported.FieldConstants.TAG_LAYOUT;
+
 
 import java.io.IOException;
 
@@ -86,10 +83,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			// Use open-loop for drive motors
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	private final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
+	private final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds
+		= new SwerveRequest.ApplyRobotSpeeds()
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle = new SwerveRequest.FieldCentricFacingAngle()
+	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle
+		= new SwerveRequest.FieldCentricFacingAngle()
 			.withDeadband(MAX_SPEED.in(MetersPerSecond) * TRANSLATIONAL_DEADBAND)
 			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond) * ROTATIONAL_DEADBAND)
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
@@ -590,7 +589,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return Commands.none();
 		}
 		if (name == null) {
-			DriverStation.reportError("PathPlanner Error: Path is null", new Exception().getStackTrace());
+			DriverStation.reportError("PathPlanner Error: Path is null",
+				new Exception().getStackTrace());
 			return Commands.none();
 		}
 		return AutoBuilder.followPath(path);
