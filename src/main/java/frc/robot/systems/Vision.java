@@ -12,6 +12,7 @@ import edu.wpi.first.math.numbers.N3;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.imported.LimelightHelpers;
 import frc.robot.imported.LimelightHelpers.PoseEstimate;
+import frc.robot.imported.LimelightHelpers.RawFiducial;
 
 public class Vision {
 	private String limelightName;
@@ -107,7 +108,7 @@ public class Vision {
 		}
 
 		// 1. check number of tags
-		if (pose.tagCount == 0 || pose.tagCount == 1) {
+		if (pose.tagCount == 0) {
 			return false;
 		}
 
@@ -116,9 +117,14 @@ public class Vision {
 			return false;
 		}
 
-
-
-		if (pose.rawFiducials[0].ambiguity > 4.0 && pose.rawFiducials[1].ambiguity > 4.0) {
+		double ambiguityCheck = false;
+		//check ambiguity of all tags. if one is good enough ambiguity keep it
+		for (RawFiducial check: pose.rawFiducials) {
+			if (check.ambiguity < 4){
+				ambiguityCheck = true;
+			}
+		}
+		if (pose.rawFiducials[0].ambiguity > 4.0) {
 			return false;
 		}
 
