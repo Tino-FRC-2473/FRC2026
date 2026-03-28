@@ -23,7 +23,7 @@ import edu.wpi.first.wpilibj.simulation.DIOSim;
 import frc.robot.HardwareMap;
 import frc.robot.input.Input;
 import frc.robot.motors.TalonFXWrapper;
-import frc.robot.util.EnergyLogger;
+
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 
@@ -233,9 +233,6 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 					"Invalid state: " + getCurrentState().toString());
 		}
 
-		EnergyLogger.recordEnergyUsage("Climber", 
-			climberMotorLeft.getLoggedCurrent(), 
-			climberMotorRight.getLoggedCurrent());
 
 		setCurrentState(nextState(input));
 		updateLogging();

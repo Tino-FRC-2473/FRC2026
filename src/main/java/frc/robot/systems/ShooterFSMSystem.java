@@ -25,7 +25,7 @@ import frc.robot.HardwareMap;
 import frc.robot.input.Input;
 // Robot Imports
 import frc.robot.motors.TalonFXWrapper;
-import frc.robot.util.EnergyLogger;
+
 // import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 
@@ -282,9 +282,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 				Logger.recordOutput("Shooter/Flywheel at speed?", isAtSpeed());
 			}
 		}
-		EnergyLogger.recordEnergyUsage("Shooter", 
-			flywheelMotor.getLoggedCurrent(), 
-			feederMotor.getLoggedCurrent());
+
 		setCurrentState(nextState(input));
 	}
 

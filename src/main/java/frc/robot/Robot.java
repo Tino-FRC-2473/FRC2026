@@ -11,7 +11,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
-import frc.robot.util.EnergyLogger;
+
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
@@ -212,11 +212,11 @@ public class Robot extends LoggedRobot {
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
 	public void robotPeriodic() {
-		EnergyLogger.updateBatteryVoltage();
+
 		if (vision != null) {
 			vision.periodic();
 		}
-		EnergyLogger.recordOutputs();
+
 	}
 
 	

@@ -27,7 +27,7 @@ import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.HardwareMap;
-import frc.robot.util.EnergyLogger;
+
 
 
 public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
@@ -261,10 +261,6 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 			default:
 				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
 		}
-		EnergyLogger.recordEnergyUsage("Intake", 
-			pivotMotorLeft.getLoggedCurrent(), 
-			pivotMotorRight.getLoggedCurrent(), 
-			intakeMotor.getLoggedCurrent());
 		setCurrentState(nextState(input));
 	}
 
