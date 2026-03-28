@@ -58,6 +58,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
+import frc.robot.imported.LaunchCalculator;
 import frc.robot.imported.geom.AllianceFlipUtil;
 import frc.robot.input.Input;
 import frc.robot.input.InputTypes.AxialInput;
@@ -332,6 +333,16 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return AllianceFlipUtil.apply(BLUE_HUB_POSE);
 	}
 
+	/**
+	 * Get the current chassis speed.
+	 *
+	 * @return the current chassis speeds
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/Chassis Speeds")
+	public ChassisSpeeds getChassisSpeeds() {
+		return drivetrain.getState().Speeds;
+	}
+
 	// endregion
 	/* ======================== Private methods ======================== */
 	// region
@@ -530,6 +541,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			} else {
 				correctTarget = getTargetPose(BLUE_TARGET3_POSE, RED_TARGET3_POSE);
 			}
+
+			double angle = LaunchCalculator.getInstance()
+				.getParameters(getPose(), getChassisSpeeds(), correctTarget.getTranslation(), true)
+				.driveAngle().getRadians();
 
 			drivetrain.setControl(
 				driveFacingAngle

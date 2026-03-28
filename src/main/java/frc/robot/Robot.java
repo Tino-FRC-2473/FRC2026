@@ -30,6 +30,7 @@ import frc.robot.systems.Vision;
 import frc.robot.systems.FSMSystem;
 import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.PlaceholderFSMSystem;
+import frc.robot.systems.AgitatorFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
 
 
@@ -46,6 +47,7 @@ public class Robot extends LoggedRobot {
 	private FSMSystem<Drivetrain.DrivetrainState> drivetrainFSMSystem;
 	private FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem;
 	private FSMSystem<ShooterFSMSystem.ShooterFSMState> shooterFSMSystem;
+	private FSMSystem<AgitatorFSMSystem.AgitatorFSMState> agitatorFSMSystem;
 
 	private Vision vision;
 
@@ -95,15 +97,34 @@ public class Robot extends LoggedRobot {
 
 		Optional<ShooterFSMSystem> shooter;
 		if (HardwareMap.isShooterEnabled()) {
-			shooter = Optional.of(
-				new ShooterFSMSystem(
-					(Drivetrain) drivetrainFSMSystem,
-					(IntakeFSMSystem) intakeFSMSystem)
+			if (HardwareMap.isDrivetrainEnabled()) {
+				shooter = Optional.of(
+					new ShooterFSMSystem((Drivetrain) drivetrainFSMSystem)
 				);
+			} else {
+				shooter = Optional.of(
+					new ShooterFSMSystem()
+				);
+			}
+
 			shooterFSMSystem = shooter.get();
 		} else {
 			shooterFSMSystem = new PlaceholderFSMSystem<>();
 			shooter = Optional.empty();
+		}
+
+		Optional<AgitatorFSMSystem> agitator;
+		if (HardwareMap.isAgitatorEnabled()) {
+			agitator = Optional.of(
+				new AgitatorFSMSystem(
+					intake.isPresent() ? intake.get()::getIsIntakeOuttaking : null,
+					shooter.isPresent() ? shooter.get()::getIsFeeding : null
+				)
+			);
+			agitatorFSMSystem = agitator.get();
+		} else {
+			agitatorFSMSystem = new PlaceholderFSMSystem<>();
+			agitator = Optional.empty();
 		}
 
 	}
@@ -118,6 +139,7 @@ public class Robot extends LoggedRobot {
 		drivetrainFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
+		agitatorFSMSystem.reset();
 		if (drivetrainFSMSystem instanceof Drivetrain drive
 			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
 			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
@@ -135,6 +157,7 @@ public class Robot extends LoggedRobot {
 		drivetrainFSMSystem.update(input);
 		intakeFSMSystem.update(input);
 		shooterFSMSystem.update(input);
+		agitatorFSMSystem.update(input);
 
 		input.update();
 		CommandScheduler.getInstance().run();
@@ -152,6 +175,7 @@ public class Robot extends LoggedRobot {
 		drivetrainFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
+		agitatorFSMSystem.reset();
 	}
 
 	@Override
@@ -159,6 +183,7 @@ public class Robot extends LoggedRobot {
 		drivetrainFSMSystem.update(input);
 		intakeFSMSystem.update(input);
 		shooterFSMSystem.update(input);
+		agitatorFSMSystem.update(input);
 
 		input.update();
 

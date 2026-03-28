@@ -25,6 +25,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.LinearAcceleration;
@@ -162,9 +163,14 @@ public class Constants {
 			.inchesToMeters(0.75) * Math.PI;
 	}
 	public static final class ShooterConstants {
-		public static final Pose2d OUTPOST_POSE = new Pose2d();
-		public static final Pose2d TARGET3_POSE = new Pose2d();
-		public static final Pose2d HUB_POSE = new Pose2d();
+		public static final Transform3d ROBOT_TO_LAUNCHER =
+				new Transform3d(-0.276, 0.09, 0.599, new Rotation3d(0.0, 0.0, Math.PI));
+
+		public static final Pose2d OUTPOST_POSE =
+			new Pose2d(8.2741742, 2.0346376, new Rotation2d());
+		public static final Pose2d TARGET3_POSE =
+			new Pose2d(8.2741742, 6.0346376, new Rotation2d());
+		public static final Pose2d HUB_POSE = new Pose2d(11.9191774, 4.0346376, new Rotation2d());
 		//public static final double HOOD_GEAR_RATIO = 4;
 		public static final double SPINDEX_GEAR_RATIO = 3;
 		public static final double FLYWHEEL_GEAR_RATIO = 1;
@@ -192,7 +198,7 @@ public class Constants {
 		// public static final Angle HOOD_MOE = Degrees.of(0.1);
 		//margin of error, subject to change
 
-		public static final AngularVelocity FLYWHEEL_MAX_SPEED = RotationsPerSecond.of(160);
+		public static final AngularVelocity FLYWHEEL_MAX_SPEED = RotationsPerSecond.of(100);
 
 		public static final double FLYWHEEL_MM_CONSTANT_S = 0; // 0.1;
 		//need to test by recording small amount of input that allows any movement at all
@@ -204,18 +210,18 @@ public class Constants {
 		// public static final Angle HOOD_INCREMENTER = Degrees.of(5);
 		public static final Angle HOOD_ANGLE = Degrees.of(30); //from vertical
 
-		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(10);
+		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(5);
 		public static final Angle FLYWHEEL_MAX_DEGREES = Degrees.of(360);
 
 		public static final double FEEDER_MM_CONSTANT_S = 0.1;
 		public static final double FEEDER_MM_CONSTANT_P = 0;
 		public static final double FEEDER_MM_CONSTANT_I = 0;
 		public static final double FEEDER_MM_CONSTANT_D = 0;
-		public static final double FEEDER_CONSTANT_SPEED = 20;
+		public static final double FEEDER_CONSTANT_SPEED = 40;
 
 		//All of these are placeholder values, all need to be changed
-		public static final double FLYWHEEL_MM_CONSTANT_P = 0.8;
-		public static final double FLYWHEEL_MM_CONSTANT_I = 0.02;
+		public static final double FLYWHEEL_MM_CONSTANT_P = 0.5;
+		public static final double FLYWHEEL_MM_CONSTANT_I = 0.05;
 		public static final double FLYWHEEL_MM_CONSTANT_D = 0;
 		// public static final double HOOD_MM_CONSTANT_P = 0;
 		// public static final double HOOD_MM_CONSTANT_I = 0;
@@ -299,5 +305,29 @@ public class Constants {
 		//TODO: Measure this on the bot
 		public static final Pose3d LL4_OFFSET =
 			new Pose3d(0.096, -0.03, 0.55, new Rotation3d(0, 0, 270));
+	}
+
+	public static final class AgitatorConstants {
+		//Conveyor gearing
+		public static final double CONVEYOR_GEARING = 2;
+
+
+		// Conveyor Motor PID
+		public static final double CONVEYOR_KV = 0.12;
+		public static final double CONVEYOR_KA = 0.0;
+		public static final double CONVEYOR_KP = 0.2;
+		public static final double CONVEYOR_KI = 0.0;
+		public static final double CONVEYOR_KD = 0.0;
+		public static final double SHOOT_CONVEYOR_TARGET_VELOCITY = 10;
+		public static final double OUTTAKE_CONVEYOR_TARGET_VELOCITY = -10.0;
+
+		public static final double CONVEYOR_CRUISE_VELO = 5;
+		public static final double CONVEYOR_TARGET_ACCEL = 10;
+		public static final double CONVEYOR_EXPO_KV = 0.12;
+
+		public static final double AGITATOR_SETPOINT = 0.2;
+
+		//other
+		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
 	}
 }
