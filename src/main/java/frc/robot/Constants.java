@@ -37,7 +37,7 @@ import static edu.wpi.first.units.Units.Seconds;
 
 
 public class Constants {
-	public static final double loopPeriodSecs = 0.02;
+	public static final double LOOP_PERIOD_SECS = 0.02;
 	public static final class LimelightConstants {
 		public static final long AUTO_UPDATE_INTERVAL_MS = 20L;
 	}
@@ -111,9 +111,12 @@ public class Constants {
 
 		public static final double X_TRANFORM_FROM_TAG = -1;
 		public static final double Y_TRANFORM_FROM_TAG = 0;
-		public static final double FACE_HUB_P = 7.0;
+		public static final double FACE_HUB_P = 2.0;
 		public static final double FACE_HUB_I = 0.0;
-		public static final double FACE_HUB_D = 0.0;
+		public static final double FACE_HUB_D = 0.4;
+
+		public static final int RED_TAG_ALLIGNMENT_TAG = 10;
+		public static final int BLUE_TAG_ALLIGNMENT_TAG = 26;
 
 		public static final Pose2d RED_HUB_POSE =
 			new Pose2d(11.9191774, 4.0346376, new Rotation2d());
