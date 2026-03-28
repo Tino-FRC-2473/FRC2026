@@ -109,34 +109,34 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		AutoBuilder.configure(
-				this::getPose,
-				drivetrain::resetPose,
-				() -> drivetrain.getState().Speeds,
-				(speeds, feedforwards) -> {
-					// Correcting the omega inversion often seen in older PP versions
-					ChassisSpeeds speedCorrected = new ChassisSpeeds(
-							speeds.vxMetersPerSecond,
-							speeds.vyMetersPerSecond,
-							-speeds.omegaRadiansPerSecond);
+			this::getPose,
+			drivetrain::resetPose,
+			() -> drivetrain.getState().Speeds,
+			(speeds, feedforwards) -> {
+				// Correcting the omega inversion often seen in older PP versions
+				ChassisSpeeds speedCorrected = new ChassisSpeeds(
+					speeds.vxMetersPerSecond,
+					speeds.vyMetersPerSecond,
+					-speeds.omegaRadiansPerSecond);
 
-					drivetrain.setControl(
-							applyRobotSpeeds
-									.withSpeeds(speedCorrected.
-										times(Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
-									.withWheelForceFeedforwardsX(
-											feedforwards.robotRelativeForcesXNewtons())
-									.withWheelForceFeedforwardsY(
-											feedforwards.robotRelativeForcesYNewtons()));
-				},
-				new PPHolonomicDriveController(
-						new PIDConstants(ModuleConstants.DRIVE_P,
-							ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D),
-						new PIDConstants(ModuleConstants.STEER_P,
-							ModuleConstants.STEER_I, ModuleConstants.STEER_D)),
-				config,
-				() -> DriverStation.getAlliance().orElse(
-						DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
-				drivetrain);
+				drivetrain.setControl(
+					applyRobotSpeeds
+						.withSpeeds(speedCorrected.
+							times(Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
+						.withWheelForceFeedforwardsX(
+								feedforwards.robotRelativeForcesXNewtons())
+						.withWheelForceFeedforwardsY(
+								feedforwards.robotRelativeForcesYNewtons()));
+			},
+			new PPHolonomicDriveController(
+				new PIDConstants(ModuleConstants.DRIVE_P,
+					ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D),
+				new PIDConstants(ModuleConstants.STEER_P,
+					ModuleConstants.STEER_I, ModuleConstants.STEER_D)),
+			config,
+			() -> DriverStation.getAlliance().orElse(
+					DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
+			drivetrain);
 
 		reset();
 	}
