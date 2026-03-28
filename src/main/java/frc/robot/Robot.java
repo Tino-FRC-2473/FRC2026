@@ -46,7 +46,6 @@ public class Robot extends LoggedRobot {
 
 	// Systems
 	private FSMSystem<Drivetrain.DrivetrainState> drivetrainFSMSystem;
-	private FSMSystem<ClimberFSMSystem.ClimberFSMState> climberFSMSystem;
 	private FSMSystem<IntakeFSMSystem.IntakeFSMState> intakeFSMSystem;
 	private FSMSystem<ShooterFSMSystem.ShooterFSMState> shooterFSMSystem;
 	private FSMSystem<AgitatorFSMSystem.AgitatorFSMState> agitatorFSMSystem;
@@ -80,7 +79,7 @@ public class Robot extends LoggedRobot {
 			drivetrainFSMSystem = drivetrain;
 			vision = new Vision(
 				drivetrain::addVisionMeasurement,
-				drivetrain.getDrivetrainRotation(),
+				drivetrain.getRotation(),
 				VisionConstants.LIMELIGHT_NAME
 			);
 		} else {
@@ -139,18 +138,16 @@ public class Robot extends LoggedRobot {
 		input = autoInput;
 		input.reset();
 		drivetrainFSMSystem.reset();
-		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
 		agitatorFSMSystem.reset();
 		if (drivetrainFSMSystem instanceof Drivetrain drive
 			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
-			&& climberFSMSystem instanceof ClimberFSMSystem climber
 			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
 			System.out.println("Reach 3");
 			CommandScheduler.getInstance().schedule(
 				AutoPaths.getShootClimbCommand(
-					autoInput, drive, shooter, climber, intake,
+					autoInput, drive, shooter, intake,
 					new AutoPaths.GetShootClimbSettings(true, true))
 			);
 		}
@@ -159,7 +156,6 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void autonomousPeriodic() {
 		drivetrainFSMSystem.update(input);
-		climberFSMSystem.update(input);
 		intakeFSMSystem.update(input);
 		shooterFSMSystem.update(input);
 		agitatorFSMSystem.update(input);
@@ -178,7 +174,6 @@ public class Robot extends LoggedRobot {
 		input.reset();
 		CommandScheduler.getInstance().cancelAll();
 		drivetrainFSMSystem.reset();
-		climberFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
 		agitatorFSMSystem.reset();
@@ -187,7 +182,6 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopPeriodic() {
 		drivetrainFSMSystem.update(input);
-		climberFSMSystem.update(input);
 		intakeFSMSystem.update(input);
 		shooterFSMSystem.update(input);
 		agitatorFSMSystem.update(input);

@@ -36,8 +36,8 @@ import frc.robot.generated.TunerConstants;
 import static edu.wpi.first.units.Units.Seconds;
 
 
-
 public class Constants {
+
 	public static final class LimelightConstants {
 		public static final long AUTO_UPDATE_INTERVAL_MS = 20L;
 	}
@@ -48,83 +48,62 @@ public class Constants {
 	}
 
 	public static final class DrivetrainConstants {
-		public static final int NUM_MODULES = 4;
-		public static final double SYS_ID_VOLT_DAMP = 6;
-
-		public static final double TRANSLATION_DEADBAND = 0.05;
-		public static final double ROTATION_DEADBAND = 0.05;
-
-
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
 		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speed, and so on
 		public static final double TRANSLATIONAL_DAMP = 1;
 		public static final double ROTATIONAL_DAMP = 1;
 
-		// drive velocity limits
-		// Max linear & angular speeds
-		public static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
-		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(1.5);
-
-		// pathing acceleration limits
-		public static final LinearAcceleration MAX_PATHING_LINEAR_ACCELERATION
-			= MetersPerSecondPerSecond.of(4);
-
-		public static final AngularAcceleration MAX_PATHING_ROTATIONAL_ACCELERATION
-			= RotationsPerSecondPerSecond.of(4);
-
-		public static final int PIGEON2_CAN_ID = 1;
-		public static final String CAN_BUS_NAME = "Drivetrain";
-		//TODO: Get some actual values for this
-		public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
-				MAX_SPEED,
-				MAX_PATHING_LINEAR_ACCELERATION,
-				MAX_ANGULAR_SPEED,
-				MAX_PATHING_ROTATIONAL_ACCELERATION,
-				Voltage.ofBaseUnits(12, Volts)
-			);
-
-		//new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
-
-
-		public static final AngularVelocity MAX_ANGULAR_VELOCITY = RotationsPerSecond.of(0.75);
+		public static final String CANBUS_NAME = "Drivetrain";
 		public static final int SWERVE_MODULE_COUNT = 4;
+		public static final double SYS_ID_VOLT_DAMP = 6;
 
-		// Drivetrain deadbands
-		public static final double TRANSLATIONAL_DEADBAND = 0.1;
-		public static final double ROTATIONAL_DEADBAND = 0.1;
+		public static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
+		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(0.75);
 
-		private static int tagToAlignTo;
+		public static final double TRANSLATIONAL_DEADBAND = 0.05;
+		public static final double ROTATIONAL_DEADBAND = 0.05;
 
-		/**
-		 * @return the tag to align to
-		 */
-		public static int getTagToAlignTo() {
-			return tagToAlignTo;
-		}
+		public static final LinearAcceleration MAX_PATHING_LINEAR_ACCELERATION =
+			MetersPerSecondPerSecond.of(4);
+		public static final AngularAcceleration MAX_PATHING_ANGULAR_ACCELERATION =
+			RotationsPerSecondPerSecond.of(4);
 
-		/**
-		 * @param newTagToAlignTo the new value to set
-		 */
-		public static void setTagToAlignTo(int newTagToAlignTo) {
-			DrivetrainConstants.tagToAlignTo = newTagToAlignTo;
-		}
+		// TODO: Get some actual values for this
+		// new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI);
+		public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
+			MAX_SPEED,
+			MAX_PATHING_LINEAR_ACCELERATION,
+			MAX_ANGULAR_SPEED,
+			MAX_PATHING_ANGULAR_ACCELERATION,
+			Voltage.ofBaseUnits(12, Volts)
+		);
 
-		public static final double X_TRANFORM_FROM_TAG = -1;
-		public static final double Y_TRANFORM_FROM_TAG = 0;
+		public static final int RED_ALLIANCE_TAG_10 = 10;
+		public static final int BLUE_ALLIANCE_TAG_26 = 26;
+
+		public static final double X_TAG_OFFSET = 1;
+		public static final double Y_TAG_OFFSET = 0;
+
 		public static final double FACE_HUB_P = 7.0;
 		public static final double FACE_HUB_I = 0.0;
 		public static final double FACE_HUB_D = 0.0;
+
+		public static final double FACE_PASS_P = 7.0;
+		public static final double FACE_PASS_I = 0.0;
+		public static final double FACE_PASS_D = 0.0;
 
 		public static final Pose2d RED_HUB_POSE =
 			new Pose2d(11.9191774, 4.0346376, new Rotation2d());
 		public static final Pose2d RED_OUTPOST_POSE =
 			new Pose2d(8.2741742, 2.0346376, new Rotation2d());
+		public static final Pose2d RED_TARGET3_POSE =
+			new Pose2d(2.54, 6.0346376, new Rotation2d());
+
 		public static final Pose2d BLUE_HUB_POSE =
 			new Pose2d(14.001, 4.0346376, new Rotation2d());
 		public static final Pose2d BLUE_OUTPOST_POSE =
 			new Pose2d(2.54, 2.0346376, new Rotation2d());
-		public static final Pose2d RED_POSE3_POSE = new Pose2d(2.54, 6.0346376, new Rotation2d());
-		public static final Pose2d BLUE_POSE3_POSE =
+		public static final Pose2d BLUE_TARGET3_POSE =
 			new Pose2d(8.2741742, 6.0346376, new Rotation2d());
 	}
 
