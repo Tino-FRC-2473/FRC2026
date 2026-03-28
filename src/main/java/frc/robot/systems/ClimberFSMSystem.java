@@ -498,10 +498,9 @@ public class ClimberFSMSystem extends FSMSystem<ClimberFSMSystem.ClimberFSMState
 	}
 
 	private void handleResetToZero(Input input) {
-		if (true)
-		 {
-			if (getLeftLimitSwitch() ||
-				 getRightLimitSwitch()) {
+		if (true) {
+			if (getLeftLimitSwitch()
+				|| getRightLimitSwitch()) {
 				climberMotorLeft.set(0);
 			} else {
 				climberMotorLeft.setControl(motionRequest.withPosition(
