@@ -31,7 +31,6 @@ import frc.robot.systems.FSMSystem;
 import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.systems.AgitatorFSMSystem;
-import frc.robot.systems.ClimberFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
 
 

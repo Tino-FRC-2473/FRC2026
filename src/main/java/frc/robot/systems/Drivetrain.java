@@ -333,6 +333,16 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return AllianceFlipUtil.apply(BLUE_HUB_POSE);
 	}
 
+	/**
+	 * Get the current chassis speed.
+	 *
+	 * @return the current chassis speeds
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/Chassis Speeds")
+	public ChassisSpeeds getChassisSpeeds() {
+		return drivetrain.getState().Speeds;
+	}
+
 	// endregion
 	/* ======================== Private methods ======================== */
 	// region
