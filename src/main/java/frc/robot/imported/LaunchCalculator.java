@@ -1,4 +1,4 @@
-package frc.robot.util;
+package frc.robot.imported;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -68,9 +68,9 @@ public class LaunchCalculator {
 		flywheelSpeedMap.put(2.70, 170.0 / (2 * Math.PI));
 		flywheelSpeedMap.put(2.94, 175.0 / (2 * Math.PI));
 		flywheelSpeedMap.put(3.48, 175.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(3.92, 180.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(4.35, 185.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(4.84, 190.0 / (2 * Math.PI));
+		flywheelSpeedMap.put(4.11, 60.0);
+		flywheelSpeedMap.put(4.46, 70.0);
+		flywheelSpeedMap.put(5.10, 80.0);
 
 		timeOfFlightMap.put(5.68, 1.16);
 		timeOfFlightMap.put(4.55, 1.12);
