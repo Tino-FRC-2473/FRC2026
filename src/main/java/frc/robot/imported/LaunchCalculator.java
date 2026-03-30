@@ -1,9 +1,6 @@
-// imported code from mech advantage (editted) for calculating launch numbers
-
 package frc.robot.imported;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -11,18 +8,12 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.DriverStation;
 
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ShooterConstants;
 
 public class LaunchCalculator {
 	private static LaunchCalculator instance;
-
-	private final LinearFilter driveAngleFilter =
-			LinearFilter.movingAverage((int) (0.1 / 0.02)); // 0.02 is default loop period
-
-	private Rotation2d lastDriveAngle;
 
 	public static LaunchCalculator getInstance() {
 		if (instance == null) instance = new LaunchCalculator();
@@ -43,6 +34,11 @@ public class LaunchCalculator {
 
 	// Phase delay for shooting on the move
 	private static final double phaseDelay = 0.03;
+	// Aerodynamic drag coefficient for SOTM decay
+	private static final double sotmDragCoeff = 0.47;
+
+	// Warm start state for the Newton solver
+	private double previousTOF = -1.0;
 
 	private static final Transform2d ROBOT_TO_LAUNCHER_2D = new Transform2d(
 			ShooterConstants.ROBOT_TO_LAUNCHER.getTranslation().toTranslation2d(),
@@ -72,9 +68,9 @@ public class LaunchCalculator {
 		flywheelSpeedMap.put(2.70, 170.0 / (2 * Math.PI));
 		flywheelSpeedMap.put(2.94, 175.0 / (2 * Math.PI));
 		flywheelSpeedMap.put(3.48, 175.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(3.92, 180.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(4.35, 185.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(4.84, 190.0 / (2 * Math.PI));
+		flywheelSpeedMap.put(4.11, 60.0);
+		flywheelSpeedMap.put(4.46, 70.0);
+		flywheelSpeedMap.put(5.10, 80.0);
 
 		timeOfFlightMap.put(5.68, 1.16);
 		timeOfFlightMap.put(4.55, 1.12);
@@ -93,6 +89,64 @@ public class LaunchCalculator {
 		passingTimeOfFlightMap.put(11.0, 1.75);
 		passingTimeOfFlightMap.put(13.0, 1.76);
 		passingTimeOfFlightMap.put(17.16, 2.16);
+
+		applyPhysicsCorrection(1.5); // TODO: Tune this target height! (1.5m used here because the original empirical data physically cannot reach a 2m+ height based on its ToF)
+	}
+
+	/**
+	 * Physically corrects the empirical floor-hitting data to target-hitting data.
+	 * 
+	 * @param targetHeight The height of the target to aim at in meters.
+	 */
+	private static void applyPhysicsCorrection(double targetHeight) {
+		double hLaunch = ShooterConstants.ROBOT_TO_LAUNCHER.getZ();
+		double deltaY = targetHeight - hLaunch;
+		double g = 9.81;
+
+		double[] empiricalDistances = {
+			0.96, 1.16, 1.58, 2.07, 2.37, 2.47, 2.70, 2.94, 3.48, 3.92, 4.35, 4.84
+		};
+
+		java.util.TreeMap<Double, Double> newFlywheel = new java.util.TreeMap<>();
+		java.util.TreeMap<Double, Double> newTOF = new java.util.TreeMap<>();
+
+		for (double dFloor : empiricalDistances) {
+			double rps = flywheelSpeedMap.get(dFloor);
+			double tFloor = timeOfFlightMap.get(dFloor);
+			
+			double vx = dFloor / tFloor;
+			double vy0 = (-hLaunch + 0.5 * g * tFloor * tFloor) / tFloor;
+
+			double det = vy0 * vy0 - 2 * g * deltaY;
+			if (det >= 0) {
+				double tTarget = (vy0 + Math.sqrt(det)) / g;
+				double dTarget = vx * tTarget;
+				
+				newFlywheel.put(dTarget, rps);
+				newTOF.put(dTarget, tTarget);
+			}
+		}
+
+		flywheelSpeedMap.clear();
+		timeOfFlightMap.clear();
+		
+		for (java.util.Map.Entry<Double, Double> entry : newFlywheel.entrySet()) {
+			flywheelSpeedMap.put(entry.getKey(), entry.getValue());
+		}
+		for (java.util.Map.Entry<Double, Double> entry : newTOF.entrySet()) {
+			timeOfFlightMap.put(entry.getKey(), entry.getValue());
+		}
+	}
+
+	private double getEffectiveTOF(double distance, boolean isPassing) {
+		return isPassing ? passingTimeOfFlightMap.get(distance) : timeOfFlightMap.get(distance);
+	}
+
+	private double tofMapDerivative(double distance, boolean isPassing) {
+		double h = 0.01;
+		double tHigh = getEffectiveTOF(distance + h, isPassing);
+		double tLow = getEffectiveTOF(distance - h, isPassing);
+		return (tHigh - tLow) / (2.0 * h);
 	}
 
 	public LaunchingParameters getParameters(Pose2d robotPose, ChassisSpeeds robotVelocity) {
@@ -114,42 +168,93 @@ public class LaunchCalculator {
 
 		// Define launcher position on the field
 		Pose2d launcherPosition = estimatedPose.transformBy(ROBOT_TO_LAUNCHER_2D);
-		double launcherToTargetDistance = target.getDistance(launcherPosition.getTranslation());
+		double rx = target.getX() - launcherPosition.getX();
+		double ry = target.getY() - launcherPosition.getY();
+		double launcherToTargetDistance = Math.hypot(rx, ry);
 
 		// Velocity of the robot in field-relative terms is needed for lookahead.
 		// ChassisSpeeds is robot-relative, so we need to translate.
-		// If autonomous, we could use setpoint velocity, but here we'll use actual measured chassis speeds projected field-relative:
 		double vxField = robotVelocity.vxMetersPerSecond * estimatedPose.getRotation().getCos() - robotVelocity.vyMetersPerSecond * estimatedPose.getRotation().getSin();
 		double vyField = robotVelocity.vxMetersPerSecond * estimatedPose.getRotation().getSin() + robotVelocity.vyMetersPerSecond * estimatedPose.getRotation().getCos();
-		ChassisSpeeds fieldRelativeVelocity = new ChassisSpeeds(vxField, vyField, robotVelocity.omegaRadiansPerSecond);
 
-		double timeOfFlight = isPassing
-				? passingTimeOfFlightMap.get(launcherToTargetDistance)
-				: timeOfFlightMap.get(launcherToTargetDistance);
-		Pose2d lookaheadPose = launcherPosition;
+		double solvedTOF;
 		double lookaheadLauncherToTargetDistance = launcherToTargetDistance;
+		Pose2d lookaheadPose = launcherPosition;
 
-		// Iterative lookahead for shooting on the move
-		for (int i = 0; i < 20; i++) {
-			timeOfFlight = isPassing
-					? passingTimeOfFlightMap.get(lookaheadLauncherToTargetDistance)
-					: timeOfFlightMap.get(lookaheadLauncherToTargetDistance);
-			double offsetX = fieldRelativeVelocity.vxMetersPerSecond * timeOfFlight;
-			double offsetY = fieldRelativeVelocity.vyMetersPerSecond * timeOfFlight;
+		double robotSpeed = Math.hypot(vxField, vyField);
+
+		if (robotSpeed < 0.1) {
+			// Static shot
+			solvedTOF = getEffectiveTOF(launcherToTargetDistance, isPassing);
+			previousTOF = -1.0;
+		} else {
+			// Newton-method SOTM solver with drag compensation
+			double tof = (previousTOF > 0) ? previousTOF : getEffectiveTOF(launcherToTargetDistance, isPassing);
+			
+			for (int i = 0; i < 5; i++) {
+				double prevTOF = tof;
+				
+				double dragExp = Math.exp(-sotmDragCoeff * tof);
+				double driftTOF = (1.0 - dragExp) / sotmDragCoeff;
+
+				// Projected target displacement from launcher
+				double prx = rx - vxField * driftTOF;
+				double pry = ry - vyField * driftTOF;
+				lookaheadLauncherToTargetDistance = Math.hypot(prx, pry);
+
+				if (lookaheadLauncherToTargetDistance < 0.01) {
+					tof = getEffectiveTOF(launcherToTargetDistance, isPassing);
+					break; // Diverged
+				}
+
+				double lookupTOF = getEffectiveTOF(lookaheadLauncherToTargetDistance, isPassing);
+
+				double dPrime = -dragExp * (prx * vxField + pry * vyField) / lookaheadLauncherToTargetDistance;
+				double gPrime = tofMapDerivative(lookaheadLauncherToTargetDistance, isPassing);
+				double f = lookupTOF - tof;
+				double fPrime = gPrime * dPrime - 1.0;
+
+				if (Math.abs(fPrime) > 0.01) {
+					tof = tof - f / fPrime;
+				} else {
+					tof = lookupTOF;
+				}
+
+				tof = MathUtil.clamp(tof, 0.05, 5.0);
+
+				if (Math.abs(tof - prevTOF) < 0.001) {
+					break;
+				}
+			}
+
+			// Divergence guard
+			if (tof > 5.0 || tof < 0.0 || Double.isNaN(tof)) {
+				tof = getEffectiveTOF(launcherToTargetDistance, isPassing);
+			}
+
+			solvedTOF = tof;
+			previousTOF = solvedTOF;
+
+			// Final lookahead pose calculation for drive angle extraction
+			double driftTOF = (1.0 - Math.exp(-sotmDragCoeff * solvedTOF)) / sotmDragCoeff;
+			double offsetX = vxField * driftTOF;
+			double offsetY = vyField * driftTOF;
 			lookaheadPose =
 					new Pose2d(
 							launcherPosition.getTranslation().plus(new Translation2d(offsetX, offsetY)),
 							launcherPosition.getRotation());
-			lookaheadLauncherToTargetDistance = target.getDistance(lookaheadPose.getTranslation());
 		}
 
 		// Account for launcher being off center
 		Pose2d lookaheadRobotPose = lookaheadPose.transformBy(ROBOT_TO_LAUNCHER_2D.inverse());
 		Rotation2d driveAngle = getDriveAngleWithLauncherOffset(lookaheadRobotPose, target);
 
-		if (lastDriveAngle == null) lastDriveAngle = driveAngle;
-		double driveVelocitySetpoint = driveAngleFilter.calculate(driveAngle.minus(lastDriveAngle).getRadians() / 0.02);
-		lastDriveAngle = driveAngle;
+		// Analytical angular velocity feedforward
+		double driveVelocitySetpoint = 0.0;
+		if (robotSpeed >= 0.1 && lookaheadLauncherToTargetDistance > 0.1) {
+			double tangentialVel = (ry * vxField - rx * vyField) / lookaheadLauncherToTargetDistance;
+			driveVelocitySetpoint = tangentialVel / lookaheadLauncherToTargetDistance;
+		}
 
 		double flywheelVelocity = isPassing
 				? passingFlywheelSpeedMap.get(lookaheadLauncherToTargetDistance)
@@ -163,7 +268,7 @@ public class LaunchCalculator {
 				driveVelocitySetpoint,
 				flywheelVelocity,
 				lookaheadLauncherToTargetDistance,
-				timeOfFlight,
+				solvedTOF,
 				isPassing);
 
 		return latestParameters;
@@ -185,5 +290,6 @@ public class LaunchCalculator {
 
 	public void clearLaunchingParameters() {
 		latestParameters = null;
+		previousTOF = -1.0;
 	}
 }
