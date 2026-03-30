@@ -31,7 +31,6 @@ import frc.robot.HardwareMap;
 import frc.robot.input.Input;
 // Robot Imports
 import frc.robot.motors.TalonFXWrapper;
-import frc.robot.imported.LaunchCalculator;
 // import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 
