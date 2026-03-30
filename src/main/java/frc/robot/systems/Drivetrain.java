@@ -9,7 +9,6 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -35,7 +34,6 @@ import edu.wpi.first.units.measure.AngularVelocity;
 
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -65,7 +63,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	// Max linear & angular speeds
 	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_12V;
-	private static final AngularVelocity MAX_ANGULAR_SPEED = DrivetrainConstants.MAX_ANGULAR_VELOCITY;
+	private static final AngularVelocity MAX_ANGULAR_SPEED =
+		DrivetrainConstants.MAX_ANGULAR_VELOCITY;
 
 	// Drive swerve requests
 	private final SwerveRequest.FieldCentric driveFieldCentric = new SwerveRequest.FieldCentric()
@@ -76,11 +75,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			// Use open-loop for drive motors
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	private final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds()
+	private final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds =
+		new SwerveRequest.ApplyRobotSpeeds()
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle = new SwerveRequest.FieldCentricFacingAngle()
-			.withDeadband(MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
+	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle =
+		new SwerveRequest.FieldCentricFacingAngle()
+			.withDeadband(
+				MAX_SPEED.in(MetersPerSecond) * DrivetrainConstants.TRANSLATIONAL_DEADBAND)
 			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
 					* DrivetrainConstants.ROTATIONAL_DEADBAND)
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
@@ -154,8 +156,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 							applyRobotSpeeds
 									.withSpeeds(speedINeedThis.times(
 											Constants.DrivetrainConstants.TRANSLATIONAL_DAMP))
-									.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
-									.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons()));
+									.withWheelForceFeedforwardsX(
+										feedforwards.robotRelativeForcesXNewtons())
+									.withWheelForceFeedforwardsY(
+										feedforwards.robotRelativeForcesYNewtons()));
 
 				}, /*
 					 * Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
@@ -286,6 +290,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return drivetrain.getPigeon2().getRotation3d();
 	}
 
+	/**
+	 * Get the drivetrain's rotation as a double.
+	 *
+	 * @return The drivetrain's rotation as a double
+	 */
 	@AutoLogOutput(key = "Drivetrain/RotationDouble")
 	public double getRotation() {
 		return drivetrain.getPigeon2().getRotation2d().getDegrees();
@@ -410,7 +419,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			double angle = Math.atan2(distance.getY(), distance.getX());
 			drivetrain.setControl(
 					driveFacingAngle
-							.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
+							.withTargetDirection(
+								edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
 							.withHeadingPID(N7.instance.getNum(), 0, 0)
 							.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 							.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
@@ -424,17 +434,25 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
 				outpostDistance = Math.sqrt(
 						Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getX(), 2)
-								+ Math.pow(getPose().minus(DrivetrainConstants.RED_OUTPOST_POSE).getY(), 2));
+								+ Math.pow(
+									getPose().minus(
+										DrivetrainConstants.RED_OUTPOST_POSE).getY(), 2));
 				target3Distance = Math.sqrt(
 						Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getX(), 2)
-								+ Math.pow(getPose().minus(DrivetrainConstants.RED_POSE3_POSE).getY(), 2));
+								+ Math.pow(
+									getPose().minus(
+										DrivetrainConstants.RED_POSE3_POSE).getY(), 2));
 			} else {
 				outpostDistance = Math.sqrt(
 						Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getX(), 2)
-								+ Math.pow(getPose().minus(DrivetrainConstants.BLUE_OUTPOST_POSE).getY(), 2));
+								+ Math.pow(
+									getPose().minus(
+										DrivetrainConstants.BLUE_OUTPOST_POSE).getY(), 2));
 				target3Distance = Math.sqrt(
 						Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getX(), 2)
-								+ Math.pow(getPose().minus(DrivetrainConstants.BLUE_POSE3_POSE).getY(), 2));
+								+ Math.pow(
+									getPose().minus(
+										DrivetrainConstants.BLUE_POSE3_POSE).getY(), 2));
 				isRed = false;
 			}
 
@@ -457,7 +475,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 			drivetrain.setControl(
 					driveFacingAngle
-							.withTargetDirection(edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
+							.withTargetDirection(
+								edu.wpi.first.math.geometry.Rotation2d.fromRadians(angle))
 							.withHeadingPID(N7.instance.getNum(), 0, 0)
 							.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 							.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
@@ -506,7 +525,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	/**
 	 * Aligns the bot to target the passing target.
-	 * 
+	 *
 	 * @param targetPose the target passing pose
 	 */
 	public void targetPassZone(Pose2d targetPose) {
@@ -547,7 +566,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return AutoBuilder.followPath(path);
 
 		} catch (Exception e) {
-			DriverStation.reportError("PathPlanner Error [" + pathName + "]: " + e.getMessage(), e.getStackTrace());
+			DriverStation.reportError(
+				"PathPlanner Error [" + pathName + "]: " + e.getMessage(), e.getStackTrace());
 			return Commands.none();
 		}
 	}
