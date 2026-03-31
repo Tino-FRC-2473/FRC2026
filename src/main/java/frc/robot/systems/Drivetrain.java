@@ -4,20 +4,10 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static frc.robot.Constants.DrivetrainConstants.BLUE_ALLIANCE_TAG_26;
 import static frc.robot.Constants.DrivetrainConstants.BLUE_HUB_POSE;
-import static frc.robot.Constants.DrivetrainConstants.BLUE_OUTPOST_POSE;
-import static frc.robot.Constants.DrivetrainConstants.BLUE_TARGET3_POSE;
-import static frc.robot.Constants.DrivetrainConstants.FACE_HUB_D;
-import static frc.robot.Constants.DrivetrainConstants.FACE_HUB_I;
-import static frc.robot.Constants.DrivetrainConstants.FACE_HUB_P;
-import static frc.robot.Constants.DrivetrainConstants.FACE_PASS_D;
-import static frc.robot.Constants.DrivetrainConstants.FACE_PASS_I;
-import static frc.robot.Constants.DrivetrainConstants.FACE_PASS_P;
 import static frc.robot.Constants.DrivetrainConstants.MAX_ANGULAR_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.MAX_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;
 import static frc.robot.Constants.DrivetrainConstants.RED_ALLIANCE_TAG_10;
-import static frc.robot.Constants.DrivetrainConstants.RED_OUTPOST_POSE;
-import static frc.robot.Constants.DrivetrainConstants.RED_TARGET3_POSE;
 import static frc.robot.Constants.DrivetrainConstants.ROTATIONAL_DAMP;
 import static frc.robot.Constants.DrivetrainConstants.ROTATIONAL_DEADBAND;
 import static frc.robot.Constants.DrivetrainConstants.TRANSLATIONAL_DAMP;
@@ -58,12 +48,14 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
-import frc.robot.imported.LaunchCalculator;
 import frc.robot.imported.geom.AllianceFlipUtil;
 import frc.robot.input.Input;
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
-import frc.robot.Constants.DrivetrainConstants;;
+import frc.robot.Constants.DrivetrainConstants;
+
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.numbers.N10;
 
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
@@ -74,7 +66,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public enum DrivetrainState {
 		AUTONOMOUS,
 		CONTROLLED,
-		PATHFINDING
+		PATHFINDING,
+		FACE_HUB,
+		FACE_PASS
 	}
 
 	// endregion
@@ -91,10 +85,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			.ApplyRobotSpeeds()
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle = new SwerveRequest
-			.FieldCentricFacingAngle()
-			.withDeadband(MAX_SPEED.in(MetersPerSecond) * TRANSLATIONAL_DEADBAND)
-			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond) * ROTATIONAL_DEADBAND)
+	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle
+		= new SwerveRequest.FieldCentricFacingAngle()
+			.withDeadband(MAX_SPEED.in(MetersPerSecond)
+				* DrivetrainConstants.TRANSLATIONAL_DEADBAND)
+			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
+				* DrivetrainConstants.ROTATIONAL_DEADBAND)
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
 	// endregion
@@ -115,6 +111,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private Pose2d currentHubPose;
 	private int alignmentTargetTag;
 
+	private double targetAngle = 0;
 
 	/**
 	 * Construct the drivetrain subsystem.
@@ -153,6 +150,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				break;
 			case CONTROLLED:
 				handleTeleopState(input);
+				break;
+			case FACE_HUB:
+				handleFaceTarget(input, currentHubPose);
+				break;
+			case FACE_PASS:
+				handleFaceTarget(input, getBestPassingTarget());
 				break;
 			default:
 				throw new IllegalStateException(
@@ -201,6 +204,18 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					return DrivetrainState.PATHFINDING;
 				} else {
 					pathfindCommand.cancel();
+					return DrivetrainState.CONTROLLED;
+				}
+			case FACE_HUB:
+				if (input.getButtonValue(ButtonInput.FACE_HUB)) {
+					return DrivetrainState.FACE_HUB;
+				} else {
+					return DrivetrainState.CONTROLLED;
+				}
+			case FACE_PASS:
+				if (input.getButtonValue(ButtonInput.FACE_PASS)) {
+					return DrivetrainState.FACE_PASS;
+				} else {
 					return DrivetrainState.CONTROLLED;
 				}
 			default:
@@ -255,6 +270,17 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	@AutoLogOutput(key = "Drivetrain/Rotation")
 	public Rotation3d getRotation() {
 		return drivetrain.getPigeon2().getRotation3d();
+	}
+
+	/**
+	 * Get the drivetrain rotation.
+	 *
+	 * @return the rotation
+	 */
+	@AutoLogOutput(key = "Drivetrain/Rotation")
+	public double getRotationDouble() {
+		return MathUtil.angleModulus(drivetrain.getPigeon2()
+			.getRotation2d().getRadians() + Math.PI);
 	}
 
 	/**
@@ -350,6 +376,27 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	private void createDrivetrain() {
 		drivetrain = TunerConstants.createDrivetrain();
+	}
+
+	private Pose2d getHubPose() {
+		var currentAlliance = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
+		return (currentAlliance == DriverStation.Alliance.Red) ? DrivetrainConstants.RED_HUB_POSE
+				: DrivetrainConstants.BLUE_HUB_POSE;
+	}
+
+	private Pose2d getBestPassingTarget() {
+		var currentAlliance = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
+		boolean isRed = (currentAlliance == DriverStation.Alliance.Red);
+
+		Pose2d outpost = isRed ? DrivetrainConstants.RED_OUTPOST_POSE
+			: DrivetrainConstants.BLUE_OUTPOST_POSE;
+		Pose2d pose3 = isRed ? DrivetrainConstants.RED_POSE3_POSE
+			: DrivetrainConstants.BLUE_POSE3_POSE;
+
+		double distOutpost = getPose().getTranslation().getDistance(outpost.getTranslation());
+		double distPose3 = getPose().getTranslation().getDistance(pose3.getTranslation());
+
+		return (distOutpost < distPose3) ? outpost : pose3;
 	}
 
 	private void updateSmartDashboard() {
@@ -510,6 +557,72 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		CommandScheduler.getInstance().schedule(pathfindCommand);
 	}
 
+	private void handleFaceTarget(Input input, Pose2d targetPose) {
+		if (input == null) {
+			return;
+		}
+
+		double flipAlliance = (DriverStation.getAlliance()
+				.orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue) ? 1.0 : -1.0;
+
+		double localXSpeed = (invertControls ? -1 : 1) * flipAlliance * MathUtil.applyDeadband(
+				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
+					DrivetrainConstants.TRANSLATION_DEADBAND)
+				* MAX_SPEED.in(MetersPerSecond);
+
+		double localYSpeed = -(invertControls ? 1 : 0) * flipAlliance * MathUtil.applyDeadband(
+				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
+					DrivetrainConstants.TRANSLATION_DEADBAND)
+				* MAX_SPEED.in(MetersPerSecond);
+
+		// Transform2d distance = targetPose.minus(getPose());
+		// Using angleModulus to prevent wrap-around issues with filtering
+		Translation2d robotTranslation = getPose().getTranslation();
+		Translation2d targetTranslation = targetPose.getTranslation();
+		Translation2d diff = targetTranslation.minus(robotTranslation);
+		targetAngle = Math.atan2(diff.getY(), diff.getX());
+		// double currentAngle = getRotation();
+		// double rawTarget = Math.atan2(distance.getY(), distance.getX());
+
+		// double error = MathUtil.angleModulus(rawTarget - currentAngle);
+
+		// if(Math.abs(error) > Math.PI / 2) {
+		// rawTarget = MathUtil.angleModulus(rawTarget + Math.PI);
+		// }
+
+		// targetAngle = MathUtil.angleModulus(rawTarget);
+
+		// double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
+		// double angleError = Math.abs(MathUtil.angleModulus(targetAngle -
+		// currentAngle));
+		// Logger.recordOutput("Drivetrain/Error", angleError);
+
+		if (Math.abs(MathUtil.angleModulus(getRotationDouble()
+			- targetAngle + Math.PI / 2)) > Math.toRadians(N10.instance.getNum())) {
+			// System.out.println("aaa");
+			drivetrain.setControl(
+					driveFacingAngle
+							.withTargetDirection(Rotation2d.fromRadians(targetAngle))
+							.withHeadingPID(DrivetrainConstants.FACE_HUB_P,
+								DrivetrainConstants.FACE_HUB_I, DrivetrainConstants.FACE_HUB_D)
+							.withVelocityX(localXSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+							.withVelocityY(localYSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
+		} else {
+
+			double thetaSpeedFaceTarget = MathUtil.applyDeadband(
+					input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
+					DrivetrainConstants.ROTATIONAL_DEADBAND)
+					* MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+
+			drivetrain.setControl(
+					driveFieldCentric
+							.withVelocityX(localXSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+							.withVelocityY(localYSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+							.withRotationalRate(thetaSpeedFaceTarget
+								* DrivetrainConstants.ROTATIONAL_DAMP));
+		}
+	}
+
 	private void handleTeleopState(Input input) {
 		if (input == null) {
 			return;
@@ -569,8 +682,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private void handleButtonInputs(Input input) {
 		handleInvertControlsButton(input);
 		handleReseedButton(input);
-		handleFaceHubButton(input);
-		handleFacePassButton(input);
 	}
 
 	private void handleInvertControlsButton(Input input) {
@@ -585,76 +696,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 	}
 
-	private void handleFaceHubButton(Input input) {
-		if (input.getButtonValue(ButtonInput.FACE_HUB)) {
-			drivetrain.setControl(driveFacingAngle
-					.withTargetDirection(Rotation2d.fromRadians(getAngleToHub()))
-					.withHeadingPID(FACE_HUB_P, FACE_HUB_I, FACE_HUB_D)
-					.withVelocityX(xSpeed * TRANSLATIONAL_DAMP)
-					.withVelocityY(ySpeed * TRANSLATIONAL_DAMP)
-			);
-		}
-	}
 
-	private double getAngleToHub() {
-		Transform2d offset = getPose().minus(currentHubPose);
-		return Math.atan2(offset.getY(), offset.getX());
-	}
 
-	private void handleFacePassButton(Input input) {
-		if (input.getButtonValue(ButtonInput.FACE_PASS)) {
-			double outpostDistance = getOutpostDistance();
-			double target3Distance = getTarget3Distance();
-
-			Pose2d correctTarget;
-			if (outpostDistance < target3Distance) {
-				correctTarget = getTargetPose(RED_OUTPOST_POSE, BLUE_OUTPOST_POSE);
-			} else {
-				correctTarget = getTargetPose(BLUE_TARGET3_POSE, RED_TARGET3_POSE);
-			}
-
-			double angle = LaunchCalculator.getInstance()
-				.getParameters(getPose(), getChassisSpeeds(), correctTarget.getTranslation(), true)
-				.driveAngle().getRadians();
-
-			drivetrain.setControl(
-				driveFacingAngle
-					.withTargetDirection(Rotation2d.fromRadians(getAngleToPose(correctTarget)))
-					.withHeadingPID(FACE_PASS_P, FACE_PASS_I, FACE_PASS_D)
-					.withVelocityX(xSpeed * TRANSLATIONAL_DAMP)
-					.withVelocityY(ySpeed * TRANSLATIONAL_DAMP)
-			);
-		}
-	}
-
-	private double getOutpostDistance() {
-		return getDistanceToPose(getTargetPose(RED_OUTPOST_POSE, BLUE_OUTPOST_POSE));
-	}
-
-	private double getTarget3Distance() {
-		return getDistanceToPose(getTargetPose(RED_TARGET3_POSE, BLUE_TARGET3_POSE));
-	}
-
-	private double getDistanceToPose(Pose2d pose) {
-		Transform2d offset = getOffsetToPose(pose);
-		return Math.hypot(offset.getX(), offset.getY());
-	}
-
-	private double getAngleToPose(Pose2d pose) {
-		Transform2d offset = getOffsetToPose(pose);
-		return Math.atan2(offset.getY(), offset.getX());
-	}
-
-	private Transform2d getOffsetToPose(Pose2d pose) {
-		return getPose().minus(pose);
-	}
-
-	private Pose2d getTargetPose(Pose2d redPose, Pose2d bluePose) {
-		if (isRedAlliance()) {
-			return redPose;
-		}
-		return bluePose;
-	}
 
 	// endregion
 	/* ======================== End ======================== */

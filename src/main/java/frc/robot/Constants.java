@@ -94,9 +94,9 @@ public class Constants {
 		public static final double X_TAG_OFFSET = 1;
 		public static final double Y_TAG_OFFSET = 0;
 
-		public static final double FACE_HUB_P = 7.0;
+		public static final double FACE_HUB_P = 2.0;
 		public static final double FACE_HUB_I = 0.0;
-		public static final double FACE_HUB_D = 0.0;
+		public static final double FACE_HUB_D = 0.4;
 
 		public static final double FACE_PASS_P = 7.0;
 		public static final double FACE_PASS_I = 0.0;
@@ -115,6 +115,10 @@ public class Constants {
 			new Pose2d(2.54, 2.0346376, new Rotation2d());
 		public static final Pose2d BLUE_TARGET3_POSE =
 			new Pose2d(8.2741742, 6.0346376, new Rotation2d());
+		public static final Pose2d RED_POSE3_POSE =
+			new Pose2d(15.855188, 0.633222, new Rotation2d());
+		public static final Pose2d BLUE_POSE3_POSE =
+			new Pose2d(0.6858, 7.436104, new Rotation2d());
 	}
 
 	public static final class ModuleConstants {
