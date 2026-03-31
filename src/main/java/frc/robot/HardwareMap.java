@@ -13,16 +13,18 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_PIVOT_LEFT = 52;
 	public static final int CAN_ID_SPARK_PIVOT_RIGHT = 51;
 	public static final int CAN_ID_SPARK_INTAKE = 53;
+	public static final int CAN_ID_CONVEYOR = 54;
 
 	//values TBD
-	public static final int CAN_ID_FLYWHEEL = 2;
+	public static final int CAN_ID_FLYWHEEL1 = 2;
+	public static final int CAN_ID_FLYWHEEL2 = 5; //MUST BE CHANGED
 	public static final int CAN_ID_FEEDER = 3;
 	public static final int CAN_ID_SPINDEXER = 4;
 
 	//rio - dio ports
 	public static final int INTAKE_GROUND_LIMIT_SWITCH_DIO_PORT = 1;
-	public static final int INTAKE_TOP_LIMIT_SWITCH_DIO_PORT = 3;
-	public static final int STORAGE_BREAK_BEAM_DIO_PORT = 2; //receiver of breakbeam
+	public static final int INTAKE_TOP_LIMIT_SWITCH_DIO_PORT = 2;
+	// public static final int STORAGE_BREAK_BEAM_DIO_PORT = 2; //receiver of breakbeam
 
 	// Pneumatics channel numbers
 	public static final int PCM_CHANNEL_INTAKE_CYLINDER_FORWARD = 1;
@@ -47,7 +49,7 @@ public final class HardwareMap {
 	 * @return if the hardware for the drivetrain is present
 	 */
 	public static boolean isDrivetrainEnabled() {
-		return true;
+		return false;
 	}
 
 	/**
@@ -55,7 +57,7 @@ public final class HardwareMap {
 	 * @return if the hardware for the climber is present
 	 */
 	public static boolean isClimberEnabled() {
-		return true;
+		return false;
 	}
 
 	/**
@@ -63,7 +65,7 @@ public final class HardwareMap {
 	 * @return if the hardware for the intake is present
 	 */
 	public static boolean isIntakeEnabled() {
-		return true;
+		return false;
 	}
 
 	/**
@@ -71,6 +73,15 @@ public final class HardwareMap {
 	 * @return if the hardware for the shooter is present
 	 */
 	public static boolean isShooterEnabled() {
+		return true;
+	}
+
+
+	/**
+	 * Hardware map entry for the agitator subsystem.
+	 * @return if the hardware for the agitator is present
+	 */
+	public static boolean isAgitatorEnabled() {
 		return true;
 	}
 }
