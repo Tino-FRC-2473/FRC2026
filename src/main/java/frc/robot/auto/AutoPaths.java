@@ -96,8 +96,6 @@ public class AutoPaths {
 	) {
 		return Commands
 				.sequence(
-					drivetrain.followcommand("BlueNZ_HUB"),
-					shootFor(input, shooter, 3),
 					drivetrain.followcommand("BlueS1_NZ"),
 					startIntakeCommand(input, intake),
 					drivetrain.followcommand("BlueNZ_INTAKE"),
@@ -115,8 +113,6 @@ public class AutoPaths {
 	) {
 		return Commands
 				.sequence(
-					drivetrain.followcommand("BlueNZ_HUB"),
-					shootFor(input, shooter, 3),
 					drivetrain.followcommand("BlueS2_NZ"),
 					startIntakeCommand(input, intake),
 					drivetrain.followcommand("BlueNZ_INTAKE"),
@@ -134,8 +130,6 @@ public class AutoPaths {
 	) {
 		return Commands
 				.sequence(
-					drivetrain.followcommand("BlueNZ_HUB"),
-					shootFor(input, shooter, 3),
 					drivetrain.followcommand("BlueS3_NZ"),
 					startIntakeCommand(input, intake),
 					drivetrain.followcommand("BlueNZ_INTAKE"),
