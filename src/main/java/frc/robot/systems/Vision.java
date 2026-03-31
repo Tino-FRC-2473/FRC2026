@@ -103,7 +103,7 @@ public class Vision {
 	}
 
 	private boolean checkIfValidPose(PoseEstimate pose) {
-		if (pose != null && pose.rawFiducials != null && pose.rawFiducials.length != 0) {
+		if (pose == null || pose.rawFiducials == null || pose.rawFiducials.length == 0) {
 			return false;
 		}
 
