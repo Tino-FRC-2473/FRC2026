@@ -3,6 +3,7 @@ package frc.robot.auto;
 
 import edu.wpi.first.math.numbers.N10;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.math.numbers.*;
 // import edu.wpi.first.apriltag.AprilTagFieldLayout;
 // import edu.wpi.first.apriltag.AprilTagFields;
 // import edu.wpi.first.math.geometry.Rotation2d;
@@ -20,15 +21,289 @@ import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
 
 public class AutoPaths {
 
+	enum DrivePaths {
+
+		BlueS1_D,
+		RedS1_D(BlueS1_D),
+
+		BlueS2_D,
+		RedS2_D(BlueS2_D),
+
+		BlueS3_D,
+		RedS3_D(BlueS3_D),
+
+		BlueD_T,
+		RedD_T(BlueD_T),
+
+		BlueHUB_T,
+		RedHUB_T(BlueHUB_T),
+
+		BlueD_HUB,
+		RedD_HUB(BlueD_HUB),
+
+		BlueD_INTAKE,
+		RedD_INTAKE(BlueD_INTAKE),
+
+		NZ_BlueS3,
+		NZ_RedS3(NZ_BlueS3),
+
+		BlueS3_HUB,
+		RedS3_HUB(BlueS3_HUB),
+
+		NZ_BlueS1,
+		NZ_RedS1(NZ_BlueS1),
+
+		HUB_BlueS1,
+		HUB_RedS1(HUB_BlueS1),
+
+		BlueNZ_INTAKE,
+		RedNZ_INTAKE(BlueNZ_INTAKE),
+
+		HUB_BlueS2,
+		HUB_RedS2(HUB_BlueS2),
+
+		BlueS1_HUB,
+		RedS1_HUB(BlueS1_HUB),
+
+		HUB_BlueS3,
+		HUB_RedS3(HUB_BlueS3),
+
+		BlueHUB_D,
+		RedHUB_D(BlueHUB_D),
+
+		BlueHUB_O,
+		RedHUB_O(BlueHUB_O),
+
+		NZ_BlueS2,
+		NZ_RedS2(NZ_BlueS2),
+
+		BlueS1_NZ_1,
+		RedS1_NZ_1(BlueS1_NZ_1),
+
+		BlueS1_NZ_2,
+		RedS1_NZ_2(BlueS1_NZ_2),
+
+		BlueS3_NZ_1,
+		RedS3_NZ_1(BlueS3_NZ_1),
+
+		BlueS3_NZ_2,
+		RedS3_NZ_2(BlueS3_NZ_2),
+
+		BlueS2_HUB,
+		RedS2_HUB(BlueS2_HUB),
+
+		BlueS2_NZ,
+		RedS2_NZ(BlueS2_NZ),
+
+		BlueSHOOTS1_D,
+		RedSHOOTS1_D(BlueSHOOTS1_D),
+
+		BlueSHOOTS1_O,
+		RedSHOOTS1_O(BlueSHOOTS1_O),
+
+		private PathPlannerPath path;
+		private DrivePaths mirror;
+
+		DrivePaths(DrivePaths mirroredPath) {
+			mirror = mirroredPath;
+			try {
+				path = PathPlannerPath.fromChoreoTrajectory(this.name());
+			} catch (FileVersionException | IOException | ParseException e) {
+				System.err.printf("Failure to load path: %s", this.name());
+			}
+		}
+
+		DrivePaths() {
+			this(null);
+		}
+
+		Command get() {
+			return (path == null || !AutoBuilder.isConfigured())
+					? new InstantCommand()
+					: AutoBuilder.followPath(path);
+		}
+
+		DrivePaths mirror() {
+			if (mirror == null) {
+				for (DrivePaths other : DrivePaths.values()) {
+					if (other.mirror != null && other.mirror == this) {
+						mirror = other;
+						return mirror;
+					}
+				}
+			}
+			return mirror;
+		}
+
+		Command get(boolean shouldMirror) {
+			return shouldMirror ? mirror().get() : get();
+		}
+
+	}
+
+	public enum Start {
+		S1(
+				DrivePaths.BlueS1_D,
+				DrivePaths.BlueS1_NZ_1,
+				DrivePaths.NZ_BlueS1,
+				DrivePaths.BlueS1_HUB),
+		S2(
+				DrivePaths.BlueS2_D,
+				DrivePaths.BlueS2_NZ,
+				DrivePaths.NZ_BlueS2,
+				DrivePaths.BlueS2_HUB),
+		S3(
+				DrivePaths.BlueS3_D,
+				DrivePaths.BlueS3_NZ_1,
+				DrivePaths.NZ_BlueS3,
+				DrivePaths.BlueS3_HUB);
+
+		private DrivePaths depotPath;
+		private DrivePaths nzPath;
+		private DrivePaths nzPathBack;
+		private DrivePaths hubPath;
+
+		Start(
+				DrivePaths pathToDepot,
+				DrivePaths pathToNZ,
+				DrivePaths pathFromNZ,
+				DrivePaths pathToHub) {
+			// mirror matches what we tested on the bot
+			// not sure why/if this works and whether I should mirror the others
+			depotPath = pathToDepot.mirror();
+
+			nzPath = pathToNZ;
+			nzPathBack = pathFromNZ;
+			hubPath = pathToHub;
+		}
+	}
+
+	public record GetShootClimbSettings(
+			boolean shouldShoot, boolean isRed) {
+	}
+
+	public record GetShootSettings() {
+	}
+
+	public record S1_NZ_Settings(
+			boolean shouldShoot, boolean isRed) {
+	}
+
+	
+
+	public static Command S1_NZ_Command(AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			// ClimberFSMSystem climber,
+			IntakeFSMSystem intake,
+			S1_NZ_Settings settings) {
+
+		boolean isRed = settings.isRed();
+		return Commands
+				.sequence(
+					Commands.parallel(
+						DrivePaths.BlueS1_NZ_1.get(isRed),
+						startIntakeCommand(input, intake)
+					),
+					stopIntakeCommand(input, intake),
+					DrivePaths.NZ_BlueS1.get(isRed),
+					faceHub(input, drivetrain),
+					waitFor(N1.instance.getNum()),
+					shootFor(input, shooter, N5.instance.getNum()),
+					Commands.parallel(
+						DrivePaths.BlueS1_NZ_2.get(isRed),
+						startIntakeCommand(input, intake)
+					),
+					stopIntakeCommand(input, intake),
+					DrivePaths.NZ_BlueS1.get(isRed),
+					faceHub(input, drivetrain),
+					waitFor(N1.instance.getNum()),
+					shootFor(input, shooter, N5.instance.getNum())
+				);
+
+	}
+
+	public record S3_NZ_Settings(
+			boolean shouldShoot, boolean isRed) {
+	}
+
+	
+
+	public static Command S3_NZ_Command(AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			// ClimberFSMSystem climber,
+			IntakeFSMSystem intake,
+			S3_NZ_Settings settings) {
+
+		boolean isRed = settings.isRed();
+		return Commands
+				.sequence(
+					Commands.parallel(
+						DrivePaths.BlueS3_NZ_1.get(isRed),
+						startIntakeCommand(input, intake)
+					),
+					stopIntakeCommand(input, intake),
+					DrivePaths.NZ_BlueS3.get(isRed),
+					faceHub(input, drivetrain),
+					waitFor(N1.instance.getNum()),
+					shootFor(input, shooter, N5.instance.getNum()),
+					Commands.parallel(
+						DrivePaths.BlueS3_NZ_2.get(isRed),
+						startIntakeCommand(input, intake)
+					),
+					stopIntakeCommand(input, intake),
+					DrivePaths.NZ_BlueS3.get(isRed),
+					faceHub(input, drivetrain),
+					waitFor(N1.instance.getNum()),
+					shootFor(input, shooter, N5.instance.getNum())
+				);
+
+	}
+
+		public record S2_D_Settings(
+			boolean shouldShoot, boolean isRed) {
+	}
+
+	
+
+	public static Command S2_D_Command(AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			// ClimberFSMSystem climber,
+			IntakeFSMSystem intake,
+			S2_D_Settings settings) {
+
+		boolean isRed = settings.isRed();
+		return Commands
+				.sequence(
+					DrivePaths.BlueS2_D.get(isRed),
+					Commands.parallel(
+						startIntakeCommand(input, intake),
+						DrivePaths.BlueD_INTAKE.get(isRed)
+					),
+					stopIntakeCommand(input, intake),
+					faceHub(input, drivetrain),
+					waitFor(N1.instance.getNum()),
+					shootFor(input, shooter, N5.instance.getNum())
+				);
+
+	}
+
+
 
 	/**
-	 * Returns a test auto that drives with the the BlueS1HUB trajectory,
-	 * and then shoots in the direction its facing for 10 seconds.
-	 * @param input
-	 * @param drivetrain
-	 * @param shooter
-	 * @param intake
-	 * @return Command
+	 * Returns an auto command that goes from a start position to depot,
+	 * intakes, optionally shoots into the hub, then climbs.
+	 *
+	 * @param input      the auto input
+	 * @param drivetrain the drivetrain
+	 * @param shooter    the shooter
+	 *      //@param climber the climber
+	 * @param intake     the intake
+	 * @param settings   some settings
+	 *                   starting postion, and whether it should shoot during auto
+	 * @return the auto as a command
 	 */
 	private static Command getS1HUBShootCommand(
 			AutoInput input,
@@ -187,6 +462,20 @@ public class AutoPaths {
 
 	private static Command waitFor(double time) {
 		return Commands.waitSeconds(time);
+	}
+
+	private static Command faceHub(AutoInput input, Drivetrain drive) {
+		return Commands
+			.sequence(
+				input.pressButtonCommand(ButtonInput.FACE_HUB)
+			);
+	}
+
+	private static Command facePass(AutoInput input, Drivetrain drive) {
+		return Commands
+			.sequence(
+				input.pressButtonCommand(ButtonInput.FACE_PASS)
+			);
 	}
 
 	/**
