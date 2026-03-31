@@ -11,6 +11,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
+import frc.robot.imported.LimelightHelpers;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
@@ -78,8 +79,10 @@ public class Robot extends LoggedRobot {
 			drivetrainFSMSystem = drivetrain;
 			vision = new Vision(
 				drivetrain::addVisionMeasurement,
-				drivetrain.getRotation(),
-				VisionConstants.LIMELIGHT_NAME
+				drivetrain.getDrivetrainRotation(),
+				VisionConstants.LIMELIGHT_NAME,
+				drivetrain::getAngularVelocity,
+				drivetrain::getLinearVelocityFromEncoders
 			);
 		} else {
 			drivetrainFSMSystem = new PlaceholderFSMSystem<>();
@@ -168,6 +171,10 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void teleopInit() {
+		//set the limelight imu mode for optimal performance in teleop
+		LimelightHelpers.SetIMUMode(VisionConstants.LIMELIGHT_NAME,
+			VisionConstants.TELEOP_IMU_MODE);
+
 		System.out.println("-------- Teleop Init --------");
 		input = new TeleopInput();
 		input.reset();
@@ -194,6 +201,8 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void disabledInit() {
 		System.out.println("-------- Disabled Init --------");
+		//Pre-match/Disabled: Use mode 1 to continuously seed the internal IMU with external gyro
+		LimelightHelpers.SetIMUMode(VisionConstants.LIMELIGHT_NAME, VisionConstants.AUTO_IMU_MODE);
 	}
 
 	@Override

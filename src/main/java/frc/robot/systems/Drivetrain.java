@@ -63,6 +63,7 @@ import frc.robot.imported.geom.AllianceFlipUtil;
 import frc.robot.input.Input;
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
+import frc.robot.Constants.DrivetrainConstants;;
 
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
@@ -433,6 +434,76 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				|| input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE) != 0;
 	}
 
+	/**
+	 * Get the drivetrain swerve states.
+	 *
+	 * @return the swerve module states
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/States")
+	public SwerveModuleState[] getModuleStates() {
+		return drivetrain.getState().ModuleStates;
+	}
+
+	/**
+	 * Get the drivetrain swerve targets.
+	 *
+	 * @return the swerve module targets
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/Targets")
+	public SwerveModuleState[] getModuleTargets() {
+		return drivetrain.getState().ModuleTargets;
+	}
+
+	/**
+	 * Get the drivetrain swerve positions.
+	 *
+	 * @return the swerve module positions
+	 */
+	@AutoLogOutput(key = "Drivetrain/Swerve/Positions")
+	public SwerveModulePosition[] getModulePositions() {
+		return drivetrain.getState().ModulePositions;
+	}
+
+	/**
+	 * Get the drivetrain's rotation.
+	 *
+	 * @return The drivetrain's rotation as a Pose2D
+	 */
+	@AutoLogOutput(key = "Drivetrain/Rotation")
+	public Rotation3d getDrivetrainRotation() {
+		return drivetrain.getPigeon2().getRotation3d();
+	}
+
+	/**
+	 * Get the drivetrain's angular velocity.
+	 *
+	 * @return The drivetrain's angular velocity in dps.
+	 */
+	public double getAngularVelocity() {
+		return drivetrain.getPigeon2().getAngularVelocityXDevice().getValueAsDouble();
+	}
+
+	/**
+	 * Gets the linear velocity of the robot by averaging motor encoders.
+	 * Use this to check against VisionConstants.MAX_LINEAR_SPEED.
+	 * @return calculated linear velocity
+	 */
+	public double getLinearVelocityFromEncoders() {
+		// 1. Calculate conversion (Wheel Circ / Gear Ratio)
+		double conversion = (Math.PI * DrivetrainConstants.METERS_TO_INCHES)
+			/ DrivetrainConstants.DRIVETRAIN_MOTOR_GEARING;
+
+		// 2. Get speeds from all 4 drive motors (Rotations per Second)
+		double fl = drivetrain.getModule(0).getEncoder().getVelocity().getValueAsDouble();
+		double fr = drivetrain.getModule(1).getEncoder().getVelocity().getValueAsDouble();
+		double bl = drivetrain.getModule(2).getEncoder().getVelocity().getValueAsDouble();
+		double br = drivetrain.getModule(2 + 1).getEncoder().getVelocity().getValueAsDouble();
+
+		// 3. Average the motor speeds and convert to m/s
+		double avgMotorSpeed = (fl + fr + bl + br) / (2 + 2);
+
+		return Math.abs(avgMotorSpeed * conversion);
+	}
 	private void startPathfinding() {
 		Pose2d target = getPathfindingTarget();
 		pathfindCommand = AutoBuilder.pathfindToPose(target, PATH_CONSTRAINTS);

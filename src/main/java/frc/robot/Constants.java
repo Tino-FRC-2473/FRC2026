@@ -48,6 +48,16 @@ public class Constants {
 	}
 
 	public static final class DrivetrainConstants {
+		public static final int NUM_MODULES = 4;
+
+		//for accessor method and conversion
+		public static final double DRIVETRAIN_MOTOR_GEARING = 6.75;
+		public static final double METERS_TO_INCHES = 0.1016;
+
+		public static final double TRANSLATION_DEADBAND = 0.05;
+		public static final double ROTATION_DEADBAND = 0.05;
+
+
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
 		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speed, and so on
 		public static final double TRANSLATIONAL_DAMP = 1;
@@ -294,10 +304,24 @@ public class Constants {
 	}
 
 	public static final class VisionConstants {
+		public static final double UPDATE_TIME = 0.02;
+
+		//max speeds before the Limelight IMU switches for optimal performance
+		public static final double MAX_ANGULAR_SPEED = 300; //angular speed
+		public static final double MAX_LINEAR_SPEED = 2.5; //meters per sec
+
+		public static final double MAX_AVG_TAG_DIST = 5;
+		public static final double MAX_TAG_AMBIGUITY = 0.2;
+
+		public static final double FIELD_BOUND_BUFFER_X = 16.5;
+		public static final double FIELD_BOUND_BUFFER_Y = 8.5;
+
 		public static final int RESOLUTION_X = 640;
 		public static final int RESOLUTION_Y = 480;
 		public static final double IMU_ASSIST_ALPHA = 0.01;
 		public static final int IMU_MODE = 3;
+		public static final int AUTO_IMU_MODE = 1;
+		public static final int TELEOP_IMU_MODE = 3;
 		public static final String LIMELIGHT_NAME = "limelight-four";
 		//TODO: Find some actual values for this.
 		public static final Matrix<N3, N1> LL4_STDEVS = VecBuilder.fill(
