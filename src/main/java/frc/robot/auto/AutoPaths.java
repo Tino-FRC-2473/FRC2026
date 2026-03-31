@@ -212,6 +212,7 @@ public class AutoPaths {
 			Drivetrain drivetrain,
 			ShooterFSMSystem shooter,
 			IntakeFSMSystem intake) {
+		System.out.println("IT IS LOADING");
 		chooser.setDefaultOption(
 				"S1 Shoot",
 				getS1HUBShootCommand(input, drivetrain, shooter, intake));
