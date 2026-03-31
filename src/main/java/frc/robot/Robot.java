@@ -22,7 +22,6 @@ import edu.wpi.first.cscore.CvSource;
 
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.input.AutoInput;
-import frc.robot.input.Input;
 import frc.robot.input.TeleopInput;
 import frc.robot.motors.MotorManager;
 import frc.robot.systems.Drivetrain;
@@ -32,6 +31,10 @@ import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.systems.AgitatorFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
+//imports for auto chooser
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 
 
 /**
@@ -41,7 +44,8 @@ import frc.robot.systems.ShooterFSMSystem;
 public class Robot extends LoggedRobot {
 
 	// Robot input
-	private Input input;
+	private AutoInput autoInput;
+	private TeleopInput teleopInput;
 
 	// Systems
 	private FSMSystem<Drivetrain.DrivetrainState> drivetrainFSMSystem;
@@ -50,6 +54,9 @@ public class Robot extends LoggedRobot {
 	private FSMSystem<AgitatorFSMSystem.AgitatorFSMState> agitatorFSMSystem;
 
 	private Vision vision;
+	//create sendable chooser
+	private final SendableChooser<Command> autoChooser = new SendableChooser<>();
+	private Command autonomousCommand;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -85,7 +92,6 @@ public class Robot extends LoggedRobot {
 			drivetrainFSMSystem = new PlaceholderFSMSystem<>();
 			vision = null;
 		}
-
 		Optional<IntakeFSMSystem> intake;
 		if (HardwareMap.isIntakeEnabled()) {
 			intake = Optional.of(new IntakeFSMSystem());
@@ -127,39 +133,50 @@ public class Robot extends LoggedRobot {
 			agitator = Optional.empty();
 		}
 
+		autoInput = new AutoInput();
+		teleopInput = new TeleopInput();
+
+		if (drivetrainFSMSystem instanceof Drivetrain
+			&& shooterFSMSystem instanceof ShooterFSMSystem
+			&& intakeFSMSystem instanceof IntakeFSMSystem) {
+
+			Drivetrain drive = (Drivetrain) drivetrainFSMSystem;
+			ShooterFSMSystem shooterAuto = (ShooterFSMSystem) shooterFSMSystem;
+			IntakeFSMSystem intakeAuto = (IntakeFSMSystem) intakeFSMSystem;
+			AutoPaths.loadCommands(
+				autoChooser,
+				autoInput,
+				drive,
+				shooterAuto,
+				intakeAuto
+			);
+		}
+		SmartDashboard.putData("Auto Chooser", autoChooser);
 	}
 
 	@Override
 	public void autonomousInit() {
 		System.out.println("-------- Autonomous Init --------");
-
-		AutoInput autoInput = new AutoInput();
-		input = autoInput;
-		input.reset();
+		autoInput.reset();
 		drivetrainFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
-		agitatorFSMSystem.reset();
-		if (drivetrainFSMSystem instanceof Drivetrain drive
-			&& shooterFSMSystem instanceof ShooterFSMSystem shooter
-			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
-			System.out.println("Reach 3");
-			CommandScheduler.getInstance().schedule(
-				AutoPaths.getShootClimbCommand(
-					autoInput, drive, shooter, intake,
-					new AutoPaths.GetShootClimbSettings(true, true))
-			);
+
+		//get the selected auto
+		autonomousCommand = autoChooser.getSelected();
+		//scudule auto command
+		if (autonomousCommand != null) {
+			CommandScheduler.getInstance().schedule(autonomousCommand);
 		}
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-		drivetrainFSMSystem.update(input);
-		intakeFSMSystem.update(input);
-		shooterFSMSystem.update(input);
-		agitatorFSMSystem.update(input);
-
-		input.update();
+		drivetrainFSMSystem.update(autoInput);
+		intakeFSMSystem.update(autoInput);
+		shooterFSMSystem.update(autoInput);
+		agitatorFSMSystem.update(autoInput);
+		autoInput.update();
 		CommandScheduler.getInstance().run();
 
 		// logs motor values
@@ -169,8 +186,7 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
-		input = new TeleopInput();
-		input.reset();
+		teleopInput.reset();
 		CommandScheduler.getInstance().cancelAll();
 		drivetrainFSMSystem.reset();
 		intakeFSMSystem.reset();
@@ -180,12 +196,11 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void teleopPeriodic() {
-		drivetrainFSMSystem.update(input);
-		intakeFSMSystem.update(input);
-		shooterFSMSystem.update(input);
-		agitatorFSMSystem.update(input);
-
-		input.update();
+		drivetrainFSMSystem.update(teleopInput);
+		intakeFSMSystem.update(teleopInput);
+		shooterFSMSystem.update(teleopInput);
+		agitatorFSMSystem.update(teleopInput);
+		teleopInput.update();
 
 		// logs motor values
 		MotorManager.update();
