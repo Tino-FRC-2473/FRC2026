@@ -59,24 +59,19 @@ public class LaunchCalculator {
 	static {
 		// Public code maps 150-190 values. 
 		// Converting (what is likely) Rads/Sec to RPS (divide by 2PI)
-		flywheelSpeedMap.put(0.96, 150.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(1.16, 155.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(1.58, 160.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(2.07, 165.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(2.37, 170.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(2.47, 170.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(2.70, 170.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(2.94, 175.0 / (2 * Math.PI));
-		flywheelSpeedMap.put(3.48, 175.0 / (2 * Math.PI));
+		flywheelSpeedMap.put(1.31, 30.0);
+		flywheelSpeedMap.put(2.42, 40.0);
+		flywheelSpeedMap.put(3.83, 50.0);
 		flywheelSpeedMap.put(4.11, 60.0);
 		flywheelSpeedMap.put(4.46, 70.0);
 		flywheelSpeedMap.put(5.10, 80.0);
 
-		timeOfFlightMap.put(5.68, 1.16);
-		timeOfFlightMap.put(4.55, 1.12);
-		timeOfFlightMap.put(3.15, 1.11);
-		timeOfFlightMap.put(1.88, 1.09);
-		timeOfFlightMap.put(1.38, 0.90);
+		timeOfFlightMap.put(5.10, 1.66);
+		timeOfFlightMap.put(4.46, 1.57);
+		timeOfFlightMap.put(4.11, 1.51);
+		timeOfFlightMap.put(3.83, 1.46);
+		timeOfFlightMap.put(2.42, 1.22);
+		timeOfFlightMap.put(1.31, 0.993);
 
 		passingFlywheelSpeedMap.put(5.46, 160.0 / (2 * Math.PI));
 		passingFlywheelSpeedMap.put(6.62, 180.0 / (2 * Math.PI));
