@@ -8,6 +8,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FileVersionException;
 
 import edu.wpi.first.math.numbers.N10;
+import edu.wpi.first.math.numbers.N5;
 // import edu.wpi.first.apriltag.AprilTagFieldLayout;
 // import edu.wpi.first.apriltag.AprilTagFields;
 // import edu.wpi.first.math.geometry.Rotation2d;
@@ -256,6 +257,11 @@ public class AutoPaths {
 			boolean shouldShoot, boolean isRed, Start startingPositon) {
 	}
 
+	public record IntakeShooterSettings(
+		boolean shouldShoot, boolean isRed, Start startingPosition) {
+
+	}
+
 	/**
 	 * Returns an auto command that goes from a start position to depot,
 	 * intakes, optionally shoots into the hub, then climbs.
@@ -302,32 +308,37 @@ public class AutoPaths {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param input
 	 * @param drivetrain
 	 * @param shooter
-	 * @param climber
 	 * @param intake
 	 * @param settings
-	 * @return
+	 * @return the auto as a command
 	 */
-	public static Command getIntakeCommand(
+	public static Command getIntakeShootCommand(
 			AutoInput input,
 			Drivetrain drivetrain,
-			IntakeFSMSystem intake)
-			{
+			ShooterFSMSystem shooter,
+			IntakeFSMSystem intake,
+			IntakeShooterSettings settings) {
+
+		boolean shouldShoot = settings.shouldShoot;
 
 		return Commands
 				.sequence(
-					drivetrain.followcommand("BlueS1_HUB")//,
-					//startIntakeCommand(input, intake),
-					// waitFor(1),
-					//stopIntakeCommand(input, intake),
-					// /
-					//drivetrain.followcommand("BlueHUB_T")
+					drivetrain.followcommand("BlueS1_HUB"),
+					startIntakeCommand(input, intake),
+					waitFor(1),
+					stopIntakeCommand(input, intake),
+					drivetrain.followcommand("BlueHUB_T"),
+					Commands.either(
+							shootFor(input, shooter, N5.instance.getNum()),
+							Commands.none(),
+							() -> shouldShoot)
+
 				);
 	}
-	
 
 
 	/**

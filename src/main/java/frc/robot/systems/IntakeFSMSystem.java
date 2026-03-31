@@ -556,7 +556,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 
 
 	/**
-	 * Setter for the intake state. Mainly used for testing to set the state 
+	 * Setter for the intake state. Mainly used for testing to set the state
 	 * @param state
 	 */
 	public void setIntakeState(IntakeFSMState state) {

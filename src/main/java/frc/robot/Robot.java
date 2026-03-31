@@ -137,13 +137,15 @@ public class Robot extends LoggedRobot {
 		input = autoInput;
 		input.reset();
 		drivetrainFSMSystem.reset();
-		// climberFSMSystem.reset();
 		intakeFSMSystem.reset();
-		// shooterFSMSystem.reset();
+		shooterFSMSystem.reset();
 		if (drivetrainFSMSystem instanceof Drivetrain drive
-			&& intakeFSMSystem instanceof IntakeFSMSystem intake) {
+			&& intakeFSMSystem instanceof IntakeFSMSystem intake
+			&& shooterFSMSystem instanceof ShooterFSMSystem shooter) {
 			System.out.println("Reach 3");
-			Command path = AutoPaths.getIntakeCommand(autoInput, drive, intake);
+			Command path = AutoPaths.getIntakeShootCommand(
+				autoInput, drive, shooter, intake,
+				new AutoPaths.IntakeShooterSettings(true, true, AutoPaths.Start.S1));
 			if (path != null) {
 				path.schedule();
 			}
