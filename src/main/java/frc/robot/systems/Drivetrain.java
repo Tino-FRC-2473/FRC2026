@@ -57,12 +57,16 @@ import frc.robot.input.Input;
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.Constants.DrivetrainConstants;
+import frc.robot.imported.LaunchCalculator;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N10;
 
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
+
+	//KEEP THIS BOOLEAN FALSE UNLESS OTHERWISE UNDERSTOOD
+	public static boolean USE_SOTM_AIMING = false;
 
 	/* ======================== Enums ======================== */
 	// region
@@ -386,7 +390,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	@AutoLogOutput(key = "Drivetrain/Current Hub Pose")
 	public Pose2d getCurrentHubPose() {
-		return AllianceFlipUtil.apply(DrivetrainConstants.RED_HUB_POSE);
+		return AllianceFlipUtil.apply(DrivetrainConstants.BLUE_HUB_POSE);
 	}
 
 	/**
@@ -612,32 +616,21 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					DrivetrainConstants.TRANSLATION_DEADBAND)
 				* MAX_SPEED.in(MetersPerSecond);
 
-		// Transform2d distance = targetPose.minus(getPose());
-		// Using angleModulus to prevent wrap-around issues with filtering
-		Translation2d robotTranslation = getPose().getTranslation();
-		Translation2d targetTranslation = targetPose.getTranslation();
-		Translation2d diff = targetTranslation.minus(robotTranslation);
-		targetAngle = Math.atan2(diff.getY(), diff.getX());
-		// double currentAngle = getRotation();
-		// double rawTarget = Math.atan2(distance.getY(), distance.getX());
+		if (USE_SOTM_AIMING) {
+			boolean isPassing = (getCurrentState() == DrivetrainState.FACE_PASS);
+			var params = LaunchCalculator.getInstance().getParameters(
+				getPose(),
+				getChassisSpeeds(),
+				targetPose.getTranslation(),
+				isPassing
+			);
+			targetAngle = params.driveAngle().getRadians();
 
-		// double error = MathUtil.angleModulus(rawTarget - currentAngle);
+			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(getRotationDouble()
+				- targetAngle - Math.PI / 2)));
 
-		// if(Math.abs(error) > Math.PI / 2) {
-		// rawTarget = MathUtil.angleModulus(rawTarget + Math.PI);
-		// }
-
-		// targetAngle = MathUtil.angleModulus(rawTarget);
-
-		// double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
-		// double angleError = Math.abs(MathUtil.angleModulus(targetAngle -
-		// currentAngle));
-		Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(getRotationDouble()
-			- targetAngle - Math.PI / 2)));
-
-		if (Math.abs(MathUtil.angleModulus(getRotationDouble()
-			- targetAngle - Math.PI / 2)) > Math.toRadians(10)) {
-			// System.out.println("aaa");
+			// Pure targeting: stay locked perfectly on target without giving up at 10 degrees, 
+			// otherwise the robot will drift out of aim!
 			drivetrain.setControl(
 					driveFacingAngle
 							.withTargetDirection(Rotation2d.fromRadians(targetAngle))
@@ -645,19 +638,56 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 								DrivetrainConstants.FACE_HUB_I, DrivetrainConstants.FACE_HUB_D)
 							.withVelocityX(localXSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 							.withVelocityY(localYSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
+
 		} else {
+			
+			// Transform2d distance = targetPose.minus(getPose());
+			// Using angleModulus to prevent wrap-around issues with filtering
+			Translation2d robotTranslation = getPose().getTranslation();
+			Translation2d targetTranslation = targetPose.getTranslation();
+			Translation2d diff = targetTranslation.minus(robotTranslation);
+			targetAngle = Math.atan2(diff.getY(), diff.getX());
+			// double currentAngle = getRotation();
+			// double rawTarget = Math.atan2(distance.getY(), distance.getX());
 
-			double thetaSpeedFaceTarget = MathUtil.applyDeadband(
-					input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
-					DrivetrainConstants.ROTATIONAL_DEADBAND)
-					* MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+			// double error = MathUtil.angleModulus(rawTarget - currentAngle);
 
-			drivetrain.setControl(
-					driveFieldCentric
-							.withVelocityX(localXSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-							.withVelocityY(localYSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-							.withRotationalRate(thetaSpeedFaceTarget
-								* DrivetrainConstants.ROTATIONAL_DAMP));
+			// if(Math.abs(error) > Math.PI / 2) {
+			// rawTarget = MathUtil.angleModulus(rawTarget + Math.PI);
+			// }
+
+			// targetAngle = MathUtil.angleModulus(rawTarget);
+
+			// double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
+			// double angleError = Math.abs(MathUtil.angleModulus(targetAngle -
+			// currentAngle));
+			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(getRotationDouble()
+				- targetAngle - Math.PI / 2)));
+
+			if (Math.abs(MathUtil.angleModulus(getRotationDouble()
+				- targetAngle - Math.PI / 2)) > Math.toRadians(10)) {
+				// System.out.println("aaa");
+				drivetrain.setControl(
+						driveFacingAngle
+								.withTargetDirection(Rotation2d.fromRadians(targetAngle))
+								.withHeadingPID(DrivetrainConstants.FACE_HUB_P,
+									DrivetrainConstants.FACE_HUB_I, DrivetrainConstants.FACE_HUB_D)
+								.withVelocityX(localXSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+								.withVelocityY(localYSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
+			} else {
+
+				double thetaSpeedFaceTarget = MathUtil.applyDeadband(
+						input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
+						DrivetrainConstants.ROTATIONAL_DEADBAND)
+						* MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+
+				drivetrain.setControl(
+						driveFieldCentric
+								.withVelocityX(localXSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+								.withVelocityY(localYSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+								.withRotationalRate(thetaSpeedFaceTarget
+									* DrivetrainConstants.ROTATIONAL_DAMP));
+			}
 		}
 	}
 
