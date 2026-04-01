@@ -338,7 +338,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 *
 	 * @return the current pathfinding target
 	 */
-	@AutoLogOutput(key = "Vision/Alignment Pose")
+	//@AutoLogOutput(key = "Vision/Alignment Pose")
 	public Pose2d getPathfindingTarget() {
 		return TAG_LAYOUT.getTagPose(alignmentTargetTag)
 				.orElse(null)
