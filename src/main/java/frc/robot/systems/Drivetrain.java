@@ -68,7 +68,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		CONTROLLED,
 		PATHFINDING,
 		FACE_HUB,
-		FACE_PASS
+		FACE_PASS,
+		BALL_SHAKE_FRONT,
+		BALL_SHAKE_SIDE
 	}
 
 	// endregion
@@ -157,6 +159,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			case FACE_PASS:
 				handleFaceTarget(input, getBestPassingTarget());
 				break;
+			case BALL_SHAKE_FRONT:
+				handleBallShake(input);
+				break;
+			case BALL_SHAKE_SIDE:
+				handleBallShake(input);
+				break;
 			default:
 				throw new IllegalStateException(
 					"[DRIVETRAIN] Cannot update an invalid state: " + currentState.toString()
@@ -179,6 +187,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				}
 				return DrivetrainState.AUTONOMOUS;
 			case CONTROLLED:
+				if (input.getButtonValue(ButtonInput.BALL_SHAKE_FRONT)) {
+					return DrivetrainState.BALL_SHAKE_FRONT;
+				} else if (input.getButtonValue(ButtonInput.BALL_SHAKE_SIDE)) {
+					return DrivetrainState.BALL_SHAKE_SIDE;
+				}
+
 				if (input.getButtonPressed(ButtonInput.DRIVETRAIN_PATHFIND)) {
 					if (alliance == null) {
 						if (isRedAlliance()) {
@@ -215,6 +229,18 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			case FACE_PASS:
 				if (input.getButtonValue(ButtonInput.FACE_PASS)) {
 					return DrivetrainState.FACE_PASS;
+				} else {
+					return DrivetrainState.CONTROLLED;
+				}
+			case BALL_SHAKE_FRONT:
+				if (input.getButtonValue(ButtonInput.BALL_SHAKE_FRONT)) {
+					return DrivetrainState.BALL_SHAKE_FRONT;
+				} else {
+					return DrivetrainState.CONTROLLED;
+				}
+			case BALL_SHAKE_SIDE:
+				if (input.getButtonValue(ButtonInput.BALL_SHAKE_SIDE)) {
+					return DrivetrainState.BALL_SHAKE_SIDE;
 				} else {
 					return DrivetrainState.CONTROLLED;
 				}
@@ -620,6 +646,24 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 							.withVelocityY(localYSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 							.withRotationalRate(thetaSpeedFaceTarget
 								* DrivetrainConstants.ROTATIONAL_DAMP));
+		}
+	}
+
+	private void handleBallShake(Input input) {
+		//calculate how much to change position by
+		double shakeSpeed = Math.sin(edu.wpi.first.wpilibj.Timer.getFPGATimestamp()
+						* DrivetrainConstants.SHAKE_FREQUENCY * 2.0 * Math.PI)
+						* DrivetrainConstants.SHAKE_MAGNITUDE;
+
+		//Apply the shakey shakey
+		if (getCurrentState() == DrivetrainState.BALL_SHAKE_FRONT) {
+			drivetrain.setControl(
+				applyRobotSpeeds.withSpeeds(new ChassisSpeeds(shakeSpeed, 0, 0))
+			);
+		} else {
+			drivetrain.setControl(
+				applyRobotSpeeds.withSpeeds(new ChassisSpeeds(0, shakeSpeed, 0))
+			);
 		}
 	}
 

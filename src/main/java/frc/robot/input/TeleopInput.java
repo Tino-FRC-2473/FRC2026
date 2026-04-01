@@ -1,4 +1,5 @@
 package frc.robot.input;
+
 import java.util.function.Function;
 
 import edu.wpi.first.wpilibj.XboxController;
@@ -56,11 +57,14 @@ public final class TeleopInput extends Input {
 
 			// Drivetrain
 			case DRIVETRAIN_RESEED -> driveController::start;
-			case DRIVETRAIN_PATHFIND -> driveController::x;
+			case DRIVETRAIN_PATHFIND -> driveController::start;
 			case DRIVETRAIN_INVERT_CONTROLS -> driveController::back;
 
 			case FACE_HUB -> driveController::rightTrigger;
 			case FACE_PASS -> driveController::leftTrigger;
+
+			case BALL_SHAKE_FRONT -> driveController::x;
+			case BALL_SHAKE_SIDE -> driveController::y;
 
 			// Intake
 			case PARTIAL_OUT_BUTTON -> mechController::start;
@@ -74,8 +78,7 @@ public final class TeleopInput extends Input {
 			case CLIMBER_NEXT_STEP -> mechController::povLeft;
 			case CLIMBER_EMERGENCY_ABORT -> mechController::povDown;
 
-
-			//Shooter
+			// Shooter
 			case PASSER_PREP_TOGGLE -> mechController::rightBumper;
 			case SHOOTER_PREP_TOGGLE -> mechController::leftTrigger;
 			case MANUAL_SHOOT_TOGGLE -> mechController::leftBumper;
@@ -87,4 +90,3 @@ public final class TeleopInput extends Input {
 	}
 
 }
-

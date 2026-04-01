@@ -57,6 +57,10 @@ public class Constants {
 		public static final double TRANSLATION_DEADBAND = 0.05;
 		public static final double ROTATION_DEADBAND = 0.05;
 
+		//shaking the bot when shooting
+		public static final double SHAKE_FREQUENCY = 3; //ops
+		public static final double SHAKE_MAGNITUDE = 2; //meters
+
 
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
 		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speed, and so on
