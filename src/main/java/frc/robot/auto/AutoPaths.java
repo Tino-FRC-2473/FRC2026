@@ -229,7 +229,7 @@ public class AutoPaths {
 	private static Command startShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return Commands
 				.sequence(
-						input.pressButtonCommand(ButtonInput.PASSER_PREP_TOGGLE),
+						input.pressButtonCommand(ButtonInput.SHOOTER_PREP_TOGGLE),
 						input.setButtonCommand(ButtonInput.REV_FEEDER, true),
 						shooter.watchForStatesCommand(ShooterFSMState.FEED_STATE));
 	}
