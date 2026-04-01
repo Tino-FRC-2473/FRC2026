@@ -9,6 +9,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Frequency;
 import edu.wpi.first.units.measure.MomentOfInertia;
+//import edu.wpi.first.units.measure.Time;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Hertz;
@@ -60,6 +61,8 @@ public class Constants {
 		//shaking the bot when shooting
 		public static final double SHAKE_FREQUENCY = 3; //ops
 		public static final double SHAKE_MAGNITUDE = 2; //meters
+
+		public static final double WAIT_TIMER = 15;
 
 
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
