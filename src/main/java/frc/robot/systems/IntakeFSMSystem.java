@@ -42,7 +42,8 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		INTAKE_STATE,
 		OUTTAKE_STATE,
 		FOLD_IN_STATE,
-		PARTIAL_OUT_STATE
+		PARTIAL_OUT_STATE,
+		INTAKE_SHAKE
 	}
 	/* ======================== Constants ======================== */
 
@@ -467,6 +468,8 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 			case OUTTAKE_STATE:
 				if (input.getButtonReleased(ButtonInput.OUTTAKE_BUTTON)) {
 					return IntakeFSMState.IDLE_OUT_STATE;
+				} else if (input.getButtonPressed(ButtonInput.INTAKE_SHAKE)) {
+					return IntakeFSMState.INTAKE_SHAKE;
 				} else {
 					return IntakeFSMState.OUTTAKE_STATE;
 				}
@@ -480,6 +483,13 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 					return IntakeFSMState.PARTIAL_OUT_STATE;
 				}  else {
 					return IntakeFSMState.FOLD_IN_STATE;
+				}
+
+			case INTAKE_SHAKE:
+				if (input.getButtonReleased(ButtonInput.INTAKE_SHAKE)) {
+					return IntakeFSMState.FOLD_OUT_STATE;
+				} else {
+					return IntakeFSMState.INTAKE_SHAKE;
 				}
 
 			default:
@@ -547,6 +557,18 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	private void handleFoldInState(Input input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
 			withPosition(IntakeConstants.UPPER_TARGET_ANGLE));
+	}
+
+	private void handleIntakeShake(Input input) {
+		if (isTopLimitReached() | Math.abs(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE.in(Rotations)
+			- pivotMotorRightPos.getValue().in(Radians)) >= IntakeConstants.PIVOT_BUFFER) {
+			pivotMotorRight.setControl(pivotMotionRequest.
+				withPosition(IntakeConstants.PARTIAL_OUT_TARGET_ANGLE));
+		} else {
+			pivotMotorRight.stopMotor();
+			intakeMotor.setControl(intakeMotionRequest.
+				withVelocity(IntakeConstants.INTAKE_TARGET_VELOCITY));
+		}
 	}
 
 

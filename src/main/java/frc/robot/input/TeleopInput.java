@@ -68,6 +68,7 @@ public final class TeleopInput extends Input {
 			case OUTTAKE_BUTTON -> mechController::a;
 			case FOLD_IN_BUTTON -> mechController::y;
 			case FOLD_OUT_BUTTON -> mechController::x;
+			case INTAKE_SHAKE -> mechController::povRight;
 
 			// Climber
 			case CLIMBER_MANUAL_OVERRIDE -> mechController::povUp;
