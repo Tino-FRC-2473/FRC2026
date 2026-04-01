@@ -3,6 +3,7 @@ package frc.robot.auto;
 
 import edu.wpi.first.math.numbers.N10;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.math.numbers.*;
 // import edu.wpi.first.apriltag.AprilTagFieldLayout;
 // import edu.wpi.first.apriltag.AprilTagFields;
 // import edu.wpi.first.math.geometry.Rotation2d;
@@ -19,16 +20,102 @@ import frc.robot.systems.IntakeFSMSystem.IntakeFSMState;
 import frc.robot.systems.ShooterFSMSystem.ShooterFSMState;
 
 public class AutoPaths {
+	/**
+	 * The S3_NZ_Command function in Java executes a sequence of commands
+	 * 		involving driving paths, intake
+	 * control, shooting, and facing a target.
+	 * @param input The `input` parameter is likely an object that
+	 * 		provides input data or commands to the method.
+	 * @param drivetrain The `drivetrain` parameter in the S3_NZ_Command`
+	 * 		method represents the drivetrain subsystem of the robot.
+	 * @param shooter The `shooter` parameter in the
+	 * 		`S3_NZ_Command` method represents a ShooterFSMSystem object
+	 * @param intake The `intake` parameter in
+	 * 		the `S3_NZ_Command` method represents an `IntakeFSMSystem`object.
+	 * @return The method `S3_NZ_Command` is returning a
+	 * 		`Command` object that represents a sequence of
+	 * commands to be executed.
+	 */
+	public static Command S3_NZ_Command(
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			// ClimberFSMSystem climber,
+			IntakeFSMSystem intake) {
+		return Commands
+				.sequence(
+					Commands.parallel(
+						drivetrain.followcommand("BlueS3_NZ_1"),
+						startIntakeCommand(input, intake)
+					),
+					stopIntakeCommand(input, intake),
+					drivetrain.followcommand("NZ_BlueS3"),
+					faceHub(input, drivetrain),
+					waitFor(N1.instance.getNum()),
+					shootFor(input, shooter, N5.instance.getNum()),
+					Commands.parallel(
+						drivetrain.followcommand("BlueS3_NZ_2"),
+						startIntakeCommand(input, intake)
+					),
+					stopIntakeCommand(input, intake),
+					drivetrain.followcommand("NZ_BlueS3"),
+					faceHub(input, drivetrain),
+					waitFor(N1.instance.getNum()),
+					shootFor(input, shooter, N5.instance.getNum())
+				);
+
+	}
+
+	/**
+	 * The function `S2_D_Command` executes a sequence of commands for a
+	 * 		specific scenario involving a
+	 * drivetrain, shooter, and intake systems in a Java program.
+	 * @param input The `input` parameter is an object of type `AutoInput`, which likely contains
+	 * information or settings needed for autonomous operation.
+	 * @param drivetrain The `drivetrain` parameter in the
+	 * 		`S2_D_Command` method represents the drivetrain subsystem of the robot.
+	 * @param shooter The `shooter` parameter in the `S2_D_Command`
+	 * 		method represents a ShooterFSMSystem object.
+	 * @param intake The `intake` parameter in the `S2_D_Command`
+	 * 		method seems to be an instance of the `IntakeFSMSystem` class.
+	 * @return A Command object is being returned.
+	 * 		The Command object is created by sequencing a series of c
+	 * 		commands using the Commands class.
+	 */
+	public static Command getS2DepotCommand(
+			AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			// ClimberFSMSystem climber,
+			IntakeFSMSystem intake) {
+		return Commands
+				.sequence(
+					drivetrain.followcommand("BlueS2_D"),
+					Commands.parallel(
+						startIntakeCommand(input, intake),
+						drivetrain.followcommand("BlueD_INTAKE")
+					),
+					stopIntakeCommand(input, intake),
+					faceHub(input, drivetrain),
+					waitFor(N1.instance.getNum()),
+					shootFor(input, shooter, N5.instance.getNum())
+				);
+
+	}
+
 
 
 	/**
-	 * Returns a test auto that drives with the the BlueS1HUB trajectory,
-	 * and then shoots in the direction its facing for 10 seconds.
-	 * @param input
-	 * @param drivetrain
-	 * @param shooter
-	 * @param intake
-	 * @return Command
+	 * Returns an auto command that goes from a start position to depot,
+	 * intakes, optionally shoots into the hub, then climbs.
+	 *
+	 * @param input      the auto input
+	 * @param drivetrain the drivetrain
+	 * @param shooter    the shooter
+	 *      //@param climber the climber
+	 * @param intake     the intake
+	 *                   starting postion, and whether it should shoot during auto
+	 * @return the auto as a command
 	 */
 	private static Command getS1HUBShootCommand(
 			AutoInput input,
@@ -187,6 +274,20 @@ public class AutoPaths {
 
 	private static Command waitFor(double time) {
 		return Commands.waitSeconds(time);
+	}
+
+	private static Command faceHub(AutoInput input, Drivetrain drive) {
+		return Commands
+			.sequence(
+				input.pressButtonCommand(ButtonInput.FACE_HUB)
+			);
+	}
+
+	private static Command facePass(AutoInput input, Drivetrain drive) {
+		return Commands
+			.sequence(
+				input.pressButtonCommand(ButtonInput.FACE_PASS)
+			);
 	}
 
 	/**
