@@ -4,6 +4,11 @@ package frc.robot.auto;
 import edu.wpi.first.math.numbers.N10;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.math.numbers.N5;
+import edu.wpi.first.math.numbers.N6;
+import edu.wpi.first.math.numbers.N8;
+
+//import org.ejml.equation.Sequence;
+
 import edu.wpi.first.math.numbers.N1;
 
 // import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -44,26 +49,26 @@ public class AutoPaths {
 			ShooterFSMSystem shooter,
 			IntakeFSMSystem intake) {
 		return Commands
-				.sequence(
-					Commands.parallel(
-						drivetrain.followcommand("BlueS3_NZ_1"),
-						startIntakeCommand(input, intake)
-					),
-					stopIntakeCommand(input, intake),
-					drivetrain.followcommand("NZ_BlueS3"),
-					faceHub(input, drivetrain),
-					waitFor(N1.instance.getNum()),
-					shootFor(input, shooter, N5.instance.getNum()),
-					Commands.parallel(
-						drivetrain.followcommand("BlueS3_NZ_2"),
-						startIntakeCommand(input, intake)
-					),
-					stopIntakeCommand(input, intake),
-					drivetrain.followcommand("NZ_BlueS3"),
-					faceHub(input, drivetrain),
-					waitFor(N1.instance.getNum()),
-					shootFor(input, shooter, N5.instance.getNum())
-				);
+			.sequence(
+				Commands.parallel(
+					drivetrain.followcommand("BlueS3_NZ_1"),
+					startIntakeCommand(input, intake)
+				),
+				stopIntakeCommand(input, intake),
+				drivetrain.followcommand("NZ_BlueS3"),
+				faceHub(input, drivetrain),
+				waitFor(N1.instance.getNum()),
+				shootFor(input, shooter, N5.instance.getNum()),
+				Commands.parallel(
+					drivetrain.followcommand("BlueS3_NZ_2"),
+					startIntakeCommand(input, intake)
+				),
+				stopIntakeCommand(input, intake),
+				drivetrain.followcommand("NZ_BlueS3"),
+				faceHub(input, drivetrain),
+				waitFor(N1.instance.getNum()),
+				shootFor(input, shooter, N5.instance.getNum())
+			);
 
 	}
 
@@ -101,6 +106,113 @@ public class AutoPaths {
 					shootFor(input, shooter, N5.instance.getNum())
 				);
 
+	}
+
+	/**
+	 * The function `getS1ShootNzShootCommand` defines a sequence of commands for shooting and
+	 * controlling the drivetrain and intake subsystems in a specific order.
+	 * @param input The `input` parameter is likely an object or class that provides input data or
+	 * commands to the method.
+	 * @param drivetrain The `drivetrain` parameter in the `getS1ShootNzShootCommand`
+	 * method represents the drivetrain subsystem of a robot.
+	 * robot
+	 * @param shooter The `shooter` parameter in the `getS1ShootNzShootCommand` method represents a
+	 * ShooterFSMSystem object.
+	 * @param intake The `intake` parameter in the `getS1ShootNzShootCommand`
+	 * method represents an `IntakeFSMSystem` object.
+	 * @return The `getS1ShootNzShootCommand` method is returning a Command
+	 * object that represents a sequence of actions to be performed.
+	 */
+	public static Command getS1ShootNzShootCommand(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		IntakeFSMSystem intake
+	) {
+		return Commands
+			.sequence(
+				drivetrain.followcommand("S1_S1SHOOTING"),
+				waitFor(N1.instance.getNum()),
+				shootFor(input, shooter, N5.instance.getNum()),
+				drivetrain.followcommand("S1SHOOTING_S1NZ"),
+				Commands.parallel(
+					startIntakeCommand(input, intake),
+					drivetrain.followcommand("S1NZ_INTAKE")
+				),
+				stopIntakeCommand(input, intake),
+				drivetrain.followcommand("S1NZ_S1SHOOTING"),
+				waitFor(N1.instance.getNum()),
+				shootFor(input, shooter, N8.instance.getNum())
+			);
+	}
+
+
+	/**
+	 * The function `getS2ShootDepotShootCommand` executes a sequence of
+	 * commands for shooting at the depot in a specific order.
+	 * @param input The `input` parameter is an object of type `AutoInput`,
+	 * which likely contains input data or settings for the autonomous routine.
+	 * @param drivetrain The `drivetrain` parameter in the `getS2ShootDepotShootCommand`
+	 * method represents the drivetrain subsystem of the robot.
+	 * @param shooter The `shooter` parameter in the `getS2ShootDepotShootCommand`
+	 * method represents a ShooterFSMSystem object.
+	 * @param intake The `intake` parameter in the `getS2ShootDepotShootCommand`
+	 * method represents an `IntakeFSMSystem` object.
+	 * @return A Command object is being returned.
+	 */
+	public static Command getS2ShootDepotShootCommand(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		IntakeFSMSystem intake
+	) {
+		return Commands
+			.sequence(
+				drivetrain.followcommand("S2_HUB"),
+				waitFor(N1.instance.getNum()),
+				shootFor(input, shooter, N5.instance.getNum()),
+				drivetrain.followcommand("HUB_D"),
+				Commands.parallel(
+					startIntakeCommand(input, intake),
+					drivetrain.followcommand("D_INTAKE")
+				),
+				stopIntakeCommand(input, intake),
+				drivetrain.followcommand("D_HUB"),
+				waitFor(N1.instance.getNum()),
+				shootFor(input, shooter, N8.instance.getNum())
+			);
+	}
+
+	/**
+	 * This function returns a sequence of commands for shooting at an outpost in a specific order.
+	 * @param input The `input` parameter is likely an object or class that provides input data or
+	 * commands to the method.
+	 * @param drivetrain The `drivetrain` parameter in the `getS3ShootOutpostShootCommand` method
+	 * represents the drivetrain subsystem of a robot.
+	 * @param shooter The `shooter` parameter in the `getS3ShootOutpostShootCommand`
+	 * method is an instance of the `ShooterFSMSystem` class.
+	 * @param intake The `intake` parameter in the `getS3ShootOutpostShootCommand`
+	 * method represents an `IntakeFSMSystem` object.
+	 * @return A Command object is being returned, which is created by sequencing a series
+	 * of commands related to driving, shooting, and waiting for specific durations.
+	 */
+	public static Command getS3ShootOutpostShootCommand(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		IntakeFSMSystem intake
+	) {
+		return Commands
+			.sequence(
+				drivetrain.followcommand("S3_S3SHOOTING"),
+				waitFor(N1.instance.getNum()),
+				shootFor(input, shooter, N5.instance.getNum()),
+				drivetrain.followcommand("S3SHOOTING_O"),
+				waitFor(N5.instance.getNum()),
+				drivetrain.followcommand("O_S3SHOOTING"),
+				waitFor(N1.instance.getNum()),
+				shootFor(input, shooter, N6.instance.getNum())
+			);
 	}
 
 
@@ -332,6 +444,15 @@ public class AutoPaths {
 		chooser.addOption(
 			"S2 Depot command",
 			getS2DepotCommand(input, drivetrain, shooter, intake));
+		chooser.addOption(
+			"S3 shoot Outpost Shoot command",
+			getS3ShootOutpostShootCommand(input, drivetrain, shooter, intake));
+		chooser.addOption(
+			"S2 Shoot Depot Shoot command",
+			getS2ShootDepotShootCommand(input, drivetrain, shooter, intake));
+		chooser.addOption(
+			"S1 Shoot NZ Shoot command",
+			getS1ShootNzShootCommand(input, drivetrain, shooter, intake));
 	}
 
 	// on the fly path example
