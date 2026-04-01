@@ -405,6 +405,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	private void createDrivetrain() {
 		drivetrain = TunerConstants.createDrivetrain();
+		driveFacingAngle.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
 	}
 
 	private Pose2d getHubPose() {
