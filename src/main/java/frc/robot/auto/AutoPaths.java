@@ -3,7 +3,8 @@ package frc.robot.auto;
 
 import edu.wpi.first.math.numbers.N10;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.math.numbers.*;
+import edu.wpi.first.math.numbers.N5;
+import edu.wpi.first.math.numbers.N1;
 
 // import edu.wpi.first.apriltag.AprilTagFieldLayout;
 // import edu.wpi.first.apriltag.AprilTagFields;
@@ -326,8 +327,11 @@ public class AutoPaths {
 				"S3 NZ Shoot",
 				getS3NZHUBShootCommand(input, drivetrain, shooter, intake));
 		chooser.addOption(
-			"S3 NZ command",
-			getS3NZCommand(input, drivetrain, shooter, intake));
+				"S3 NZ command",
+				getS3NZCommand(input, drivetrain, shooter, intake));
+		chooser.addOption(
+			"S2 Depot command",
+			getS2DepotCommand(input, drivetrain, shooter, intake));
 	}
 
 	// on the fly path example
