@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -154,7 +155,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				handleTeleopState(input);
 				break;
 			case FACE_HUB:
-				handleFaceTarget(input, currentHubPose);
+				handleFaceTarget(input, getHubPose());
 				break;
 			case FACE_PASS:
 				handleFaceTarget(input, getBestPassingTarget());
@@ -210,6 +211,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					startPathfinding();
 
 					return DrivetrainState.PATHFINDING;
+				} else if (input.getButtonPressed(ButtonInput.FACE_HUB)) {
+					return DrivetrainState.FACE_HUB;
+				} else if (input.getButtonPressed(ButtonInput.FACE_PASS)) {
+					return DrivetrainState.FACE_PASS;
 				} else {
 					return DrivetrainState.CONTROLLED;
 				}
@@ -383,7 +388,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	@AutoLogOutput(key = "Drivetrain/Current Hub Pose")
 	public Pose2d getCurrentHubPose() {
-		return AllianceFlipUtil.apply(BLUE_HUB_POSE);
+		return AllianceFlipUtil.apply(DrivetrainConstants.RED_HUB_POSE);
 	}
 
 	/**
@@ -621,10 +626,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		// double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
 		// double angleError = Math.abs(MathUtil.angleModulus(targetAngle -
 		// currentAngle));
-		// Logger.recordOutput("Drivetrain/Error", angleError);
+		Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(getRotationDouble()
+			- targetAngle - Math.PI / 2)));
 
 		if (Math.abs(MathUtil.angleModulus(getRotationDouble()
-			- targetAngle + Math.PI / 2)) > Math.toRadians(N10.instance.getNum())) {
+			- targetAngle - Math.PI / 2)) > Math.toRadians(10)) {
 			// System.out.println("aaa");
 			drivetrain.setControl(
 					driveFacingAngle

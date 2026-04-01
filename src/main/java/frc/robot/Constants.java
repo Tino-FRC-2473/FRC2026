@@ -100,20 +100,16 @@ public class Constants {
 
 		public static final double FACE_HUB_P = 2.0;
 		public static final double FACE_HUB_I = 0.0;
-		public static final double FACE_HUB_D = 0.4;
+		public static final double FACE_HUB_D = 0.8;
 
-		public static final double FACE_PASS_P = 7.0;
-		public static final double FACE_PASS_I = 0.0;
-		public static final double FACE_PASS_D = 0.0;
-
-		public static final Pose2d RED_HUB_POSE =
+		public static final Pose2d BLUE_HUB_POSE =
 			new Pose2d(11.9191774, 4.0346376, new Rotation2d());
 		public static final Pose2d RED_OUTPOST_POSE =
 			new Pose2d(8.2741742, 2.0346376, new Rotation2d());
 		public static final Pose2d RED_TARGET3_POSE =
 			new Pose2d(2.54, 6.0346376, new Rotation2d());
 
-		public static final Pose2d BLUE_HUB_POSE =
+		public static final Pose2d RED_HUB_POSE =
 			new Pose2d(14.001, 4.0346376, new Rotation2d());
 		public static final Pose2d BLUE_OUTPOST_POSE =
 			new Pose2d(2.54, 2.0346376, new Rotation2d());
@@ -277,11 +273,11 @@ public class Constants {
 		public static final MomentOfInertia J = KilogramSquareMeters.of(0.1);
 
 		//Pivot PID
-		public static final double PIVOT_KG = 0.2;
-		public static final double PIVOT_KS = 0.2;  //0.5
+		public static final double PIVOT_KG = 0.3;
+		public static final double PIVOT_KS = 0.7;  //0.5
 		public static final double PIVOT_KV = 0.06;
-		public static final double PIVOT_KA = 0.03;
-		public static final double PIVOT_KP = 25;  //0.1
+		public static final double PIVOT_KA = 0.1;
+		public static final double PIVOT_KP = 30;  //0.1
 		public static final double PIVOT_KI = 0.0;
 		public static final double PIVOT_KD = 0.2;
 
@@ -295,7 +291,7 @@ public class Constants {
 		public static final double OUTTAKE_TARGET_VELOCITY = -40.0;
 
 		//Intake Gearing/Velocity Factors
-		public static final double PIVOT_BUFFER = 0.01;
+		public static final double PIVOT_BUFFER = 0.03;
 		public static final double PIVOT_CRUISE_VELO = 15;
 		public static final double PIVOT_TARGET_ACCEL = 30;
 		public static final double PIVOT_EXPO_KV = 0.12;
