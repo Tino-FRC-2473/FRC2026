@@ -94,7 +94,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				* DrivetrainConstants.TRANSLATIONAL_DEADBAND)
 			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
 				* DrivetrainConstants.ROTATIONAL_DEADBAND)
-			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+			.withDriveRequestType(DriveRequestType.Velocity);
 
 	// endregion
 	/* ======================== Private variables ======================== */
@@ -601,7 +601,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					DrivetrainConstants.TRANSLATION_DEADBAND)
 				* MAX_SPEED.in(MetersPerSecond);
 
-		double localYSpeed = -(invertControls ? 1 : 0) * flipAlliance * MathUtil.applyDeadband(
+		double localYSpeed = (invertControls ? -1 : 1) * flipAlliance * MathUtil.applyDeadband(
 				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
 					DrivetrainConstants.TRANSLATION_DEADBAND)
 				* MAX_SPEED.in(MetersPerSecond);

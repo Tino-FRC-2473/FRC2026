@@ -98,19 +98,19 @@ public class Constants {
 		public static final double X_TAG_OFFSET = 1;
 		public static final double Y_TAG_OFFSET = 0;
 
-		public static final double FACE_HUB_P = 2.0;
+		public static final double FACE_HUB_P = 1.5;
 		public static final double FACE_HUB_I = 0.0;
-		public static final double FACE_HUB_D = 0.8;
+		public static final double FACE_HUB_D = 0.4;
 
-		public static final Pose2d BLUE_HUB_POSE =
+		public static final Pose2d RED_HUB_POSE =
 			new Pose2d(11.9191774, 4.0346376, new Rotation2d());
 		public static final Pose2d RED_OUTPOST_POSE =
 			new Pose2d(8.2741742, 2.0346376, new Rotation2d());
 		public static final Pose2d RED_TARGET3_POSE =
 			new Pose2d(2.54, 6.0346376, new Rotation2d());
 
-		public static final Pose2d RED_HUB_POSE =
-			new Pose2d(14.001, 4.0346376, new Rotation2d());
+		public static final Pose2d BLUE_HUB_POSE =
+			new Pose2d(4.625594, 4.0346376, new Rotation2d());
 		public static final Pose2d BLUE_OUTPOST_POSE =
 			new Pose2d(2.54, 2.0346376, new Rotation2d());
 		public static final Pose2d BLUE_TARGET3_POSE =

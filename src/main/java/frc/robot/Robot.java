@@ -64,14 +64,14 @@ public class Robot extends LoggedRobot {
 		Logger.addDataReceiver(new NT4Publisher());
 		Logger.start();
 
-		// Creates UsbCamera and MjpegServer [1] and connects them
-		CameraServer.startAutomaticCapture(0);
-		// Creates the CvSink and connects it to the UsbCamera
-		CvSink cvSink = CameraServer.getVideo();
-		// Creates the CvSource and MjpegServer [2] and connects them
-		CvSource outputStream = CameraServer.putVideo("Driver Camera",
-			VisionConstants.RESOLUTION_X,
-			VisionConstants.RESOLUTION_Y);
+		// // Creates UsbCamera and MjpegServer [1] and connects them
+		// CameraServer.startAutomaticCapture(0);
+		// // Creates the CvSink and connects it to the UsbCamera
+		// CvSink cvSink = CameraServer.getVideo();
+		// // Creates the CvSource and MjpegServer [2] and connects them
+		// CvSource outputStream = CameraServer.putVideo("Driver Camera",
+		// 	VisionConstants.RESOLUTION_X,
+		// 	VisionConstants.RESOLUTION_Y);
 
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
