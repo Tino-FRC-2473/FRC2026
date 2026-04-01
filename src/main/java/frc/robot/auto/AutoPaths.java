@@ -37,11 +37,10 @@ public class AutoPaths {
 	 * 		`Command` object that represents a sequence of
 	 * commands to be executed.
 	 */
-	public static Command S3_NZ_Command(
+	public static Command getS3NZCommand(
 			AutoInput input,
 			Drivetrain drivetrain,
 			ShooterFSMSystem shooter,
-			// ClimberFSMSystem climber,
 			IntakeFSMSystem intake) {
 		return Commands
 				.sequence(
@@ -87,7 +86,6 @@ public class AutoPaths {
 			AutoInput input,
 			Drivetrain drivetrain,
 			ShooterFSMSystem shooter,
-			// ClimberFSMSystem climber,
 			IntakeFSMSystem intake) {
 		return Commands
 				.sequence(
@@ -327,6 +325,9 @@ public class AutoPaths {
 		chooser.addOption(
 				"S3 NZ Shoot",
 				getS3NZHUBShootCommand(input, drivetrain, shooter, intake));
+		chooser.addOption(
+			"S3 NZ command",
+			getS3NZCommand(input, drivetrain, shooter, intake));
 	}
 
 	// on the fly path example
