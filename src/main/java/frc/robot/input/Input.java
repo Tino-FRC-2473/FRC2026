@@ -45,10 +45,13 @@ public abstract class Input {
 	}
 
 	/**
-	 * Resets the input object, resetting all button bindings.
+	 * Initializes the input object and button bindings exactly once.
 	 */
 	public void reset() {
-		buttonEvents.clear();
+		if (!buttonEvents.isEmpty()) {
+			return; 
+		}
+
 		inputEventLoop.clear();
 		for (ButtonInput booleanSignal : ButtonInput.values()) {
 			for (BooleanEventType type : BooleanEventType.values()) {

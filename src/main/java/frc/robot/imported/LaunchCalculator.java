@@ -15,6 +15,7 @@ import frc.robot.Constants.ShooterConstants;
 public class LaunchCalculator {
 	private static LaunchCalculator instance;
 
+	//KEEP THIS BOOLEAN FALSE UNLESS OTHERWISE UNDERSTOOD
 	public static boolean ENABLE_SOTM = false;
 
 	public static LaunchCalculator getInstance() {
@@ -59,27 +60,24 @@ public class LaunchCalculator {
 			new InterpolatingDoubleTreeMap();
 
 	static {
-		// ==========================================
-		// INPUT YOUR DIRECT HUB SHOOTING DATA HERE
-		// Format: .put(Distance_in_Meters, Target_RPS)
-		// ==========================================
-		flywheelSpeedMap.put(1.31, 30.0);
-		flywheelSpeedMap.put(2.42, 40.0);
-		flywheelSpeedMap.put(3.83, 50.0);
-		flywheelSpeedMap.put(4.11, 60.0);
-		flywheelSpeedMap.put(4.46, 70.0);
-		flywheelSpeedMap.put(5.10, 80.0);
 
-		timeOfFlightMap.put(5.10, 1.66);
-		timeOfFlightMap.put(4.46, 1.57);
-		timeOfFlightMap.put(4.11, 1.51);
-		timeOfFlightMap.put(3.83, 1.46);
-		timeOfFlightMap.put(2.42, 1.22);
-		timeOfFlightMap.put(1.31, 0.993);
+		//DIRECT HUB SHOOTING DATA HERE
+		// Format: .put(Distance_in_Meters, Target_RPS)
+
+		flywheelSpeedMap.put(2.285, 44.0);
+		flywheelSpeedMap.put(2.921, 50.0);
+		flywheelSpeedMap.put(3.505, 53.0);
+
+
+		// Format: .put(Distance_in_Meters, TimeOfFlight_in_Sec)
+		//CURRENTLY NOT OUR TOF, ANYTHING BELOW THIS COMMENT = MECHADV
+		timeOfFlightMap.put(1.38, 0.90);
+		timeOfFlightMap.put(3.15, 1.11);
+		timeOfFlightMap.put(5.68, 1.16);
 		
-		// ==========================================
-		// INPUT YOUR DIRECT PASSING DATA HERE
-		// ==========================================
+
+		// INPUT DIRECT PASSING DATA HERE
+
 		passingFlywheelSpeedMap.put(5.46, 160.0 / (2 * Math.PI));
 		passingFlywheelSpeedMap.put(7.80, 200.0 / (2 * Math.PI));
 		passingFlywheelSpeedMap.put(17.16, 360.0 / (2 * Math.PI));
@@ -140,9 +138,7 @@ public class LaunchCalculator {
 		}
 
 
-		// ==========================================
-		// DYNAMIC SOTM CALCULATION (SOTM ON)
-		// ==========================================
+		// SOTM CALCULATION (SOTM ON)
 		Pose2d estimatedPose = robotPose.exp(
 				new Twist2d(
 						robotVelocity.vxMetersPerSecond * phaseDelay,
