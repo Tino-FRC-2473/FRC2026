@@ -155,6 +155,7 @@ public class Robot extends LoggedRobot {
 			);
 		}
 		SmartDashboard.putData("Auto Chooser", autoChooser);
+		
 	}
 
 	@Override
@@ -169,6 +170,7 @@ public class Robot extends LoggedRobot {
 		autonomousCommand = autoChooser.getSelected();
 		//scudule auto command
 		if (autonomousCommand != null) {
+			CommandScheduler.getInstance().enable();
 			CommandScheduler.getInstance().schedule(autonomousCommand);
 		}
 	}
@@ -195,6 +197,7 @@ public class Robot extends LoggedRobot {
 		System.out.println("-------- Teleop Init --------");
 		teleopInput.reset();
 		CommandScheduler.getInstance().cancelAll();
+		CommandScheduler.getInstance().disable();
 		drivetrainFSMSystem.reset();
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
