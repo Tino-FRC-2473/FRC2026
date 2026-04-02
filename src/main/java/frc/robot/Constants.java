@@ -49,6 +49,7 @@ public class Constants {
 	}
 
 	public static final class DrivetrainConstants {
+		public static final double FACE_TARGET_DEADBAND = 10;
 		public static final double INPUT_SLEW_RATE = 0.2;
 		public static final int NUM_MODULES = 4;
 
@@ -228,7 +229,7 @@ public class Constants {
 		// public static final Angle HOOD_INCREMENTER = Degrees.of(5);
 		public static final Angle HOOD_ANGLE = Degrees.of(30); //from vertical
 
-		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(2.5);
+		public static final AngularVelocity FLYWHEEL_INCREMENTER = RotationsPerSecond.of(5);
 		public static final Angle FLYWHEEL_MAX_DEGREES = Degrees.of(360);
 
 		public static final double FEEDER_MM_CONSTANT_S = 0.1;
