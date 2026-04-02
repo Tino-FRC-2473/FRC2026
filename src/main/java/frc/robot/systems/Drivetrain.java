@@ -624,20 +624,34 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				targetPose.getTranslation(),
 				isPassing
 			);
-			targetAngle = params.driveAngle().getRadians();
+			targetAngle = MathUtil.angleModulus(params.driveAngle().getRadians() + Math.PI);
+			//pigeon odomtery is backwards
 
 			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(
-				getRotationDouble() - targetAngle - Math.PI / 2)));
+				getRotationDouble() - targetAngle - Math.PI)));
+			
+			Logger.recordOutput("Drivetrain/Target", targetAngle);
+			Logger.recordOutput("Drivetrain/Rotation", getRotationDouble());
 
 			// Pure targeting: stay locked perfectly on target without giving up at 10 degrees,
 			// otherwise the robot will drift out of aim!
-			drivetrain.setControl(
+
+			if (Math.abs(MathUtil.angleModulus(getRotationDouble() - targetAngle - Math.PI)) > Math.toRadians(DrivetrainConstants.FACE_TARGET_DEADBAND)) {
+				drivetrain.setControl(
 					driveFacingAngle
-							.withTargetDirection(Rotation2d.fromRadians(targetAngle + Math.PI))
+							.withTargetDirection(Rotation2d.fromRadians(targetAngle))
 							.withHeadingPID(DrivetrainConstants.FACE_HUB_P,
 								DrivetrainConstants.FACE_HUB_I, DrivetrainConstants.FACE_HUB_D)
 							.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 							.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
+			} else {
+				drivetrain.setControl(
+						driveFieldCentric
+								.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+								.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+								//.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP));
+								.withRotationalRate(0));
+			}
 
 		} else {
 
@@ -682,8 +696,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 						driveFieldCentric
 								.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 								.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-								.withRotationalRate(thetaSpeed
-									* DrivetrainConstants.ROTATIONAL_DAMP));
+								//.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP));
+								.withRotationalRate(0));
 			}
 		}
 	}
