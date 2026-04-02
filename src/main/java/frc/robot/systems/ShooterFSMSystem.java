@@ -541,6 +541,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @return A double holding the target's needed flywheel speed
 	 */
 	public double calculateTargetShootSpeed(Pose2d target) {
+		Logger.recordOutput("Optimal Speed", LaunchCalculator.getInstance().getParameters(
+			curPose, drivetrain.getChassisSpeeds(), target.getTranslation(), false
+		).flywheelSpeed());
 		return LaunchCalculator.getInstance().getParameters(
 			curPose, drivetrain.getChassisSpeeds(), target.getTranslation(), false
 		).flywheelSpeed();

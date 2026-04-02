@@ -1,5 +1,7 @@
 package frc.robot.imported;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -8,7 +10,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ShooterConstants;
 
@@ -63,10 +64,16 @@ public class LaunchCalculator {
 
 		//DIRECT HUB SHOOTING DATA HERE
 		// Format: .put(Distance_in_Meters, Target_RPS)
-
+		flywheelSpeedMap.put(1.88, 42.5);
+		flywheelSpeedMap.put(1.955, 43.5);
+		flywheelSpeedMap.put(2.032,44.0);
 		flywheelSpeedMap.put(2.285, 44.0);
 		flywheelSpeedMap.put(2.921, 50.0);
+		flywheelSpeedMap.put(3.12,47.5);
 		flywheelSpeedMap.put(3.505, 53.0);
+		flywheelSpeedMap.put(3.88, 57.5);
+		flywheelSpeedMap.put(4.22, 60.0);
+
 
 
 		// Format: .put(Distance_in_Meters, TimeOfFlight_in_Sec)
@@ -113,6 +120,7 @@ public class LaunchCalculator {
 		// ==========================================
 		if (!ENABLE_SOTM) {
 			Pose2d launcherPosition = robotPose.transformBy(ROBOT_TO_LAUNCHER_2D);
+			Logger.recordOutput("Launcher Position", launcherPosition);
 			double rx = target.getX() - launcherPosition.getX();
 			double ry = target.getY() - launcherPosition.getY();
 			double launcherToTargetDistance = Math.hypot(rx, ry);
@@ -121,6 +129,7 @@ public class LaunchCalculator {
 			double flywheelVelocity = isPassing
 					? passingFlywheelSpeedMap.get(launcherToTargetDistance)
 					: flywheelSpeedMap.get(launcherToTargetDistance);
+			Logger.recordOutput("Launch Calculator Velocity", flywheelVelocity);
 			double solvedTOF = getEffectiveTOF(launcherToTargetDistance, isPassing);
 			
 			boolean isValid = launcherToTargetDistance >= 0.9 && launcherToTargetDistance <= 17.16;
