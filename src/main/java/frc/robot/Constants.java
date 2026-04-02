@@ -50,7 +50,7 @@ public class Constants {
 
 	public static final class DrivetrainConstants {
 		public static final double FACE_TARGET_DEADBAND = 10;
-		public static final double INPUT_SLEW_RATE = 0.2;
+		public static final double INPUT_SLEW_RATE = 20; //0.2
 		public static final int NUM_MODULES = 4;
 
 		//for accessor method and conversion

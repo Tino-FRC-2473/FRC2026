@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.Timer;
 
 
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.imported.FieldConstants;
 import frc.robot.imported.LaunchCalculator;
 import frc.robot.HardwareMap;
 import frc.robot.input.Input;
@@ -588,7 +589,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleShooterPrepState(Input input) {
-		double flyspeed = calculateTargetShootSpeed(hubPose);
+		double flyspeed = calculateTargetShootSpeed(drivetrain.getHubPose());
 		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
 
 		updateFlywheel();
@@ -603,6 +604,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 		Logger.recordOutput("noFuelStored", noFuelStored);
 		Logger.recordOutput("isIntakeDown", modelIntake(input));
+		if (pastState == ShooterFSMState.SHOOTER_PREP_STATE){
+			double flyspeed = calculateTargetShootSpeed(drivetrain.getHubPose());
+			flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
+			updateFlywheel();
+		}
 
 		if (!flywheel1AtSpeed() || !flywheel2AtSpeed()
 			|| !input.getButtonValue(ButtonInput.REV_FEEDER)) {

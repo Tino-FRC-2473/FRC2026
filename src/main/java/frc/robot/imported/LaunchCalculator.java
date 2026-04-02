@@ -17,7 +17,7 @@ public class LaunchCalculator {
 	private static LaunchCalculator instance;
 
 	//KEEP THIS BOOLEAN FALSE UNLESS OTHERWISE UNDERSTOOD
-	public static boolean ENABLE_SOTM = false;
+	public static boolean ENABLE_SOTM = true;
 
 	public static LaunchCalculator getInstance() {
 		if (instance == null) instance = new LaunchCalculator();

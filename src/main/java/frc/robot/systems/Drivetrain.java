@@ -67,7 +67,7 @@ import edu.wpi.first.math.numbers.N10;
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	//KEEP THIS BOOLEAN FALSE UNLESS OTHERWISE UNDERSTOOD
-	public static boolean USE_SOTM_AIMING = false;
+	public static boolean USE_SOTM_AIMING = true;
 
 	/* ======================== Enums ======================== */
 	// region
@@ -75,7 +75,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public enum DrivetrainState {
 		AUTONOMOUS,
 		CONTROLLED,
-		PATHFINDING,
+		PATHFINDING, 
 		FACE_HUB,
 		FACE_PASS,
 		BALL_SHAKE_FRONT,
@@ -318,7 +318,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 *
 	 * @return the rotation
 	 */
-	@AutoLogOutput(key = "Drivetrain/Rotation")
+	@AutoLogOutput(key = "Drivetrain/RotationDouble")
 	public double getRotationDouble() {
 		return MathUtil.angleModulus(drivetrain.getPigeon2()
 			.getRotation2d().getRadians() + Math.PI);
@@ -420,7 +420,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		driveFacingAngle.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
 	}
 
-	private Pose2d getHubPose() {
+	public Pose2d getHubPose() {
 		var currentAlliance = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
 		return (currentAlliance == DriverStation.Alliance.Red) ? DrivetrainConstants.RED_HUB_POSE
 				: DrivetrainConstants.BLUE_HUB_POSE;
@@ -633,7 +633,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			// otherwise the robot will drift out of aim!
 			drivetrain.setControl(
 					driveFacingAngle
-							.withTargetDirection(Rotation2d.fromRadians(targetAngle))
+							.withTargetDirection(Rotation2d.fromRadians(targetAngle + Math.PI))
 							.withHeadingPID(DrivetrainConstants.FACE_HUB_P,
 								DrivetrainConstants.FACE_HUB_I, DrivetrainConstants.FACE_HUB_D)
 							.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
