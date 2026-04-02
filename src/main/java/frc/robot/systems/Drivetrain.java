@@ -32,6 +32,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -102,6 +103,13 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
 				* DrivetrainConstants.ROTATIONAL_DEADBAND)
 			.withDriveRequestType(DriveRequestType.Velocity);
+
+	private final SlewRateLimiter xInputRateLimiter
+		= new SlewRateLimiter(DrivetrainConstants.INPUT_SLEW_RATE);
+	private final SlewRateLimiter yInputRateLimiter
+		= new SlewRateLimiter(DrivetrainConstants.INPUT_SLEW_RATE);
+	private final SlewRateLimiter thetaInputRateLimiter
+		= new SlewRateLimiter(DrivetrainConstants.INPUT_SLEW_RATE);
 
 	// endregion
 	/* ======================== Private variables ======================== */
@@ -603,18 +611,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
+		handleDriveInputs(input);
+
 		double flipAlliance = (DriverStation.getAlliance()
 				.orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue) ? 1.0 : -1.0;
-
-		double localXSpeed = (invertControls ? -1 : 1) * flipAlliance * MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
-					DrivetrainConstants.TRANSLATION_DEADBAND)
-				* MAX_SPEED.in(MetersPerSecond);
-
-		double localYSpeed = (invertControls ? -1 : 1) * flipAlliance * MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
-					DrivetrainConstants.TRANSLATION_DEADBAND)
-				* MAX_SPEED.in(MetersPerSecond);
 
 		if (USE_SOTM_AIMING) {
 			boolean isPassing = (getCurrentState() == DrivetrainState.FACE_PASS);
@@ -626,21 +626,21 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			);
 			targetAngle = params.driveAngle().getRadians();
 
-			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(getRotationDouble()
-				- targetAngle - Math.PI / 2)));
+			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(
+				getRotationDouble() - targetAngle - Math.PI / 2)));
 
-			// Pure targeting: stay locked perfectly on target without giving up at 10 degrees, 
+			// Pure targeting: stay locked perfectly on target without giving up at 10 degrees,
 			// otherwise the robot will drift out of aim!
 			drivetrain.setControl(
 					driveFacingAngle
 							.withTargetDirection(Rotation2d.fromRadians(targetAngle))
 							.withHeadingPID(DrivetrainConstants.FACE_HUB_P,
 								DrivetrainConstants.FACE_HUB_I, DrivetrainConstants.FACE_HUB_D)
-							.withVelocityX(localXSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-							.withVelocityY(localYSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
+							.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+							.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
 
 		} else {
-			
+
 			// Transform2d distance = targetPose.minus(getPose());
 			// Using angleModulus to prevent wrap-around issues with filtering
 			Translation2d robotTranslation = getPose().getTranslation();
@@ -661,31 +661,28 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			// double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
 			// double angleError = Math.abs(MathUtil.angleModulus(targetAngle -
 			// currentAngle));
-			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(getRotationDouble()
-				- targetAngle - Math.PI / 2)));
+			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(
+				getRotationDouble() - targetAngle - Math.PI / 2)));
 
-			if (Math.abs(MathUtil.angleModulus(getRotationDouble()
-				- targetAngle - Math.PI / 2)) > Math.toRadians(10)) {
+			if (Math.abs(MathUtil.angleModulus(
+				getRotationDouble() - targetAngle - Math.PI / 2))
+				> Math.toRadians(DrivetrainConstants.FACE_TARGET_DEADBAND)) {
 				// System.out.println("aaa");
 				drivetrain.setControl(
 						driveFacingAngle
 								.withTargetDirection(Rotation2d.fromRadians(targetAngle))
 								.withHeadingPID(DrivetrainConstants.FACE_HUB_P,
 									DrivetrainConstants.FACE_HUB_I, DrivetrainConstants.FACE_HUB_D)
-								.withVelocityX(localXSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-								.withVelocityY(localYSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
+								.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+								.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+				);
 			} else {
-
-				double thetaSpeedFaceTarget = MathUtil.applyDeadband(
-						input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
-						DrivetrainConstants.ROTATIONAL_DEADBAND)
-						* MAX_ANGULAR_SPEED.in(RadiansPerSecond);
 
 				drivetrain.setControl(
 						driveFieldCentric
-								.withVelocityX(localXSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-								.withVelocityY(localYSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-								.withRotationalRate(thetaSpeedFaceTarget
+								.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+								.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+								.withRotationalRate(thetaSpeed
 									* DrivetrainConstants.ROTATIONAL_DAMP));
 			}
 		}
@@ -729,9 +726,21 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	private double getTranslationalSpeed(Input input, AxialInput inputType) {
+		SlewRateLimiter limiter = switch (inputType) {
+			case DRIVETRAIN_DRIVE_X -> xInputRateLimiter;
+			case DRIVETRAIN_DRIVE_Y -> yInputRateLimiter;
+			default -> null;
+		};
+
+		if (limiter == null) {
+			return 0;
+		}
+
 		double speed = MathUtil.applyDeadband(
 				input.getAxisValue(inputType),
 				TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+
+		speed = limiter.calculate(speed);
 
 		if (isRedAlliance()) {
 			speed *= -1;
@@ -749,9 +758,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	private double getRotationalSpeed(Input input, AxialInput inputType) {
-		return MathUtil.applyDeadband(
+		double rotationalSpeed = MathUtil.applyDeadband(
 				input.getAxisValue(inputType),
 				ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+		return thetaInputRateLimiter.calculate(rotationalSpeed);
 	}
 
 	private void applyDriveControl() {
