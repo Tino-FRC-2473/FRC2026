@@ -160,8 +160,12 @@ public class AutoPaths {
 	) {
 		return Commands
 				.sequence(
-					drivetrain.followcommand("S2_HUB"),
-					shootFor(input, shooter, N10.instance.getNum())
+					drivetrain.followcommand("S2_S1SHOOTING"),
+					faceHub(input, drivetrain),
+					startIntakeCommand(input, intake),
+					shootFor(input, shooter, N10.instance.getNum()),
+					//stopIntakeCommand(input, intake),
+					stopFaceHub(input, drivetrain)
 				);
 	}
 
@@ -186,12 +190,15 @@ public class AutoPaths {
 	) {
 		return Commands
 				.sequence(
-					drivetrain.followcommand("S1_S1NZ"),
-					startIntakeCommand(input, intake),
+					drivetrain.followcommand("S1_S1NZ_copy1"),
+					drivetrain.followcommand("S1_S1NZ_copy2"),
+					//startIntakeCommand(input, intake),
 					drivetrain.followcommand("S1NZ_INTAKE"),
-					stopIntakeCommand(input, intake),
+					//stopIntakeCommand(input, intake),
 					drivetrain.followcommand("S1NZ_S1SHOOTING"),
-					shootFor(input, shooter, N10.instance.getNum())
+					faceHub(input, drivetrain),
+					shootFor(input, shooter, N10.instance.getNum()),
+					stopFaceHub(input, drivetrain)
 				);
 	}
 
@@ -241,12 +248,16 @@ public class AutoPaths {
 	private static Command startIntakeCommand(AutoInput input, IntakeFSMSystem intake) {
 		return Commands
 				.sequence(
-						Commands.parallel(
-								input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON),
-								intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE)),
-						Commands.parallel(
-								input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true),
-								intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE)));
+					input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON),
+					//intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE),
+					input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true),
+					intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE));
+						// Commands.parallel(
+						// 		input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON),
+						// 		intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE)),
+						// Commands.parallel(
+						// 		input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true),
+						// 		intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE)));
 	}
 
 	private static Command intakeFoldOutCommand(AutoInput input, IntakeFSMSystem intake) {
@@ -268,10 +279,10 @@ public class AutoPaths {
 	private static Command stopIntakeCommand(AutoInput input, IntakeFSMSystem intake) {
 		return Commands
 				.sequence(
-						input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false),
-						intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE),
-						input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON),
-						intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE));
+						input.setButtonCommand(ButtonInput.INTAKE_BUTTON, false));
+						//intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE),
+						// input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON),
+						// intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE));
 	}
 
 	private static Command stopShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
@@ -298,14 +309,21 @@ public class AutoPaths {
 	private static Command faceHub(AutoInput input, Drivetrain drive) {
 		return Commands
 			.sequence(
-				input.pressButtonCommand(ButtonInput.FACE_HUB)
+				input.setButtonCommand(ButtonInput.FACE_HUB, true)
+			);
+	}
+
+	private static Command stopFaceHub(AutoInput input, Drivetrain drive) {
+		return Commands
+			.sequence(
+				input.setButtonCommand(ButtonInput.FACE_HUB, false)
 			);
 	}
 
 	private static Command facePass(AutoInput input, Drivetrain drive) {
 		return Commands
 			.sequence(
-				input.pressButtonCommand(ButtonInput.FACE_PASS)
+				input.setButtonCommand(ButtonInput.FACE_PASS, true)
 			);
 	}
 

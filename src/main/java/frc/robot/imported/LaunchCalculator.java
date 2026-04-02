@@ -78,9 +78,9 @@ public class LaunchCalculator {
 
 		// Format: .put(Distance_in_Meters, TimeOfFlight_in_Sec)
 		//CURRENTLY NOT OUR TOF, ANYTHING BELOW THIS COMMENT = MECHADV
-		timeOfFlightMap.put(1.38, 0.90);
-		timeOfFlightMap.put(3.15, 1.11);
-		timeOfFlightMap.put(5.68, 1.16);
+		timeOfFlightMap.put(2.38, 0.70);
+		timeOfFlightMap.put(3.12, 0.91);
+		timeOfFlightMap.put(3.88, 1.06);
 		
 
 		// INPUT DIRECT PASSING DATA HERE

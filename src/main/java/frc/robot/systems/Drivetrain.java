@@ -108,8 +108,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		= new SlewRateLimiter(DrivetrainConstants.INPUT_SLEW_RATE);
 	private final SlewRateLimiter yInputRateLimiter
 		= new SlewRateLimiter(DrivetrainConstants.INPUT_SLEW_RATE);
-	private final SlewRateLimiter thetaInputRateLimiter
-		= new SlewRateLimiter(DrivetrainConstants.INPUT_SLEW_RATE);
+	// private final SlewRateLimiter thetaInputRateLimiter
+	// 	= new SlewRateLimiter(DrivetrainConstants.INPUT_SLEW_RATE);
 
 	// endregion
 	/* ======================== Private variables ======================== */
@@ -775,7 +775,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		double rotationalSpeed = MathUtil.applyDeadband(
 				input.getAxisValue(inputType),
 				ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
-		return thetaInputRateLimiter.calculate(rotationalSpeed);
+		return rotationalSpeed;
+		//return thetaInputRateLimiter.calculate(rotationalSpeed);
 	}
 
 	private void applyDriveControl() {

@@ -49,7 +49,7 @@ public class Constants {
 	}
 
 	public static final class DrivetrainConstants {
-		public static final double FACE_TARGET_DEADBAND = 10;
+		public static final double FACE_TARGET_DEADBAND = 7;
 		public static final double INPUT_SLEW_RATE = 20; //0.2
 		public static final int NUM_MODULES = 4;
 
@@ -77,7 +77,7 @@ public class Constants {
 		public static final double SYS_ID_VOLT_DAMP = 6;
 
 		public static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
-		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(0.75);
+		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(1);
 
 		public static final double TRANSLATIONAL_DEADBAND = 0.05;
 		public static final double ROTATIONAL_DEADBAND = 0.05;
@@ -128,16 +128,16 @@ public class Constants {
 
 	public static final class ModuleConstants {
 		public static final double DRIVE_P = 7;
-		public static final double DRIVE_I = 0.1;
-		public static final double DRIVE_D = 0.4;
+		public static final double DRIVE_I = 0.0;
+		public static final double DRIVE_D = 0.01;
 		public static final double DRIVE_V = 0.124;
 
 		public static final double DRIVE_CURRENT_LIMIT = 80;
 		public static final double STEER_CURRENT_LIMIT = 60;
 
-		public static final double STEER_P = 7;
-		public static final double STEER_I = 0.1;
-		public static final double STEER_D = 0.4;
+		public static final double STEER_P = 7.5;
+		public static final double STEER_I = 0.0;
+		public static final double STEER_D = 0.0;
 		public static final double STEER_V = 0.1;
 		public static final double STEER_S = 0;
 	}
@@ -358,7 +358,7 @@ public class Constants {
 		public static final double CONVEYOR_TARGET_ACCEL = 10;
 		public static final double CONVEYOR_EXPO_KV = 0.12;
 
-		public static final double AGITATOR_SETPOINT = 0.2;
+		public static final double AGITATOR_SETPOINT = 0.3;
 
 		//other
 		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
