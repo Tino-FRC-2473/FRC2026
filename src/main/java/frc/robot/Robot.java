@@ -11,11 +11,12 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
+import frc.robot.imported.HubTracker;
 import frc.robot.imported.LimelightHelpers;
+import frc.robot.imported.FieldConstants.Hub;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
-
 
 // WPILib Imports
 
@@ -37,9 +38,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 
-
 /**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to
  * each mode, as described in the TimedRobot documentation.
  */
 public class Robot extends LoggedRobot {
@@ -55,12 +56,13 @@ public class Robot extends LoggedRobot {
 	private FSMSystem<AgitatorFSMSystem.AgitatorFSMState> agitatorFSMSystem;
 
 	private Vision vision;
-	//create sendable chooser
+	// create sendable chooser
 	private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 	private Command autonomousCommand;
 
 	/**
-	 * This function is run when the robot is first started up and should be used for any
+	 * This function is run when the robot is first started up and should be used
+	 * for any
 	 * initialization code.
 	 */
 	@Override
@@ -77,20 +79,19 @@ public class Robot extends LoggedRobot {
 		// CvSink cvSink = CameraServer.getVideo();
 		// // Creates the CvSource and MjpegServer [2] and connects them
 		// CvSource outputStream = CameraServer.putVideo("Driver Camera",
-		// 	VisionConstants.RESOLUTION_X,
-		// 	VisionConstants.RESOLUTION_Y);
+		// VisionConstants.RESOLUTION_X,
+		// VisionConstants.RESOLUTION_Y);
 
 		// Instantiate all systems here
 		if (HardwareMap.isDrivetrainEnabled()) {
 			Drivetrain drivetrain = new Drivetrain();
 			drivetrainFSMSystem = drivetrain;
 			vision = new Vision(
-				drivetrain::addVisionMeasurement,
-				drivetrain.getDrivetrainRotation(),
-				VisionConstants.LIMELIGHT_NAME,
-				drivetrain::getAngularVelocity,
-				drivetrain::getLinearVelocityFromEncoders
-			);
+					drivetrain::addVisionMeasurement,
+					drivetrain.getDrivetrainRotation(),
+					VisionConstants.LIMELIGHT_NAME,
+					drivetrain::getAngularVelocity,
+					drivetrain::getLinearVelocityFromEncoders);
 		} else {
 			drivetrainFSMSystem = new PlaceholderFSMSystem<>();
 			vision = null;
@@ -108,12 +109,10 @@ public class Robot extends LoggedRobot {
 		if (HardwareMap.isShooterEnabled()) {
 			if (HardwareMap.isDrivetrainEnabled()) {
 				shooter = Optional.of(
-					new ShooterFSMSystem((Drivetrain) drivetrainFSMSystem)
-				);
+						new ShooterFSMSystem((Drivetrain) drivetrainFSMSystem));
 			} else {
 				shooter = Optional.of(
-					new ShooterFSMSystem()
-				);
+						new ShooterFSMSystem());
 			}
 
 			shooterFSMSystem = shooter.get();
@@ -125,11 +124,9 @@ public class Robot extends LoggedRobot {
 		Optional<AgitatorFSMSystem> agitator;
 		if (HardwareMap.isAgitatorEnabled()) {
 			agitator = Optional.of(
-				new AgitatorFSMSystem(
-					intake.isPresent() ? intake.get()::getIsIntakeOuttaking : null,
-					shooter.isPresent() ? shooter.get()::getIsFeeding : null
-				)
-			);
+					new AgitatorFSMSystem(
+							intake.isPresent() ? intake.get()::getIsIntakeOuttaking : null,
+							shooter.isPresent() ? shooter.get()::getIsFeeding : null));
 			agitatorFSMSystem = agitator.get();
 		} else {
 			agitatorFSMSystem = new PlaceholderFSMSystem<>();
@@ -140,22 +137,21 @@ public class Robot extends LoggedRobot {
 		teleopInput = new TeleopInput();
 
 		if (drivetrainFSMSystem instanceof Drivetrain
-			&& shooterFSMSystem instanceof ShooterFSMSystem
-			&& intakeFSMSystem instanceof IntakeFSMSystem) {
+				&& shooterFSMSystem instanceof ShooterFSMSystem
+				&& intakeFSMSystem instanceof IntakeFSMSystem) {
 
 			Drivetrain drive = (Drivetrain) drivetrainFSMSystem;
 			ShooterFSMSystem shooterAuto = (ShooterFSMSystem) shooterFSMSystem;
 			IntakeFSMSystem intakeAuto = (IntakeFSMSystem) intakeFSMSystem;
 			AutoPaths.loadCommands(
-				autoChooser,
-				autoInput,
-				drive,
-				shooterAuto,
-				intakeAuto
-			);
+					autoChooser,
+					autoInput,
+					drive,
+					shooterAuto,
+					intakeAuto);
 		}
 		SmartDashboard.putData("Auto Chooser", autoChooser);
-		
+
 	}
 
 	@Override
@@ -166,9 +162,9 @@ public class Robot extends LoggedRobot {
 		intakeFSMSystem.reset();
 		shooterFSMSystem.reset();
 
-		//get the selected auto
+		// get the selected auto
 		autonomousCommand = autoChooser.getSelected();
-		//scudule auto command
+		// scudule auto command
 		if (autonomousCommand != null) {
 			CommandScheduler.getInstance().enable();
 			CommandScheduler.getInstance().schedule(autonomousCommand);
@@ -190,9 +186,9 @@ public class Robot extends LoggedRobot {
 
 	@Override
 	public void teleopInit() {
-		//set the limelight imu mode for optimal performance in teleop
+		// set the limelight imu mode for optimal performance in teleop
 		LimelightHelpers.SetIMUMode(VisionConstants.LIMELIGHT_NAME,
-			VisionConstants.TELEOP_IMU_MODE);
+				VisionConstants.TELEOP_IMU_MODE);
 
 		System.out.println("-------- Teleop Init --------");
 		teleopInput.reset();
@@ -219,7 +215,8 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void disabledInit() {
 		System.out.println("-------- Disabled Init --------");
-		//Pre-match/Disabled: Use mode 1 to continuously seed the internal IMU with external gyro
+		// Pre-match/Disabled: Use mode 1 to continuously seed the internal IMU with
+		// external gyro
 		LimelightHelpers.SetIMUMode(VisionConstants.LIMELIGHT_NAME, VisionConstants.AUTO_IMU_MODE);
 	}
 
@@ -238,7 +235,7 @@ public class Robot extends LoggedRobot {
 
 	}
 
-	/* Simulation mode handlers, only used for simulation testing  */
+	/* Simulation mode handlers, only used for simulation testing */
 	@Override
 	public void simulationInit() {
 		System.out.println("-------- Simulation Init --------");
@@ -254,6 +251,13 @@ public class Robot extends LoggedRobot {
 	public void robotPeriodic() {
 		if (vision != null) {
 			vision.periodic();
+		}
+		if (HubTracker.timeUntilNextShift().isPresent()) {
+			Logger.recordOutput("Hub/TimeUntilNextShift",
+					HubTracker.timeUntilNextShift().get());
+		} else {
+			Logger.recordOutput("Hub/TimeUntilNextShift",
+					-1);
 		}
 	}
 }

@@ -72,27 +72,6 @@
             }
           },
           {
-            "title": "Flywheel Speed",
-            "x": 768.0,
-            "y": 0.0,
-            "width": 256.0,
-            "height": 256.0,
-            "type": "Radial Gauge",
-            "properties": {
-              "topic": "/AdvantageKit/RealOutputs/Shooter/Actual Motor Speed",
-              "period": 0.06,
-              "data_type": "double",
-              "start_angle": -140.0,
-              "end_angle": 140.0,
-              "min_value": 0.0,
-              "max_value": 100.0,
-              "number_of_labels": 8,
-              "wrap_value": false,
-              "show_pointer": true,
-              "show_ticks": true
-            }
-          },
-          {
             "title": "Field",
             "x": 512.0,
             "y": 256.0,
@@ -133,22 +112,63 @@
             }
           },
           {
-            "title": "USB Camera 0",
+            "title": "Auto Chooser",
             "x": 1024.0,
             "y": 0.0,
-            "width": 512.0,
-            "height": 512.0,
-            "type": "Camera Stream",
+            "width": 256.0,
+            "height": 128.0,
+            "type": "ComboBox Chooser",
             "properties": {
-              "topic": "/CameraPublisher/USB Camera 0",
+              "topic": "/SmartDashboard/Auto Chooser",
               "period": 0.06,
-              "rotation_turns": 1,
-              "compression": 24,
-              "fps": 15,
-              "resolution": [
-                640.0,
-                480.0
-              ]
+              "sort_options": false
+            }
+          },
+          {
+            "title": "Flywheel Speed",
+            "x": 768.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 256.0,
+            "type": "Radial Gauge",
+            "properties": {
+              "topic": "/AdvantageKit/RealOutputs/Shooter/Actual Motor 1 Speed",
+              "period": 0.06,
+              "data_type": "double",
+              "start_angle": -140.0,
+              "end_angle": 140.0,
+              "min_value": 0.0,
+              "max_value": 100.0,
+              "number_of_labels": 8,
+              "wrap_value": false,
+              "show_pointer": true,
+              "show_ticks": true
+            }
+          },
+          {
+            "title": "MatchTime",
+            "x": 1024.0,
+            "y": 256.0,
+            "width": 384.0,
+            "height": 256.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/AdvantageKit/DriverStation/MatchTime",
+              "period": 0.06,
+              "data_type": "double"
+            }
+          },
+          {
+            "title": "Time Until Next Shift",
+            "x": 1280.0,
+            "y": 0.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Large Text Display",
+            "properties": {
+              "topic": "/AdvantageKit/RealOutputs/Hub/TimeUntilNextShift",
+              "period": 0.06,
+              "data_type": "int"
             }
           }
         ]
