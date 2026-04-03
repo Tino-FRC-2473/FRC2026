@@ -9,6 +9,11 @@ import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.FollowPathCommand;
+import com.pathplanner.lib.commands.PathfindingCommand;
+import com.pathplanner.lib.path.PathPlannerPath;
+
 import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
 import frc.robot.imported.HubTracker;
@@ -161,6 +166,10 @@ public class Robot extends LoggedRobot {
 		}
 		SmartDashboard.putData("Auto Chooser", autoChooser);
 		SmartDashboard.putData("Face Hub Chooser", faceHubChooser);
+
+		
+		PathfindingCommand.warmupCommand().schedule();
+		FollowPathCommand.warmupCommand().schedule();
 
 	}
 
