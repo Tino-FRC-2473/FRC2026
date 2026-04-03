@@ -58,6 +58,7 @@ import frc.robot.imported.geom.AllianceFlipUtil;
 import frc.robot.input.Input;
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
+import frc.robot.Robot;
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.imported.LaunchCalculator;
 
@@ -517,12 +518,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					// This will flip the path being followed to the red side of the field.
 					// THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
-					var detectedAlliance = DriverStation.getAlliance();
-					if (detectedAlliance.isPresent()) {
-						return detectedAlliance.get() == DriverStation.Alliance.Red;
-					}
-					System.out.println("Alliance not detected! Defaulting to blue. Good luck.");
-					return false;
+					return !Robot.IS_BLUE;
+
+					// var detectedAlliance = DriverStation.getAlliance();
+					// if (detectedAlliance.isPresent()) {
+					// 	return detectedAlliance.get() == DriverStation.Alliance.Red;
+					// }
+					// System.out.println("Alliance not detected! Defaulting to blue. Good luck.");
+					// return false;
 				},
 				drivetrain // Reference to the subsystem to set requirements
 		);

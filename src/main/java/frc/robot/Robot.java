@@ -45,6 +45,8 @@ import edu.wpi.first.wpilibj2.command.Command;
  */
 public class Robot extends LoggedRobot {
 
+	public static final boolean IS_BLUE = false;
+
 	// Robot input
 	private AutoInput autoInput;
 	private TeleopInput teleopInput;
