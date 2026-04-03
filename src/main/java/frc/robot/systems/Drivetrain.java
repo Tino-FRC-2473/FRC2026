@@ -635,8 +635,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		handleDriveInputs(input);
 
-		double flipAlliance = (DriverStation.getAlliance()
-				.orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue) ? 1.0 : -1.0;
+		double flipAlliance = Robot.IS_BLUE ? Math.PI : Math.PI;
 
 		if (USE_SOTM_AIMING) {
 			boolean isPassing = (getCurrentState() == DrivetrainState.FACE_PASS);
@@ -646,11 +645,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				targetPose.getTranslation(),
 				isPassing
 			);
-			targetAngle = MathUtil.angleModulus(params.driveAngle().getRadians());
+			targetAngle = MathUtil.angleModulus(params.driveAngle().getRadians() + flipAlliance);
 			//pigeon odomtery is backwards
 
 			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(
-				getRotationDouble() - targetAngle)));
+				getRotationDouble() - targetAngle + flipAlliance)));
 			
 			Logger.recordOutput("Drivetrain/Target", targetAngle);
 			Logger.recordOutput("Drivetrain/Rotation", getRotationDouble());

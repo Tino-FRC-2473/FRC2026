@@ -33,6 +33,8 @@ import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.systems.AgitatorFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 //imports for auto chooser
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -45,7 +47,7 @@ import edu.wpi.first.wpilibj2.command.Command;
  */
 public class Robot extends LoggedRobot {
 
-	public static final boolean IS_BLUE = false;
+	public static final boolean IS_BLUE = true;
 
 	// Robot input
 	private AutoInput autoInput;
@@ -254,12 +256,14 @@ public class Robot extends LoggedRobot {
 		if (vision != null) {
 			vision.periodic();
 		}
-		if (HubTracker.timeUntilNextShift().isPresent()) {
+		if (HubTracker.timeRemainingInCurrentShift().isPresent()) {
 			Logger.recordOutput("Hub/TimeUntilNextShift",
 					HubTracker.timeUntilNextShift().get());
 		} else {
 			Logger.recordOutput("Hub/TimeUntilNextShift",
 					-1);
+
 		}
+		Logger.recordOutput("Hub/IsActive", HubTracker.isActive());
 	}
 }
