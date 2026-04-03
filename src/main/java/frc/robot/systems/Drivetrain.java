@@ -17,6 +17,7 @@ import static frc.robot.imported.FieldConstants.TAG_LAYOUT;
 
 
 import java.io.IOException;
+import java.sql.Driver;
 
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -200,7 +201,17 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				if (hasDriverInput(input)) {
 					return DrivetrainState.CONTROLLED;
 				}
-				return DrivetrainState.AUTONOMOUS;
+				if (input.getButtonPressed(ButtonInput.FACE_HUB)) {
+					return DrivetrainState.FACE_HUB;
+				} else if (input.getButtonPressed(ButtonInput.FACE_PASS)) {
+					return DrivetrainState.FACE_PASS;
+				} else if (input.getButtonPressed(ButtonInput.BALL_SHAKE_FRONT)) {
+					return DrivetrainState.BALL_SHAKE_FRONT;
+				} else if (input.getButtonPressed(ButtonInput.BALL_SHAKE_SIDE)) {
+					return DrivetrainState.BALL_SHAKE_SIDE;
+				} else {
+					return DrivetrainState.AUTONOMOUS;
+				}
 			case CONTROLLED:
 				if (input.getButtonValue(ButtonInput.BALL_SHAKE_FRONT)) {
 					return DrivetrainState.BALL_SHAKE_FRONT;
@@ -242,24 +253,32 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			case FACE_HUB:
 				if (input.getButtonValue(ButtonInput.FACE_HUB)) {
 					return DrivetrainState.FACE_HUB;
+				} else if (DriverStation.isAutonomous()) {
+					return DrivetrainState.AUTONOMOUS;
 				} else {
 					return DrivetrainState.CONTROLLED;
 				}
 			case FACE_PASS:
 				if (input.getButtonValue(ButtonInput.FACE_PASS)) {
 					return DrivetrainState.FACE_PASS;
+				} else if (DriverStation.isAutonomous()) {
+					return DrivetrainState.AUTONOMOUS;
 				} else {
 					return DrivetrainState.CONTROLLED;
 				}
 			case BALL_SHAKE_FRONT:
 				if (input.getButtonValue(ButtonInput.BALL_SHAKE_FRONT)) {
 					return DrivetrainState.BALL_SHAKE_FRONT;
+				} else if (DriverStation.isAutonomous()) {
+					return DrivetrainState.AUTONOMOUS;
 				} else {
 					return DrivetrainState.CONTROLLED;
 				}
 			case BALL_SHAKE_SIDE:
 				if (input.getButtonValue(ButtonInput.BALL_SHAKE_SIDE)) {
 					return DrivetrainState.BALL_SHAKE_SIDE;
+				} else if (DriverStation.isAutonomous()) {
+					return DrivetrainState.AUTONOMOUS;
 				} else {
 					return DrivetrainState.CONTROLLED;
 				}
