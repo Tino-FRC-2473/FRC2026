@@ -87,13 +87,19 @@ public class AutoPaths {
 				drivetrain.followcommand("S1_S1SHOOTING"),
 				waitFor(N1.instance.getNum()),
 				shootFor(input, shooter, N5.instance.getNum()),
-				drivetrain.followcommand("S1SHOOTING_S1NZ"),
+				drivetrain.followcommand("S1SHOOTING_S1"),
+				drivetrain.followcommand("S1_S1NZ_copy1"),
 				startIntakeCommand(input, intake),
+				drivetrain.followcommand("S1_S1NZ_copy2"),
 				drivetrain.followcommand("S1NZ_INTAKE"),
 				stopIntakeCommand(input, intake),
-				drivetrain.followcommand("S1NZ_S1SHOOTING"),
-				waitFor(N1.instance.getNum()),
-				shootFor(input, shooter, N8.instance.getNum())
+				drivetrain.followcommand("S1NZ_S1SHOOTING_copy1"),
+				drivetrain.followcommand("S1NZ_S1SHOOTING_copy2"),
+				drivetrain.followcommand("S1NZ_S1SHOOTING_copy3"),
+				drivetrain.followcommand("S1NZ_S1SHOOTING_copy4"),
+				faceHub(input, drivetrain),
+				shootFor(input, shooter, N10.instance.getNum()),
+				stopFaceHub(input, drivetrain)
 			);
 	}
 
