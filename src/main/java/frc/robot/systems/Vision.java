@@ -99,7 +99,7 @@ public class Vision {
 				Logger.recordOutput("Vision/ActiveMethod", "MT2 (Stable Single-Tag)");
 			}
 		}
-		return selectedEstimate;
+		return mt1Estimate;
 	}
 
 	private boolean checkIfValidPose(PoseEstimate pose) {

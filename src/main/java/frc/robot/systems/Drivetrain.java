@@ -624,11 +624,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				targetPose.getTranslation(),
 				isPassing
 			);
-			targetAngle = MathUtil.angleModulus(params.driveAngle().getRadians() + Math.PI);
+			targetAngle = MathUtil.angleModulus(params.driveAngle().getRadians());
 			//pigeon odomtery is backwards
 
 			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(
-				getRotationDouble() - targetAngle - Math.PI)));
+				getRotationDouble() - targetAngle)));
 			
 			Logger.recordOutput("Drivetrain/Target", targetAngle);
 			Logger.recordOutput("Drivetrain/Rotation", getRotationDouble());
@@ -636,7 +636,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			// Pure targeting: stay locked perfectly on target without giving up at 10 degrees,
 			// otherwise the robot will drift out of aim!
 
-			if (Math.abs(MathUtil.angleModulus(getRotationDouble() - targetAngle - Math.PI)) > Math.toRadians(DrivetrainConstants.FACE_TARGET_DEADBAND)) {
+			if (Math.abs(MathUtil.angleModulus(getRotationDouble() - targetAngle)) > Math.toRadians(DrivetrainConstants.FACE_TARGET_DEADBAND)) {
 				drivetrain.setControl(
 					driveFacingAngle
 							.withTargetDirection(Rotation2d.fromRadians(targetAngle))
