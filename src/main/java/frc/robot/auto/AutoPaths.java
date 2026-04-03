@@ -19,6 +19,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.input.AutoInput;
+import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.Drivetrain;
@@ -218,8 +219,10 @@ public class AutoPaths {
 	) {
 		return Commands
 				.sequence(
-					drivetrain.followcommand("S2_HUB"),
-					waitFor(5),
+					//drivetrain.followcommand("S2_HUB"),
+					input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0.4),
+					waitFor(2),
+					input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0),
 					faceHub(input, drivetrain),
 					//startIntakeCommand(input, intake),
 					shootFor(input, shooter, N10.instance.getNum()),
