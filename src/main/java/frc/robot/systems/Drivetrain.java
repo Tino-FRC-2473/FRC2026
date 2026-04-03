@@ -634,7 +634,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		handleDriveInputs(input);
-
+			
 		double flipAlliance = Robot.IS_BLUE ? Math.PI : Math.PI;
 
 		if (USE_SOTM_AIMING) {

@@ -262,9 +262,9 @@ public class Robot extends LoggedRobot {
 		if (vision != null) {
 			vision.periodic();
 		}
-		if (HubTracker.timeRemainingInCurrentShift().isPresent()) {
+		if (HubTracker.timeRemainingInCurrentShift().isPresent() && !HubTracker.timeRemainingInCurrentShift().isEmpty()) {
 			Logger.recordOutput("Hub/TimeUntilNextShift",
-					HubTracker.timeUntilNextShift().get());
+					HubTracker.timeRemainingInCurrentShift().get());
 		} else {
 			Logger.recordOutput("Hub/TimeUntilNextShift",
 					-1);

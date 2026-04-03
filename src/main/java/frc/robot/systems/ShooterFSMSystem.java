@@ -508,19 +508,21 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handlePasserPrepState(Input input) {
-		Pose2d correctTarget = new Pose2d();
+		// Pose2d correctTarget = new Pose2d();
 
-		double outpostDistance = (double) curPose.getTranslation()
-				.getDistance(outpostPose.getTranslation());
-		double target3Distance = (double) curPose.getTranslation()
-				.getDistance(target3Pose.getTranslation());
-		if (outpostDistance < target3Distance) {
-			correctTarget = target3Pose;
-		} else {
-			correctTarget = outpostPose;
-		}
-		double flyspeed = calculateTargetPassSpeed(correctTarget);
-		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
+		// double outpostDistance = (double) curPose.getTranslation()
+		// 		.getDistance(outpostPose.getTranslation());
+		// double target3Distance = (double) curPose.getTranslation()
+		// 		.getDistance(target3Pose.getTranslation());
+		// if (outpostDistance < target3Distance) {
+		// 	correctTarget = target3Pose;
+		// } else {
+		// 	correctTarget = outpostPose;
+		// }
+		// double flyspeed = calculateTargetPassSpeed(correctTarget);
+		flywheelTargetSpeed = RotationsPerSecond.of((double) 70.0);
+		
+		//RotationsPerSecond.of((double) flyspeed);
 		updateFlywheel();
 	}
 
