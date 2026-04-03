@@ -96,7 +96,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	private final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds
 		= new SwerveRequest.ApplyRobotSpeeds()
-			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+			.withDriveRequestType(DriveRequestType.Velocity);
 
 	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle
 		= new SwerveRequest.FieldCentricFacingAngle()

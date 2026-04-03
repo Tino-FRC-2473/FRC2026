@@ -219,12 +219,13 @@ public class AutoPaths {
 	) {
 		return Commands
 				.sequence(
-					//drivetrain.followcommand("S2_HUB"),
-					input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0.4),
+					drivetrain.followcommand("S2_HUB"),
+					//input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0.4),
 					waitFor(2),
-					input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0),
+					//input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0),
 					faceHub(input, drivetrain),
 					//startIntakeCommand(input, intake),
+					intakeFoldOutCommand(input, intake),
 					shootFor(input, shooter, N10.instance.getNum()),
 					//stopIntakeCommand(input, intake),
 					stopFaceHub(input, drivetrain)
@@ -252,9 +253,8 @@ public class AutoPaths {
 	) {
 		return Commands
 				.sequence(
-					drivetrain.followcommand("S1_S1NZ_copy1"),
+					drivetrain.followcommand("S1_S1NZ"),
 					startIntakeCommand(input, intake),
-					drivetrain.followcommand("S1_S1NZ_copy2"),
 					drivetrain.followcommand("S1NZ_INTAKE"),
 					stopIntakeCommand(input, intake),
 					drivetrain.followcommand("S1NZ_S1SHOOTING_copy1"),
