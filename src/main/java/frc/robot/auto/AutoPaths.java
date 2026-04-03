@@ -327,6 +327,41 @@ public class AutoPaths {
 			);
 	}
 
+	private static Command stopFacePass(AutoInput input, Drivetrain drive) {
+		return Commands
+			.sequence(
+				input.setButtonCommand(ButtonInput.FACE_PASS, false)
+			);
+	}
+
+	private static Command ballShakeFront(AutoInput input, Drivetrain drive) {
+		return Commands
+			.sequence(
+				input.setButtonCommand(ButtonInput.BALL_SHAKE_FRONT, true)
+			);
+	}
+
+	private static Command stopBallShakeFront(AutoInput input, Drivetrain drive) {
+		return Commands
+			.sequence(
+				input.setButtonCommand(ButtonInput.BALL_SHAKE_FRONT, false)
+			);
+	}
+
+	private static Command ballShakeSide(AutoInput input, Drivetrain drive) {
+		return Commands
+			.sequence(
+				input.setButtonCommand(ButtonInput.BALL_SHAKE_SIDE, true)
+			);
+	}
+
+	private static Command stopBallShakeSide(AutoInput input, Drivetrain drive) {
+		return Commands
+			.sequence(
+				input.setButtonCommand(ButtonInput.BALL_SHAKE_SIDE, false)
+			);
+	}
+
 	/**
 	 * Returns a test auto that drives with the the BlueHubNZCimb2 trajectory,
 	 * and then shoots in the direction its facing for 10 seconds.
