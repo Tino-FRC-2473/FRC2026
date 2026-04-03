@@ -309,6 +309,40 @@ public class AutoPaths {
 				);
 	}
 
+	private static Command getS1ShootCommand(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		IntakeFSMSystem intake
+	) {
+		return Commands
+			.sequence(drivetrain.followcommand("S1_S1SHOOTING"),
+			faceHub(input, drivetrain),
+			waitFor(N1.instance.getNum()),
+			stopFaceHub(input, drivetrain),
+			ballShakeSide(input, drivetrain),
+			shootFor(input, shooter, N8.instance.getNum()),
+			stopBallShakeSide(input, drivetrain)
+			);
+	}
+
+	private static Command getS3ShootCommand(
+		AutoInput input,
+		Drivetrain drivetrain,
+		ShooterFSMSystem shooter,
+		IntakeFSMSystem intake
+	) {
+		return Commands
+			.sequence(drivetrain.followcommand("S3_S3SHOOTING"),
+			faceHub(input, drivetrain),
+			waitFor(N1.instance.getNum()),
+			stopFaceHub(input, drivetrain),
+			ballShakeSide(input, drivetrain),
+			shootFor(input, shooter, N8.instance.getNum()),
+			stopBallShakeSide(input, drivetrain)
+			);
+	}
+
 
 	private static Command startShootingCommand(AutoInput input, ShooterFSMSystem shooter) {
 		return Commands
@@ -457,22 +491,28 @@ public class AutoPaths {
 			"Do Nothing",
 			Commands.none());
 		chooser.addOption(
-				"S1 Shoot",
+				"S1 Shooting Position Shoot",
+				getS1ShootCommand(input, drivetrain, shooter, intake));
+		chooser.addOption(
+				"S3 Shooting Position Shoot",
+				getS3ShootCommand(input, drivetrain, shooter, intake));
+		chooser.addOption(
+				"S1 Hub Shoot",
 				getS1HUBShootCommand(input, drivetrain, shooter, intake));
 		chooser.addOption(
-				"S2 Shoot",
+				"S2 Hub Shoot",
 				getS2HUBShootCommand(input, drivetrain, shooter, intake));
 		chooser.addOption(
-				"S3 Shoot",
+				"S3 Hub Shoot",
 				getS3HUBShootCommand(input, drivetrain, shooter, intake));
 		chooser.addOption(
-				"S1 NZ Shoot",
+				"S1 NZ Hub Shoot",
 				getS1NZHUBShootCommand(input, drivetrain, shooter, intake));
 		chooser.addOption(
-				"S2 NZ Shoot",
+				"S2 NZ Hub Shoot",
 				getS2NZHUBShootCommand(input, drivetrain, shooter, intake));
 		chooser.addOption(
-				"S3 NZ Shoot",
+				"S3 NZ Hub Shoot",
 				getS3NZHUBShootCommand(input, drivetrain, shooter, intake));
 		// chooser.addOption(
 		// 		"S3 NZ command",
