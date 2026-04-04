@@ -219,16 +219,17 @@ public class AutoPaths {
 	) {
 		return Commands
 				.sequence(
-					drivetrain.followcommand("S2_HUB"),
-					//input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, -0.4),
-					//waitFor(2),
+					drivetrain.followcommand("S2_HUB_copy1"),
+					drivetrain.followcommand("S2_HUB_copy2"),
+					//input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0.4),
+					waitFor(2),
 					//input.setAxisCommand(AxialInput.DRIVETRAIN_DRIVE_X, 0),
-					//faceHub(input, drivetrain),
+					faceHub(input, drivetrain),
 					//startIntakeCommand(input, intake),
 					intakeFoldOutCommand(input, intake),
-					shootFor(input, shooter, N10.instance.getNum())
+					shootFor(input, shooter, N10.instance.getNum()),
 					//stopIntakeCommand(input, intake),
-					//stopFaceHub(input, drivetrain)
+					stopFaceHub(input, drivetrain)
 				);
 	}
 
@@ -253,8 +254,9 @@ public class AutoPaths {
 	) {
 		return Commands
 				.sequence(
-					drivetrain.followcommand("S1_S1NZ"),
+					drivetrain.followcommand("S1_S1NZ_copy1"),
 					startIntakeCommand(input, intake),
+					drivetrain.followcommand("S1_S1NZ_copy2"),
 					drivetrain.followcommand("S1NZ_INTAKE"),
 					stopIntakeCommand(input, intake),
 					drivetrain.followcommand("S1NZ_S1SHOOTING_copy1"),
@@ -323,8 +325,7 @@ public class AutoPaths {
 			.sequence(drivetrain.followcommand("S1_S1SHOOTING"),
 			faceHub(input, drivetrain),
 			waitFor(N1.instance.getNum()),
-			stopFaceHub(input, drivetrain),
-			intakeFoldOutCommand(input, intake),
+			//stopFaceHub(input, drivetrain),
 			//ballShakeSide(input, drivetrain),
 			shootFor(input, shooter, N8.instance.getNum())
 			//stopBallShakeSide(input, drivetrain)
