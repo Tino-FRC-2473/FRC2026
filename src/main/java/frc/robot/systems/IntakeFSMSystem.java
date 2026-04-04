@@ -433,6 +433,10 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 					return IntakeFSMState.FOLD_OUT_STATE;
 				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
 					return IntakeFSMState.FOLD_IN_STATE;
+				} else if (input.getButtonPressed(ButtonInput.INTAKE_BUTTON)) {
+					return IntakeFSMState.INTAKE_STATE;
+				} else if (input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON)) {
+					return IntakeFSMState.OUTTAKE_STATE;
 				} else {
 					return IntakeFSMState.PARTIAL_OUT_STATE;
 				}
@@ -458,14 +462,14 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 
 			case INTAKE_STATE:
 				if (input.getButtonReleased(ButtonInput.INTAKE_BUTTON)) {
-					return IntakeFSMState.IDLE_OUT_STATE;
+					return IntakeFSMState.PARTIAL_OUT_STATE;
 				} else {
 					return IntakeFSMState.INTAKE_STATE;
 				}
 
 			case OUTTAKE_STATE:
 				if (input.getButtonReleased(ButtonInput.OUTTAKE_BUTTON)) {
-					return IntakeFSMState.IDLE_OUT_STATE;
+					return IntakeFSMState.PARTIAL_OUT_STATE;
 				} else {
 					return IntakeFSMState.OUTTAKE_STATE;
 				}
@@ -566,7 +570,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		// 	pivotMotorLeft.setPosition(Angle.ofBaseUnits(0, Degree));
 		// }
 
-		return groundLimitSwitch.get(); // switch is normally ope
+		return groundLimitSwitch.get(); // switch is normally open
 	}
 
 	/**

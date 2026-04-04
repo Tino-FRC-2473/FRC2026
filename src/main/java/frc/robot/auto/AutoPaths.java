@@ -361,7 +361,7 @@ public class AutoPaths {
 	private static Command startIntakeCommand(AutoInput input, IntakeFSMSystem intake) {
 		return Commands
 				.sequence(
-					input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON),
+					input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON),
 					//intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE),
 					input.setButtonCommand(ButtonInput.INTAKE_BUTTON, true),
 					intake.watchForStatesCommand(IntakeFSMState.INTAKE_STATE));
@@ -377,8 +377,8 @@ public class AutoPaths {
 		return Commands
 				.sequence(
 					Commands.parallel(
-						input.pressButtonCommand(ButtonInput.FOLD_OUT_BUTTON),
-						intake.watchForStatesCommand(IntakeFSMState.IDLE_OUT_STATE)));
+						input.pressButtonCommand(ButtonInput.PARTIAL_OUT_BUTTON),
+						intake.watchForStatesCommand(IntakeFSMState.PARTIAL_OUT_STATE)));
 	}
 
 	private static Command intakePartialCommand(AutoInput input, IntakeFSMSystem intake) {

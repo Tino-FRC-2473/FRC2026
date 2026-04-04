@@ -50,7 +50,7 @@ public class Constants {
 
 	public static final class DrivetrainConstants {
 		public static final double FACE_TARGET_DEADBAND = 7;
-		public static final double INPUT_SLEW_RATE = 20; //0.2
+		public static final double INPUT_SLEW_RATE = 15; //20
 		public static final int NUM_MODULES = 4;
 
 		//for accessor method and conversion
@@ -266,7 +266,7 @@ public class Constants {
 		//Targets for Pivot
 		public static final Angle UPPER_TARGET_ANGLE = Units.Radians.of(2.2);
 		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(0);
-		public static final Angle PARTIAL_OUT_TARGET_ANGLE =  Units.Radians.of(1.5);
+		public static final Angle PARTIAL_OUT_TARGET_ANGLE =  Units.Radians.of(0); //Units.Radians.of(1.5);
 
 		public static final double PIVOT_MAX_ROTATION = 2.09;
 		public static final double PIVOT_MIN_ROTATION = 0;
