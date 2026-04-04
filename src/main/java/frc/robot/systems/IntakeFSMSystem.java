@@ -244,7 +244,6 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	public void reset() {
 		setCurrentState(IntakeFSMState.IDLE_IN_STATE);
-
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -567,7 +566,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		// 	pivotMotorLeft.setPosition(Angle.ofBaseUnits(0, Degree));
 		// }
 
-		return groundLimitSwitch.get(); // switch is normally open
+		return groundLimitSwitch.get(); // switch is normally ope
 	}
 
 	/**

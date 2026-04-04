@@ -266,12 +266,13 @@ public class Constants {
 		//Targets for Pivot
 		public static final Angle UPPER_TARGET_ANGLE = Units.Radians.of(2.2);
 		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(0);
-		public static final Angle PARTIAL_OUT_TARGET_ANGLE = Units.Radians.of(1.5);
+		public static final Angle PARTIAL_OUT_TARGET_ANGLE =  Units.Radians.of(1.5);
 
 		public static final double PIVOT_MAX_ROTATION = 2.09;
 		public static final double PIVOT_MIN_ROTATION = 0;
 
 		//Arm length in meters
+
 		public static final double PIVOT_ARM_LENGTH = 0.5;
 
 		//The moment of inertia of the arm in kg-m²; can be calculated from CAD software.
