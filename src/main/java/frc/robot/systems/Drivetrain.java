@@ -635,8 +635,12 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 
 		handleDriveInputs(input);
-			
-		double flipAlliance = 0;
+
+		double flipAlliance = 0
+
+		if (!Robot.IS_BLUE) {
+			flipAlliance = Math.PI;
+		}
 
 		if (USE_SOTM_AIMING) {
 			boolean isPassing = (getCurrentState() == DrivetrainState.FACE_PASS);
@@ -778,11 +782,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		speed = limiter.calculate(speed);
 
-		if (isRedAlliance()) {
+		if (invertControls) {
 			speed *= -1;
 		}
 
-		if (invertControls) {
+		if (!Robot.IS_BLUE) {
 			speed *= -1;
 		}
 

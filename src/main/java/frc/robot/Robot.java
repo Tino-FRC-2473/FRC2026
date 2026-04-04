@@ -52,7 +52,7 @@ import edu.wpi.first.wpilibj2.command.Command;
  */
 public class Robot extends LoggedRobot {
 
-	public static final boolean IS_BLUE = true;
+	public static final boolean IS_BLUE = false;
 
 	// Robot input
 	private AutoInput autoInput;
@@ -263,14 +263,14 @@ public class Robot extends LoggedRobot {
 		if (vision != null) {
 			vision.periodic();
 		}
-		if (HubTracker.timeRemainingInCurrentShift().isPresent()) {
-			Logger.recordOutput("Hub/TimeUntilNextShift",
-					HubTracker.timeRemainingInCurrentShift().get());
-		} else {
-			Logger.recordOutput("Hub/TimeUntilNextShift",
-					-1);
+		// if (HubTracker.timeRemainingInCurrentShift().isPresent()) {
+		// 	Logger.recordOutput("Hub/TimeUntilNextShift",
+		// 			HubTracker.timeRemainingInCurrentShift().get());
+		// } else {
+		// 	Logger.recordOutput("Hub/TimeUntilNextShift",
+		// 			-1);
 
-		}
-		Logger.recordOutput("Hub/IsActive", HubTracker.isActive());
+		// }
+		// Logger.recordOutput("Hub/IsActive", HubTracker.isActive());
 	}
 }

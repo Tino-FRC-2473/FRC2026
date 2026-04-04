@@ -50,7 +50,7 @@ public class Constants {
 
 	public static final class DrivetrainConstants {
 		public static final double FACE_TARGET_DEADBAND = 7;
-		public static final double INPUT_SLEW_RATE = 15; //20
+		public static final double INPUT_SLEW_RATE = 20; //20
 		public static final int NUM_MODULES = 4;
 
 		//for accessor method and conversion
@@ -307,7 +307,7 @@ public class Constants {
 		public static final double INTAKE_EXPO_KV = 0.12;
 
 		//other
-		public static final double PIVOT_CURRENT_LIMIT = 10; //in amps
+		public static final double PIVOT_CURRENT_LIMIT = 20; //in amps
 		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
 		public static final double SIM_UPDATE_SECONDS = 0.02;
 		public static final Angle SIM_LIMIT_SWITCH_BUFFER = Units.Radians.of(0.01);

@@ -2,6 +2,7 @@ package frc.robot.auto;
 
 
 import edu.wpi.first.math.numbers.N10;
+import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.math.numbers.N5;
 import edu.wpi.first.math.numbers.N6;
@@ -267,7 +268,7 @@ public class AutoPaths {
 					waitFor(N1.instance.getNum()),
 					stopFaceHub(input, drivetrain),
 					//ballShakeSide(input, drivetrain),
-					shootFor(input, shooter, N10.instance.getNum()),
+					shootFor(input, shooter, N5.instance.getNum())
 					//stopBallShakeSide(input, drivetrain)
 				);
 	}
@@ -310,10 +311,72 @@ public class AutoPaths {
 					waitFor(N1.instance.getNum()),
 					stopFaceHub(input, drivetrain),
 					//ballShakeSide(input, drivetrain),
-					shootFor(input, shooter, N10.instance.getNum())
+					shootFor(input, shooter, N5.instance.getNum())
+					
 					//stopBallShakeSide(input, drivetrain)
 				);
 	}
+
+	private static Command getS3NZShootOutpostShootCommand(AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			IntakeFSMSystem intake){
+		return Commands.sequence(
+					drivetrain.followcommand("S3_S3NZ_copy1"),
+					startIntakeCommand(input, intake),
+					drivetrain.followcommand("S3_S3NZ_copy2"),
+					drivetrain.followcommand("S3NZ_INTAKE"),
+					stopIntakeCommand(input, intake),
+					drivetrain.followcommand("S3NZ_S3SHOOTING_copy1"),
+					drivetrain.followcommand("S3NZ_S3SHOOTING_copy2"),
+					drivetrain.followcommand("S3NZ_S3SHOOTING_copy3"),
+					drivetrain.followcommand("S3NZ_S3SHOOTING_copy4"),
+					faceHub(input, drivetrain),
+					waitFor(N1.instance.getNum()),
+					stopFaceHub(input, drivetrain),
+					shootFor(input, shooter, N5.instance.getNum()),
+					drivetrain.followcommand("S3SHOOTING_o"),
+					startIntakeCommand(input, intake),
+					waitFor(3.0),
+					stopIntakeCommand(input, intake),
+					drivetrain.followcommand("O_S3SHOOTING"),
+					faceHub(input, drivetrain),
+					waitFor(N1.instance.getNum()),
+					stopFaceHub(input, drivetrain),
+					shootFor(input, shooter, N5.instance.getNum())
+				);
+	}
+
+	private static Command getS1NZShootDepotShootCommand(AutoInput input,
+			Drivetrain drivetrain,
+			ShooterFSMSystem shooter,
+			IntakeFSMSystem intake){
+			return Commands.sequence(
+				drivetrain.followcommand("S1_S1NZ_copy1"),
+					startIntakeCommand(input, intake),
+					drivetrain.followcommand("S1_S1NZ_copy2"),
+					drivetrain.followcommand("S1NZ_INTAKE"),
+					stopIntakeCommand(input, intake),
+					drivetrain.followcommand("S1NZ_S1SHOOTING_copy1"),
+					drivetrain.followcommand("S1NZ_S1SHOOTING_copy2"),
+					drivetrain.followcommand("S1NZ_S1SHOOTING_copy3"),
+					drivetrain.followcommand("S1NZ_S1SHOOTING_copy4"),
+					faceHub(input, drivetrain),
+					waitFor(N1.instance.getNum()),
+					stopFaceHub(input, drivetrain),
+					shootFor(input, shooter, N5.instance.getNum()),
+					drivetrain.followcommand("S1SHOOTING_D"),
+					startIntakeCommand(input, intake),
+					drivetrain.followcommand("D_INTAKE"),
+					stopIntakeCommand(input, intake),
+					drivetrain.followcommand("D_S1SHOOTING"),
+					faceHub(input, drivetrain),
+					waitFor(N1.instance.getNum()),
+					stopFaceHub(input, drivetrain),
+					shootFor(input, shooter, N5.instance.getNum())
+				);
+
+			}
 
 	private static Command getS1ShootCommand(
 		AutoInput input,
@@ -539,6 +602,8 @@ public class AutoPaths {
 		chooser.addOption(
 				"S3 Shoot NZ Shoot command",
 				getS3ShootNZShootCommand(input, drivetrain, shooter, intake));
+		chooser.addOption("S1 NZ Shoot Depot Shoot Command", getS1NZShootDepotShootCommand(input, drivetrain, shooter, intake));
+		chooser.addOption("S3 NZ Shoot Outpost Shoot command", getS3NZShootOutpostShootCommand(input, drivetrain, shooter, intake));
 	}
 
 	// on the fly path example
