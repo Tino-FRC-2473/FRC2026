@@ -52,7 +52,7 @@ import edu.wpi.first.wpilibj2.command.Command;
  */
 public class Robot extends LoggedRobot {
 
-	public static final boolean IS_BLUE = false;
+	public static final boolean IS_BLUE = true;
 
 	// Robot input
 	private AutoInput autoInput;
@@ -68,7 +68,6 @@ public class Robot extends LoggedRobot {
 	// create sendable chooser
 	private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 	private Command autonomousCommand;
-	private final SendableChooser<Double> faceHubChooser = new SendableChooser<>();
 
 	/**
 	 * This function is run when the robot is first started up and should be used
@@ -159,15 +158,8 @@ public class Robot extends LoggedRobot {
 					drive,
 					shooterAuto,
 					intakeAuto);
-			faceHubChooser.addOption("Add Pi", Math.PI);
-			faceHubChooser.addOption("Add pi/2", Math.PI/2);
-			faceHubChooser.addOption("Add 0", 0.0);
-			faceHubChooser.setDefaultOption("Add 0", 0.0);
 		}
 		SmartDashboard.putData("Auto Chooser", autoChooser);
-		SmartDashboard.putData("Face Hub Chooser", faceHubChooser);
-
-
 		PathfindingCommand.warmupCommand().schedule();
 		FollowPathCommand.warmupCommand().schedule();
 

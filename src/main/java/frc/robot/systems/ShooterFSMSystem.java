@@ -121,6 +121,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// enable stator current limit
 		limitConfigs.StatorCurrentLimit = ShooterConstants.SHOOTER_CURRENT_LIMIT;
 		limitConfigs.StatorCurrentLimitEnable = true;
+		limitConfigs.SupplyCurrentLimit = 35.0;
+
+		limitConfigs.SupplyCurrentLimitEnable = true;
 
 		flywheelConfigs = new TalonFXConfiguration();
 		var flywheel0Config = flywheelConfigs.Slot0;

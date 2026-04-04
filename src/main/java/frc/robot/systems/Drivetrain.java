@@ -47,6 +47,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -131,11 +132,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private int alignmentTargetTag;
 
 	private double targetAngle = 0;
-
 	/**
 	 * Construct the drivetrain subsystem.
 	 */
 	public Drivetrain() {
+
 		createDrivetrain();
 		updateSmartDashboard();
 		configureAutoBuilder();
@@ -635,7 +636,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		handleDriveInputs(input);
 			
-		double flipAlliance = Robot.IS_BLUE ? Math.PI : Math.PI;
+		double flipAlliance = 0;
 
 		if (USE_SOTM_AIMING) {
 			boolean isPassing = (getCurrentState() == DrivetrainState.FACE_PASS);

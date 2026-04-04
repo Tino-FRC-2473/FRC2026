@@ -266,9 +266,9 @@ public class AutoPaths {
 					faceHub(input, drivetrain),
 					waitFor(N1.instance.getNum()),
 					stopFaceHub(input, drivetrain),
-					ballShakeSide(input, drivetrain),
+					//ballShakeSide(input, drivetrain),
 					shootFor(input, shooter, N10.instance.getNum()),
-					stopBallShakeSide(input, drivetrain)
+					//stopBallShakeSide(input, drivetrain)
 				);
 	}
 
@@ -309,9 +309,9 @@ public class AutoPaths {
 					faceHub(input, drivetrain),
 					waitFor(N1.instance.getNum()),
 					stopFaceHub(input, drivetrain),
-					ballShakeSide(input, drivetrain),
-					shootFor(input, shooter, N10.instance.getNum()),
-					stopBallShakeSide(input, drivetrain)
+					//ballShakeSide(input, drivetrain),
+					shootFor(input, shooter, N10.instance.getNum())
+					//stopBallShakeSide(input, drivetrain)
 				);
 	}
 

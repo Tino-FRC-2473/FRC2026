@@ -3,6 +3,7 @@ package frc.robot.systems;
 import org.littletonrobotics.junction.AutoLogOutput;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
@@ -31,6 +32,7 @@ import frc.robot.input.Input;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.HardwareMap;
 
 
@@ -173,8 +175,18 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		intakeMotionMagicConfigs.MotionMagicCruiseVelocity = IntakeConstants.INTAKE_CRUISE_VELO;
 		intakeMotionMagicConfigs.MotionMagicAcceleration = IntakeConstants.INTAKE_TARGET_ACCEL;
 		intakeMotionMagicConfigs.MotionMagicExpo_kV = IntakeConstants.INTAKE_EXPO_KV;
+		var limit2Configs = new CurrentLimitsConfigs();
+
+		// enable stator current limit
+		limit2Configs.SupplyCurrentLimit = 25.0;
+		limit2Configs.SupplyCurrentLimitEnable = true;
+		intakeMotor.getConfigurator().apply(limit2Configs);
+
+
 
 		pivotMotorRight.getConfigurator().apply(talonFXConfigs);
+		pivotMotorLeft.getConfigurator().apply(limitConfig);
+
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				IntakeConstants.UPDATE_FREQUENCY,
@@ -523,6 +535,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		} else {
 			pivotMotorRight.stopMotor();
 		}
+		intakeMotor.stopMotor();
 	}
 	/**
 	 * Handle behavior in INTAKE_STATE.
@@ -550,6 +563,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	private void handleFoldInState(Input input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
 			withPosition(IntakeConstants.UPPER_TARGET_ANGLE));
+		intakeMotor.set(0);
 	}
 
 
