@@ -3,6 +3,7 @@ package frc.robot.systems;
 import org.littletonrobotics.junction.AutoLogOutput;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
@@ -91,10 +92,8 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public IntakeFSMSystem() {
-
 		pivotMotionRequest = new MotionMagicVoltage(0);
 		intakeMotionRequest = new MotionMagicVelocityVoltage(0);
-
 
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
@@ -173,8 +172,18 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		intakeMotionMagicConfigs.MotionMagicCruiseVelocity = IntakeConstants.INTAKE_CRUISE_VELO;
 		intakeMotionMagicConfigs.MotionMagicAcceleration = IntakeConstants.INTAKE_TARGET_ACCEL;
 		intakeMotionMagicConfigs.MotionMagicExpo_kV = IntakeConstants.INTAKE_EXPO_KV;
+		var limit2Configs = new CurrentLimitsConfigs();
+
+		// enable stator current limit
+		limit2Configs.SupplyCurrentLimit = IntakeConstants.LIMIT2_CURRENT_LIMIT;
+		limit2Configs.SupplyCurrentLimitEnable = true;
+		intakeMotor.getConfigurator().apply(limit2Configs);
+
+
 
 		pivotMotorRight.getConfigurator().apply(talonFXConfigs);
+		pivotMotorLeft.getConfigurator().apply(limitConfig);
+
 
 		BaseStatusSignal.setUpdateFrequencyForAll(
 				IntakeConstants.UPDATE_FREQUENCY,
@@ -244,7 +253,6 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 */
 	public void reset() {
 		setCurrentState(IntakeFSMState.IDLE_IN_STATE);
-
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
@@ -434,6 +442,10 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 					return IntakeFSMState.FOLD_OUT_STATE;
 				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
 					return IntakeFSMState.FOLD_IN_STATE;
+				} else if (input.getButtonPressed(ButtonInput.INTAKE_BUTTON)) {
+					return IntakeFSMState.INTAKE_STATE;
+				} else if (input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON)) {
+					return IntakeFSMState.OUTTAKE_STATE;
 				} else {
 					return IntakeFSMState.PARTIAL_OUT_STATE;
 				}
@@ -459,14 +471,14 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 
 			case INTAKE_STATE:
 				if (input.getButtonReleased(ButtonInput.INTAKE_BUTTON)) {
-					return IntakeFSMState.IDLE_OUT_STATE;
+					return IntakeFSMState.PARTIAL_OUT_STATE;
 				} else {
 					return IntakeFSMState.INTAKE_STATE;
 				}
 
 			case OUTTAKE_STATE:
 				if (input.getButtonReleased(ButtonInput.OUTTAKE_BUTTON)) {
-					return IntakeFSMState.IDLE_OUT_STATE;
+					return IntakeFSMState.PARTIAL_OUT_STATE;
 				} else {
 					return IntakeFSMState.OUTTAKE_STATE;
 				}
@@ -520,6 +532,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		} else {
 			pivotMotorRight.stopMotor();
 		}
+		intakeMotor.stopMotor();
 	}
 	/**
 	 * Handle behavior in INTAKE_STATE.
@@ -547,6 +560,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	private void handleFoldInState(Input input) {
 		pivotMotorRight.setControl(pivotMotionRequest.
 			withPosition(IntakeConstants.UPPER_TARGET_ANGLE));
+		intakeMotor.set(0);
 	}
 
 

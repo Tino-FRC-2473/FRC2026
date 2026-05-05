@@ -23,6 +23,8 @@ public class InputTypes {
 		DRIVETRAIN_INVERT_CONTROLS,
 		FACE_PASS,
 		FACE_HUB,
+		BALL_SHAKE_FRONT,
+		BALL_SHAKE_SIDE,
 
 		// Climber
 		CLIMBER_MANUAL_OVERRIDE,
@@ -31,7 +33,7 @@ public class InputTypes {
 		CLIMBER_AUTO_UP_1,
 		CLIMBER_AUTO_UP_2,
 
-		//Shooter
+		// Shooter
 		PASSER_PREP_TOGGLE,
 		SHOOTER_PREP_TOGGLE,
 		MANUAL_SHOOT_TOGGLE,
