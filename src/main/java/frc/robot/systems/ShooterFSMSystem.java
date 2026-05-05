@@ -104,8 +104,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feederMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_FEEDER
 		);
-
-
 		flywheelMotorPos = flywheelMotor.getPosition();
 		feederMotorPos = feederMotor.getPosition();
 		flywheelMotorVel = flywheelMotor.getVelocity();
@@ -120,6 +118,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// enable stator current limit
 		limitConfigs.StatorCurrentLimit = ShooterConstants.SHOOTER_CURRENT_LIMIT;
 		limitConfigs.StatorCurrentLimitEnable = true;
+		limitConfigs.SupplyCurrentLimit = ShooterConstants.SHOOTER_OTHER_CURRENT_LIMIT;
+
+		limitConfigs.SupplyCurrentLimitEnable = true;
 
 		flywheelConfigs = new TalonFXConfiguration();
 		var flywheel0Config = flywheelConfigs.Slot0;
@@ -133,7 +134,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		flywheel0Config.kI = ShooterConstants.FLYWHEEL_MM_CONSTANT_I;
 		//account for velocity error of 1rps
 		flywheel0Config.kD = ShooterConstants.FLYWHEEL_MM_CONSTANT_D;
-
 		var flywheelMotionMagicConfigs = flywheelConfigs.MotionMagic;
 		//160 rps/s
 		flywheelMotionMagicConfigs.MotionMagicAcceleration =
@@ -507,19 +507,21 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handlePasserPrepState(Input input) {
-		Pose2d correctTarget = new Pose2d();
+		// Pose2d correctTarget = new Pose2d();
 
-		double outpostDistance = (double) curPose.getTranslation()
-				.getDistance(outpostPose.getTranslation());
-		double target3Distance = (double) curPose.getTranslation()
-				.getDistance(target3Pose.getTranslation());
-		if (outpostDistance < target3Distance) {
-			correctTarget = target3Pose;
-		} else {
-			correctTarget = outpostPose;
-		}
-		double flyspeed = calculateTargetPassSpeed(correctTarget);
-		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
+		// double outpostDistance = (double) curPose.getTranslation()
+		// 		.getDistance(outpostPose.getTranslation());
+		// double target3Distance = (double) curPose.getTranslation()
+		// 		.getDistance(target3Pose.getTranslation());
+		// if (outpostDistance < target3Distance) {
+		// 	correctTarget = target3Pose;
+		// } else {
+		// 	correctTarget = outpostPose;
+		// }
+		// double flyspeed = calculateTargetPassSpeed(correctTarget);
+		flywheelTargetSpeed = RotationsPerSecond.of(ShooterConstants.FLYWHEEL_TARGET_SPEED);
+
+		//RotationsPerSecond.of((double) flyspeed);
 		updateFlywheel();
 	}
 
@@ -541,6 +543,9 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 * @return A double holding the target's needed flywheel speed
 	 */
 	public double calculateTargetShootSpeed(Pose2d target) {
+		Logger.recordOutput("Optimal Speed", LaunchCalculator.getInstance().getParameters(
+			curPose, drivetrain.getChassisSpeeds(), target.getTranslation(), false
+		).flywheelSpeed());
 		return LaunchCalculator.getInstance().getParameters(
 			curPose, drivetrain.getChassisSpeeds(), target.getTranslation(), false
 		).flywheelSpeed();
@@ -585,7 +590,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 	 *		the robot is in autonomous mode.
 	 */
 	private void handleShooterPrepState(Input input) {
-		double flyspeed = calculateTargetShootSpeed(hubPose);
+		double flyspeed = calculateTargetShootSpeed(drivetrain.getHubPose());
 		flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
 
 		updateFlywheel();
@@ -600,6 +605,11 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 		Logger.recordOutput("noFuelStored", noFuelStored);
 		Logger.recordOutput("isIntakeDown", modelIntake(input));
+		if (pastState == ShooterFSMState.SHOOTER_PREP_STATE) {
+			double flyspeed = calculateTargetShootSpeed(drivetrain.getHubPose());
+			flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
+			updateFlywheel();
+		}
 
 		if (!flywheel1AtSpeed() || !flywheel2AtSpeed()
 			|| !input.getButtonValue(ButtonInput.REV_FEEDER)) {

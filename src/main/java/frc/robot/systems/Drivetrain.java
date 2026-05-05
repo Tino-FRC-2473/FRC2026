@@ -3,10 +3,8 @@ package frc.robot.systems;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static frc.robot.Constants.DrivetrainConstants.BLUE_ALLIANCE_TAG_26;
-import static frc.robot.Constants.DrivetrainConstants.BLUE_HUB_POSE;
 import static frc.robot.Constants.DrivetrainConstants.MAX_ANGULAR_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.MAX_SPEED;
-import static frc.robot.Constants.DrivetrainConstants.PATH_CONSTRAINTS;
 import static frc.robot.Constants.DrivetrainConstants.RED_ALLIANCE_TAG_10;
 import static frc.robot.Constants.DrivetrainConstants.ROTATIONAL_DAMP;
 import static frc.robot.Constants.DrivetrainConstants.ROTATIONAL_DEADBAND;
@@ -16,10 +14,11 @@ import static frc.robot.Constants.DrivetrainConstants.X_TAG_OFFSET;
 import static frc.robot.Constants.DrivetrainConstants.Y_TAG_OFFSET;
 import static frc.robot.imported.FieldConstants.TAG_LAYOUT;
 
-import java.io.IOException;
 
+import java.io.IOException;
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -27,9 +26,11 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -45,6 +46,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.generated.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
@@ -52,13 +54,15 @@ import frc.robot.imported.geom.AllianceFlipUtil;
 import frc.robot.input.Input;
 import frc.robot.input.InputTypes.AxialInput;
 import frc.robot.input.InputTypes.ButtonInput;
+import frc.robot.Robot;
 import frc.robot.Constants.DrivetrainConstants;
+import frc.robot.imported.LaunchCalculator;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.numbers.N10;
 
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
+
 
 	/* ======================== Enums ======================== */
 	// region
@@ -83,9 +87,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			// Use open-loop for drive motors
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-	private final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds = new SwerveRequest
-			.ApplyRobotSpeeds()
-			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+	private final SwerveRequest.ApplyRobotSpeeds applyRobotSpeeds
+		= new SwerveRequest.ApplyRobotSpeeds()
+			.withDriveRequestType(DriveRequestType.Velocity);
 
 	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle
 		= new SwerveRequest.FieldCentricFacingAngle()
@@ -93,7 +97,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				* DrivetrainConstants.TRANSLATIONAL_DEADBAND)
 			.withRotationalDeadband(MAX_ANGULAR_SPEED.in(RadiansPerSecond)
 				* DrivetrainConstants.ROTATIONAL_DEADBAND)
-			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+			.withDriveRequestType(DriveRequestType.Velocity);
+
+	private final SlewRateLimiter xInputRateLimiter
+		= new SlewRateLimiter(DrivetrainConstants.INPUT_SLEW_RATE);
+	private final SlewRateLimiter yInputRateLimiter
+		= new SlewRateLimiter(DrivetrainConstants.INPUT_SLEW_RATE);
+	// private final SlewRateLimiter thetaInputRateLimiter
+	// 	= new SlewRateLimiter(DrivetrainConstants.INPUT_SLEW_RATE);
 
 	// endregion
 	/* ======================== Private variables ======================== */
@@ -104,7 +115,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private Command pathfindCommand = null;
 	private Field2d simulatedField = new Field2d();
 
-
 	private Alliance alliance;
 	private boolean invertControls = false;
 	private double xSpeed;
@@ -114,11 +124,11 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private int alignmentTargetTag;
 
 	private double targetAngle = 0;
-
 	/**
 	 * Construct the drivetrain subsystem.
 	 */
 	public Drivetrain() {
+
 		createDrivetrain();
 		updateSmartDashboard();
 		configureAutoBuilder();
@@ -148,13 +158,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		simulatedField.setRobotPose(drivetrain.getState().Pose);
 
 		switch (currentState) {
-			case AUTONOMOUS: case PATHFINDING:
+			case AUTONOMOUS:
+			case PATHFINDING:
 				break;
 			case CONTROLLED:
 				handleTeleopState(input);
 				break;
 			case FACE_HUB:
-				handleFaceTarget(input, currentHubPose);
+				handleFaceTarget(input, getHubPose());
 				break;
 			case FACE_PASS:
 				handleFaceTarget(input, getBestPassingTarget());
@@ -167,8 +178,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				break;
 			default:
 				throw new IllegalStateException(
-					"[DRIVETRAIN] Cannot update an invalid state: " + currentState.toString()
-				);
+						"[DRIVETRAIN] Cannot update an invalid state: " + currentState.toString());
 		}
 
 		currentState = nextState(input);
@@ -185,7 +195,17 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				if (hasDriverInput(input)) {
 					return DrivetrainState.CONTROLLED;
 				}
-				return DrivetrainState.AUTONOMOUS;
+				if (input.getButtonPressed(ButtonInput.FACE_HUB)) {
+					return DrivetrainState.FACE_HUB;
+				} else if (input.getButtonPressed(ButtonInput.FACE_PASS)) {
+					return DrivetrainState.FACE_PASS;
+				} else if (input.getButtonPressed(ButtonInput.BALL_SHAKE_FRONT)) {
+					return DrivetrainState.BALL_SHAKE_FRONT;
+				} else if (input.getButtonPressed(ButtonInput.BALL_SHAKE_SIDE)) {
+					return DrivetrainState.BALL_SHAKE_SIDE;
+				} else {
+					return DrivetrainState.AUTONOMOUS;
+				}
 			case CONTROLLED:
 				if (input.getButtonValue(ButtonInput.BALL_SHAKE_FRONT)) {
 					return DrivetrainState.BALL_SHAKE_FRONT;
@@ -210,6 +230,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 					startPathfinding();
 
 					return DrivetrainState.PATHFINDING;
+				} else if (input.getButtonPressed(ButtonInput.FACE_HUB)) {
+					return DrivetrainState.FACE_HUB;
+				} else if (input.getButtonPressed(ButtonInput.FACE_PASS)) {
+					return DrivetrainState.FACE_PASS;
 				} else {
 					return DrivetrainState.CONTROLLED;
 				}
@@ -223,12 +247,32 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			case FACE_HUB:
 				if (input.getButtonValue(ButtonInput.FACE_HUB)) {
 					return DrivetrainState.FACE_HUB;
+				} else if (DriverStation.isAutonomous()) {
+					return DrivetrainState.AUTONOMOUS;
 				} else {
 					return DrivetrainState.CONTROLLED;
 				}
 			case FACE_PASS:
 				if (input.getButtonValue(ButtonInput.FACE_PASS)) {
 					return DrivetrainState.FACE_PASS;
+				} else if (DriverStation.isAutonomous()) {
+					return DrivetrainState.AUTONOMOUS;
+				} else {
+					return DrivetrainState.CONTROLLED;
+				}
+			case BALL_SHAKE_FRONT:
+				if (input.getButtonValue(ButtonInput.BALL_SHAKE_FRONT)) {
+					return DrivetrainState.BALL_SHAKE_FRONT;
+				} else if (DriverStation.isAutonomous()) {
+					return DrivetrainState.AUTONOMOUS;
+				} else {
+					return DrivetrainState.CONTROLLED;
+				}
+			case BALL_SHAKE_SIDE:
+				if (input.getButtonValue(ButtonInput.BALL_SHAKE_SIDE)) {
+					return DrivetrainState.BALL_SHAKE_SIDE;
+				} else if (DriverStation.isAutonomous()) {
+					return DrivetrainState.AUTONOMOUS;
 				} else {
 					return DrivetrainState.CONTROLLED;
 				}
@@ -246,32 +290,28 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				}
 			default:
 				throw new IllegalStateException(
-					"[DRIVETRAIN] Cannot get next state from an invalud state: "
-						+ currentState.toString()
-				);
+						"[DRIVETRAIN] Cannot get next state from an invalud state: "
+								+ currentState.toString());
 		}
 	}
 
 	/**
 	 * Adds a new timestamped vision measurement.
 	 *
-	 * @param visionPose the pose of the robot in the camera's coordinate frame
-	 * @param timestamp the timestamp of the measurement
+	 * @param visionPose    the pose of the robot in the camera's coordinate frame
+	 * @param timestamp     the timestamp of the measurement
 	 * @param visionStdDevs the standard deviations of the measurement in the
-	 * 					   x, y, and theta directions
+	 *                      x, y, and theta directions
 	 */
 	public void addVisionMeasurement(
 			Pose2d visionPose,
 			double timestamp,
-			Matrix<N3, N1> visionStdDevs
-	) {
+			Matrix<N3, N1> visionStdDevs) {
 		drivetrain.addVisionMeasurement(new Pose2d(
 				visionPose.getX(),
 				visionPose.getY(),
-				visionPose.getRotation().plus(Rotation2d.k180deg)
-			),
-			timestamp, visionStdDevs
-		);
+				visionPose.getRotation().plus(Rotation2d.k180deg)),
+				timestamp, visionStdDevs);
 	}
 
 	// endregion
@@ -303,7 +343,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 *
 	 * @return the rotation
 	 */
-	@AutoLogOutput(key = "Drivetrain/Rotation")
+	@AutoLogOutput(key = "Drivetrain/RotationDouble")
 	public double getRotationDouble() {
 		return MathUtil.angleModulus(drivetrain.getPigeon2()
 			.getRotation2d().getRadians() + Math.PI);
@@ -364,7 +404,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 *
 	 * @return the current pathfinding target
 	 */
-	@AutoLogOutput(key = "Vision/Alignment Pose")
+	//@AutoLogOutput(key = "Vision/Alignment Pose")
 	public Pose2d getPathfindingTarget() {
 		return TAG_LAYOUT.getTagPose(alignmentTargetTag)
 				.orElse(null)
@@ -383,7 +423,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	@AutoLogOutput(key = "Drivetrain/Current Hub Pose")
 	public Pose2d getCurrentHubPose() {
-		return AllianceFlipUtil.apply(BLUE_HUB_POSE);
+		return AllianceFlipUtil.apply(DrivetrainConstants.BLUE_HUB_POSE);
 	}
 
 	/**
@@ -402,9 +442,14 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 	private void createDrivetrain() {
 		drivetrain = TunerConstants.createDrivetrain();
+		driveFacingAngle.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
 	}
 
-	private Pose2d getHubPose() {
+	/**
+	 * gets the hub pose.
+	 * @return position of robot
+	 */
+	public Pose2d getHubPose() {
 		var currentAlliance = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
 		return (currentAlliance == DriverStation.Alliance.Red) ? DrivetrainConstants.RED_HUB_POSE
 				: DrivetrainConstants.BLUE_HUB_POSE;
@@ -434,12 +479,13 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		RobotConfig config = null;
 		try {
 			config = RobotConfig.fromGUISettings();
-		} catch (IOException | ParseException e) { }
+		} catch (IOException | ParseException e) {
+		}
 
 		AutoBuilder.configure(
-			this::getPose, // Robot pose supplier
-			// Method to reset odometry (will be called if your auto has a starting pose)
-			drivetrain::resetPose,
+				this::getPose, // Robot pose supplier
+				// Method to reset odometry (will be called if your auto has a starting pose)
+				drivetrain::resetPose,
 			() -> {
 				return drivetrain.getState().Speeds;
 			}, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
@@ -453,35 +499,44 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				drivetrain.setControl(
 					applyRobotSpeeds
 						.withSpeeds(speedINeedThis.times(TRANSLATIONAL_DAMP))
-						.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
-						.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
-				);
+						.withWheelForceFeedforwardsX(
+							feedforwards.robotRelativeForcesXNewtons())
+						.withWheelForceFeedforwardsY(
+							feedforwards.robotRelativeForcesYNewtons()));
 
-			}, /* Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
-			optionally outputs individual module feedforwards*/
-			new PPHolonomicDriveController(/*PPHolonomicController is the built in path
-				following controller for holonomic drive trains */
-				// Translation PID constants
-				new PIDConstants(ModuleConstants.DRIVE_P,
-					ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D),
-				// Rotation PID constants
-				new PIDConstants(ModuleConstants.STEER_P,
-					ModuleConstants.STEER_I, ModuleConstants.STEER_D)
-			),
-			config, // The robot configuration
+			},  /*
+				 * Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
+				 * optionally outputs individual module feedforwards
+				 */
+				new PPHolonomicDriveController(/*
+												 * PPHolonomicController is the built in path
+												 * following controller for holonomic drive trains
+												 */
+						// Translation PID constants
+						new PIDConstants(ModuleConstants.DRIVE_P,
+								ModuleConstants.DRIVE_I, ModuleConstants.DRIVE_D),
+						// Rotation PID constants
+						new PIDConstants(ModuleConstants.STEER_P,
+								ModuleConstants.STEER_I, ModuleConstants.STEER_D)),
+				config, // The robot configuration
 			() -> {
-				/* Boolean supplier that controls when the
-				path will be mirrored for the red alliance*/
+				/*
+				 * Boolean supplier that controls when the
+				 * path will be mirrored for the red alliance
+				 */
 				// This will flip the path being followed to the red side of the field.
 				// THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
-				// var alliance = DriverStation.getAlliance();
-				// if (alliance.isPresent()) {
-				// 	return alliance.get() == DriverStation.Alliance.Red;
+				return !Robot.IS_BLUE;
+
+				// var detectedAlliance = DriverStation.getAlliance();
+				// if (detectedAlliance.isPresent()) {
+				// 	return detectedAlliance.get() == DriverStation.Alliance.Red;
 				// }
-				return false;
+				// System.out.println("Alliance not detected! Defaulting to blue. Good luck.");
+				// return false;
 			},
-			drivetrain // Reference to the subsystem to set requirements
+				drivetrain // Reference to the subsystem to set requirements
 		);
 	}
 
@@ -497,8 +552,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		drivetrain.applyRequest(() -> driveFieldCentric
 				.withVelocityX(0)
 				.withVelocityY(0)
-				.withRotationalRate(0)
-		);
+				.withRotationalRate(0));
 	}
 
 	private boolean hasDriverInput(Input input) {
@@ -578,8 +632,8 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		return Math.abs(avgMotorSpeed * conversion);
 	}
 	private void startPathfinding() {
-		Pose2d target = getPathfindingTarget();
-		pathfindCommand = AutoBuilder.pathfindToPose(target, PATH_CONSTRAINTS);
+		// Pose2d target = getPathfindingTarget();
+		// pathfindCommand = AutoBuilder.pathfindToPose(target, PATH_CONSTRAINTS);
 		CommandScheduler.getInstance().schedule(pathfindCommand);
 	}
 
@@ -588,64 +642,116 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			return;
 		}
 
-		double flipAlliance = (DriverStation.getAlliance()
-				.orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue) ? 1.0 : -1.0;
+		handleDriveInputs(input);
 
-		double localXSpeed = (invertControls ? -1 : 1) * flipAlliance * MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_X),
-					DrivetrainConstants.TRANSLATION_DEADBAND)
-				* MAX_SPEED.in(MetersPerSecond);
+		double flipAlliance = 0;
 
-		double localYSpeed = -(invertControls ? 1 : 0) * flipAlliance * MathUtil.applyDeadband(
-				input.getAxisValue(AxialInput.DRIVETRAIN_DRIVE_Y),
-					DrivetrainConstants.TRANSLATION_DEADBAND)
-				* MAX_SPEED.in(MetersPerSecond);
+		if (!Robot.IS_BLUE) {
+			flipAlliance = 0; //Math.PI;
+		}
 
-		// Transform2d distance = targetPose.minus(getPose());
-		// Using angleModulus to prevent wrap-around issues with filtering
-		Translation2d robotTranslation = getPose().getTranslation();
-		Translation2d targetTranslation = targetPose.getTranslation();
-		Translation2d diff = targetTranslation.minus(robotTranslation);
-		targetAngle = Math.atan2(diff.getY(), diff.getX());
-		// double currentAngle = getRotation();
-		// double rawTarget = Math.atan2(distance.getY(), distance.getX());
+		if (DrivetrainConstants.USE_SOTM_AIMING) {
+			boolean isPassing = (getCurrentState() == DrivetrainState.FACE_PASS);
+			var params = LaunchCalculator.getInstance().getParameters(
+				getPose(),
+				getChassisSpeeds(),
+				targetPose.getTranslation(),
+				isPassing
+			);
+			targetAngle = MathUtil.angleModulus(params.driveAngle().getRadians() + Math.PI);
+			//pigeon odomtery is backwards
 
-		// double error = MathUtil.angleModulus(rawTarget - currentAngle);
+			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(
+				getRotationDouble() - targetAngle + flipAlliance)));
 
-		// if(Math.abs(error) > Math.PI / 2) {
-		// rawTarget = MathUtil.angleModulus(rawTarget + Math.PI);
-		// }
+			Logger.recordOutput("Drivetrain/Target", targetAngle);
+			Logger.recordOutput("Drivetrain/Rotation", getRotationDouble());
 
-		// targetAngle = MathUtil.angleModulus(rawTarget);
+			// Pure targeting: stay locked perfectly on target without giving up at 10 degrees,
+			// otherwise the robot will drift out of aim!
 
-		// double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
-		// double angleError = Math.abs(MathUtil.angleModulus(targetAngle -
-		// currentAngle));
-		// Logger.recordOutput("Drivetrain/Error", angleError);
-
-		if (Math.abs(MathUtil.angleModulus(getRotationDouble()
-			- targetAngle + Math.PI / 2)) > Math.toRadians(N10.instance.getNum())) {
-			// System.out.println("aaa");
-			drivetrain.setControl(
+			if (Math.abs(MathUtil.angleModulus(getRotationDouble() - targetAngle))
+				> Math.toRadians(DrivetrainConstants.FACE_TARGET_DEADBAND)) {
+				drivetrain.setControl(
 					driveFacingAngle
 							.withTargetDirection(Rotation2d.fromRadians(targetAngle))
 							.withHeadingPID(DrivetrainConstants.FACE_HUB_P,
 								DrivetrainConstants.FACE_HUB_I, DrivetrainConstants.FACE_HUB_D)
-							.withVelocityX(localXSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-							.withVelocityY(localYSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
+							.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+							.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP));
+			} else {
+				drivetrain.setControl(
+						driveFieldCentric
+								.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+								.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+						//.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP));
+								.withRotationalRate(0));
+			}
+
 		} else {
 
-			double thetaSpeedFaceTarget = MathUtil.applyDeadband(
-					input.getAxisValue(AxialInput.DRIVETRAIN_ROTATE),
-					DrivetrainConstants.ROTATIONAL_DEADBAND)
-					* MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+			// Transform2d distance = targetPose.minus(getPose());
+			// Using angleModulus to prevent wrap-around issues with filtering
+			Translation2d robotTranslation = getPose().getTranslation();
+			Translation2d targetTranslation = targetPose.getTranslation();
+			Translation2d diff = targetTranslation.minus(robotTranslation);
+			targetAngle = Math.atan2(diff.getY(), diff.getX());
+			// double currentAngle = getRotation();
+			// double rawTarget = Math.atan2(distance.getY(), distance.getX());
 
+			// double error = MathUtil.angleModulus(rawTarget - currentAngle);
+
+			// if(Math.abs(error) > Math.PI / 2) {
+			// rawTarget = MathUtil.angleModulus(rawTarget + Math.PI);
+			// }
+
+			// targetAngle = MathUtil.angleModulus(rawTarget);
+
+			// double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
+			// double angleError = Math.abs(MathUtil.angleModulus(targetAngle -
+			// currentAngle));
+			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(
+				getRotationDouble() - targetAngle - Math.PI / 2)));
+
+			if (Math.abs(MathUtil.angleModulus(
+				getRotationDouble() - targetAngle - Math.PI / 2))
+				> Math.toRadians(DrivetrainConstants.FACE_TARGET_DEADBAND)) {
+				// System.out.println("aaa");
+				drivetrain.setControl(
+						driveFacingAngle
+								.withTargetDirection(Rotation2d.fromRadians(targetAngle))
+								.withHeadingPID(DrivetrainConstants.FACE_HUB_P,
+									DrivetrainConstants.FACE_HUB_I, DrivetrainConstants.FACE_HUB_D)
+								.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+								.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+				);
+			} else {
+
+				drivetrain.setControl(
+						driveFieldCentric
+								.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+								.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
+						//.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP));
+								.withRotationalRate(0));
+			}
+		}
+	}
+
+	private void handleBallShake(Input input) {
+		//calculate how much to change position by
+		double shakeSpeed = Math.sin(edu.wpi.first.wpilibj.Timer.getFPGATimestamp()
+						* DrivetrainConstants.SHAKE_FREQUENCY * 2.0 * Math.PI)
+						* DrivetrainConstants.SHAKE_MAGNITUDE;
+
+		//Apply the shakey shakey
+		if (getCurrentState() == DrivetrainState.BALL_SHAKE_FRONT) {
 			drivetrain.setControl(
-					driveFieldCentric
-							.withVelocityX(localXSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-							.withVelocityY(localYSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-							.withRotationalRate(thetaSpeedFaceTarget
-								* DrivetrainConstants.ROTATIONAL_DAMP));
+				applyRobotSpeeds.withSpeeds(new ChassisSpeeds(shakeSpeed, 0, 0))
+			);
+		} else {
+			drivetrain.setControl(
+				applyRobotSpeeds.withSpeeds(new ChassisSpeeds(0, shakeSpeed, 0))
+			);
 		}
 	}
 
@@ -687,16 +793,27 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	private double getTranslationalSpeed(Input input, AxialInput inputType) {
-		double speed = MathUtil.applyDeadband(
-			input.getAxisValue(inputType),
-			TRANSLATIONAL_DEADBAND
-		) * MAX_SPEED.in(MetersPerSecond);
+		SlewRateLimiter limiter = switch (inputType) {
+			case DRIVETRAIN_DRIVE_X -> xInputRateLimiter;
+			case DRIVETRAIN_DRIVE_Y -> yInputRateLimiter;
+			default -> null;
+		};
 
-		if (isRedAlliance()) {
+		if (limiter == null) {
+			return 0;
+		}
+
+		double speed = MathUtil.applyDeadband(
+				input.getAxisValue(inputType),
+				TRANSLATIONAL_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
+
+		speed = limiter.calculate(speed);
+
+		if (invertControls) {
 			speed *= -1;
 		}
 
-		if (invertControls) {
+		if (!Robot.IS_BLUE) {
 			speed *= -1;
 		}
 
@@ -708,19 +825,19 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	}
 
 	private double getRotationalSpeed(Input input, AxialInput inputType) {
-		return MathUtil.applyDeadband(
-			input.getAxisValue(inputType),
-			ROTATIONAL_DEADBAND
-		) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+		double rotationalSpeed = MathUtil.applyDeadband(
+				input.getAxisValue(inputType),
+				ROTATIONAL_DEADBAND) * MAX_ANGULAR_SPEED.in(RadiansPerSecond);
+		return rotationalSpeed;
+		//return thetaInputRateLimiter.calculate(rotationalSpeed);
 	}
 
 	private void applyDriveControl() {
 		drivetrain.setControl(
-			driveFieldCentric
-					.withVelocityX(xSpeed * TRANSLATIONAL_DAMP)
-					.withVelocityY(ySpeed * TRANSLATIONAL_DAMP)
-					.withRotationalRate(thetaSpeed * ROTATIONAL_DAMP)
-		);
+				driveFieldCentric
+						.withVelocityX(xSpeed * TRANSLATIONAL_DAMP)
+						.withVelocityY(ySpeed * TRANSLATIONAL_DAMP)
+						.withRotationalRate(thetaSpeed * ROTATIONAL_DAMP));
 	}
 
 	private void handleButtonInputs(Input input) {
@@ -740,6 +857,37 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		}
 	}
 
+	/**
+	 * Stops the drivetrain.
+	 */
+	public void stop() {
+		drivetrain.applyRequest(
+			() -> driveFieldCentric.withVelocityX(0).withVelocityY(0).withRotationalRate(0));
+	}
+
+	/**
+	 * Follows a path with the given name.
+	 *
+	 * @param name
+	 * @return Command
+	 */
+	public Command followcommand(String name) {
+		System.out.println(AutoBuilder.isConfigured());
+		PathPlannerPath path;
+		try {
+			path = PathPlannerPath.fromChoreoTrajectory(name);
+		} catch (IOException | ParseException e) {
+			DriverStation.reportError("PathPlanner Error: Failed to load path: " + name
+					+ ". Check if the path exists and is properly configured.", e.getStackTrace());
+			return Commands.none();
+		}
+		if (name == null) {
+			DriverStation.reportError("PathPlanner Error: Path is null",
+				new Exception().getStackTrace());
+			return Commands.none();
+		}
+		return AutoBuilder.followPath(path);
+	}
 
 
 

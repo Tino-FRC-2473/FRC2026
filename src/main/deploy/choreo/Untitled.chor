@@ -1,5 +1,5 @@
 {
- "name":"Paths",
+ "name":"Untitled",
  "version":2,
  "type":"Swerve",
  "variables":{
@@ -40,8 +40,8 @@
    "val":6.5
   },
   "radius":{
-   "exp":"2 in",
-   "val":0.0508
+   "exp":"1.875 in",
+   "val":0.047625
   },
   "vmax":{
    "exp":"5000 RPM",

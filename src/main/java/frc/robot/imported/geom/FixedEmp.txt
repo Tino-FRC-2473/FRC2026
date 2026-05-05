@@ -1,7 +1,5 @@
 package frc.robot.imported;
 
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -10,14 +8,14 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+
 import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.ShooterConstants;
 
 public class LaunchCalculator {
 	private static LaunchCalculator instance;
 
-	//KEEP THIS BOOLEAN FALSE UNLESS OTHERWISE UNDERSTOOD
-	public static boolean ENABLE_SOTM = true;
+	public static boolean ENABLE_SOTM = false;
 
 	public static LaunchCalculator getInstance() {
 		if (instance == null) instance = new LaunchCalculator();
@@ -61,30 +59,23 @@ public class LaunchCalculator {
 			new InterpolatingDoubleTreeMap();
 
 	static {
-
-		//DIRECT HUB SHOOTING DATA HERE
+		// ==========================================
+		// INPUT YOUR DIRECT HUB SHOOTING DATA HERE
 		// Format: .put(Distance_in_Meters, Target_RPS)
-		flywheelSpeedMap.put(1.88, 42.5);
-		flywheelSpeedMap.put(1.955, 43.5);
-		flywheelSpeedMap.put(2.032,44.0);
-		flywheelSpeedMap.put(2.285, 44.0);
-		flywheelSpeedMap.put(2.921, 50.0);
-		flywheelSpeedMap.put(3.12,47.5);
-		flywheelSpeedMap.put(3.505, 53.0);
-		flywheelSpeedMap.put(3.88, 57.5);
-		flywheelSpeedMap.put(4.22, 60.0);
-
-
+		// ==========================================
+		flywheelSpeedMap.put(0.96, 150.0 / (2 * Math.PI));
+		flywheelSpeedMap.put(1.58, 160.0 / (2 * Math.PI));
+		flywheelSpeedMap.put(2.37, 170.0 / (2 * Math.PI));
+		flywheelSpeedMap.put(5.10, 80.0);
 
 		// Format: .put(Distance_in_Meters, TimeOfFlight_in_Sec)
-		//CURRENTLY NOT OUR TOF, ANYTHING BELOW THIS COMMENT = MECHADV
-		timeOfFlightMap.put(2.38, 0.70);
-		timeOfFlightMap.put(3.12, 0.91);
-		timeOfFlightMap.put(3.88, 1.06);
+		timeOfFlightMap.put(1.38, 0.90);
+		timeOfFlightMap.put(3.15, 1.11);
+		timeOfFlightMap.put(5.68, 1.16);
 		
-
-		// INPUT DIRECT PASSING DATA HERE
-
+		// ==========================================
+		// INPUT YOUR DIRECT PASSING DATA HERE
+		// ==========================================
 		passingFlywheelSpeedMap.put(5.46, 160.0 / (2 * Math.PI));
 		passingFlywheelSpeedMap.put(7.80, 200.0 / (2 * Math.PI));
 		passingFlywheelSpeedMap.put(17.16, 360.0 / (2 * Math.PI));
@@ -120,7 +111,6 @@ public class LaunchCalculator {
 		// ==========================================
 		if (!ENABLE_SOTM) {
 			Pose2d launcherPosition = robotPose.transformBy(ROBOT_TO_LAUNCHER_2D);
-			Logger.recordOutput("Launcher Position", launcherPosition);
 			double rx = target.getX() - launcherPosition.getX();
 			double ry = target.getY() - launcherPosition.getY();
 			double launcherToTargetDistance = Math.hypot(rx, ry);
@@ -129,7 +119,6 @@ public class LaunchCalculator {
 			double flywheelVelocity = isPassing
 					? passingFlywheelSpeedMap.get(launcherToTargetDistance)
 					: flywheelSpeedMap.get(launcherToTargetDistance);
-			Logger.recordOutput("Launch Calculator Velocity", flywheelVelocity);
 			double solvedTOF = getEffectiveTOF(launcherToTargetDistance, isPassing);
 			
 			boolean isValid = launcherToTargetDistance >= 0.9 && launcherToTargetDistance <= 17.16;
@@ -147,7 +136,9 @@ public class LaunchCalculator {
 		}
 
 
-		// SOTM CALCULATION (SOTM ON)
+		// ==========================================
+		// DYNAMIC SOTM CALCULATION (SOTM ON)
+		// ==========================================
 		Pose2d estimatedPose = robotPose.exp(
 				new Twist2d(
 						robotVelocity.vxMetersPerSecond * phaseDelay,

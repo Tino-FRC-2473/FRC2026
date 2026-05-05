@@ -9,6 +9,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Frequency;
 import edu.wpi.first.units.measure.MomentOfInertia;
+//import edu.wpi.first.units.measure.Time;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Hertz;
@@ -45,9 +46,13 @@ public class Constants {
 	public static final class AutoPathsConstants {
 		public static final double SHOOT_CLIMB_SECONDS = 10;
 		public static final double SHOOT_WAIT_TIME_SECONDS = 1.35;
+		public static final double S2_OUTPOST_WAIT_TIME = 7.0;
+		public static final double S3_NZ_WAIT_TIME = 3.0;
 	}
 
 	public static final class DrivetrainConstants {
+		public static final double FACE_TARGET_DEADBAND = 7;
+		public static final double INPUT_SLEW_RATE = 20; //20
 		public static final int NUM_MODULES = 4;
 
 		//for accessor method and conversion
@@ -61,10 +66,14 @@ public class Constants {
 		public static final double SHAKE_FREQUENCY = 3; //ops
 		public static final double SHAKE_MAGNITUDE = 2; //meters
 
+		public static final double WAIT_TIMER = 15;
+
+		public static final boolean USE_SOTM_AIMING = true; //keep false unless otherwise
+
 
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
 		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speed, and so on
-		public static final double TRANSLATIONAL_DAMP = 1;
+		public static final double TRANSLATIONAL_DAMP = 0.75;
 		public static final double ROTATIONAL_DAMP = 1;
 
 		public static final String CANBUS_NAME = "Drivetrain";
@@ -72,7 +81,7 @@ public class Constants {
 		public static final double SYS_ID_VOLT_DAMP = 6;
 
 		public static final LinearVelocity MAX_SPEED = TunerConstants.kSpeedAt12Volts;
-		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(0.75);
+		public static final AngularVelocity MAX_ANGULAR_SPEED = RotationsPerSecond.of(1);
 
 		public static final double TRANSLATIONAL_DEADBAND = 0.05;
 		public static final double ROTATIONAL_DEADBAND = 0.05;
@@ -98,13 +107,9 @@ public class Constants {
 		public static final double X_TAG_OFFSET = 1;
 		public static final double Y_TAG_OFFSET = 0;
 
-		public static final double FACE_HUB_P = 2.0;
+		public static final double FACE_HUB_P = 0.2;
 		public static final double FACE_HUB_I = 0.0;
-		public static final double FACE_HUB_D = 0.4;
-
-		public static final double FACE_PASS_P = 7.0;
-		public static final double FACE_PASS_I = 0.0;
-		public static final double FACE_PASS_D = 0.0;
+		public static final double FACE_HUB_D = 0.3;
 
 		public static final Pose2d RED_HUB_POSE =
 			new Pose2d(11.9191774, 4.0346376, new Rotation2d());
@@ -114,7 +119,7 @@ public class Constants {
 			new Pose2d(2.54, 6.0346376, new Rotation2d());
 
 		public static final Pose2d BLUE_HUB_POSE =
-			new Pose2d(14.001, 4.0346376, new Rotation2d());
+			new Pose2d(4.625594, 4.0346376, new Rotation2d());
 		public static final Pose2d BLUE_OUTPOST_POSE =
 			new Pose2d(2.54, 2.0346376, new Rotation2d());
 		public static final Pose2d BLUE_TARGET3_POSE =
@@ -127,16 +132,16 @@ public class Constants {
 
 	public static final class ModuleConstants {
 		public static final double DRIVE_P = 7;
-		public static final double DRIVE_I = 0.1;
-		public static final double DRIVE_D = 0.4;
+		public static final double DRIVE_I = 0.0;
+		public static final double DRIVE_D = 0.01;
 		public static final double DRIVE_V = 0.124;
 
 		public static final double DRIVE_CURRENT_LIMIT = 80;
 		public static final double STEER_CURRENT_LIMIT = 60;
 
-		public static final double STEER_P = 7;
-		public static final double STEER_I = 0.1;
-		public static final double STEER_D = 0.4;
+		public static final double STEER_P = 7.5;
+		public static final double STEER_I = 0.0;
+		public static final double STEER_D = 0.0;
 		public static final double STEER_V = 0.1;
 		public static final double STEER_S = 0;
 	}
@@ -193,10 +198,12 @@ public class Constants {
 		public static final double SPINDEX_GEAR_RATIO = 3;
 		public static final double FLYWHEEL_GEAR_RATIO = 1;
 		public static final double FEEDER_GEAR_RATIO = 3;
+		public static final double SHOOTER_OTHER_CURRENT_LIMIT = 35.0;
 
 		public static final double SHOOTER_CURRENT_LIMIT = 40; //Amps
 
 		public static final double TEMP_FLYSPEED = 50;
+		public static final double FLYWHEEL_TARGET_SPEED = 70.0;
 
 		private static final double JERK_MULT_CONSTANT = 100;
 		//constant to change the magnitude of jerk from acceleration
@@ -265,23 +272,25 @@ public class Constants {
 		//Targets for Pivot
 		public static final Angle UPPER_TARGET_ANGLE = Units.Radians.of(2.2);
 		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(0);
-		public static final Angle PARTIAL_OUT_TARGET_ANGLE = Units.Radians.of(1.5);
+		public static final Angle PARTIAL_OUT_TARGET_ANGLE =
+			Units.Radians.of(0); //Units.Radians.of(1.5);
 
 		public static final double PIVOT_MAX_ROTATION = 2.09;
 		public static final double PIVOT_MIN_ROTATION = 0;
 
 		//Arm length in meters
+
 		public static final double PIVOT_ARM_LENGTH = 0.5;
 
 		//The moment of inertia of the arm in kg-m²; can be calculated from CAD software.
 		public static final MomentOfInertia J = KilogramSquareMeters.of(0.1);
 
 		//Pivot PID
-		public static final double PIVOT_KG = 0.2;
-		public static final double PIVOT_KS = 0.2;  //0.5
+		public static final double PIVOT_KG = 0.3;
+		public static final double PIVOT_KS = 0.7;  //0.5
 		public static final double PIVOT_KV = 0.06;
-		public static final double PIVOT_KA = 0.03;
-		public static final double PIVOT_KP = 25;  //0.1
+		public static final double PIVOT_KA = 0.1;
+		public static final double PIVOT_KP = 30;  //0.1
 		public static final double PIVOT_KI = 0.0;
 		public static final double PIVOT_KD = 0.2;
 
@@ -295,7 +304,7 @@ public class Constants {
 		public static final double OUTTAKE_TARGET_VELOCITY = -40.0;
 
 		//Intake Gearing/Velocity Factors
-		public static final double PIVOT_BUFFER = 0.01;
+		public static final double PIVOT_BUFFER = 0.03;
 		public static final double PIVOT_CRUISE_VELO = 15;
 		public static final double PIVOT_TARGET_ACCEL = 30;
 		public static final double PIVOT_EXPO_KV = 0.12;
@@ -305,7 +314,8 @@ public class Constants {
 		public static final double INTAKE_EXPO_KV = 0.12;
 
 		//other
-		public static final double PIVOT_CURRENT_LIMIT = 10; //in amps
+		public static final double PIVOT_CURRENT_LIMIT = 20; //in amps
+		public static final double LIMIT2_CURRENT_LIMIT = 25;
 		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
 		public static final double SIM_UPDATE_SECONDS = 0.02;
 		public static final Angle SIM_LIMIT_SWITCH_BUFFER = Units.Radians.of(0.01);
@@ -357,7 +367,7 @@ public class Constants {
 		public static final double CONVEYOR_TARGET_ACCEL = 10;
 		public static final double CONVEYOR_EXPO_KV = 0.12;
 
-		public static final double AGITATOR_SETPOINT = 0.2;
+		public static final double AGITATOR_SETPOINT = 0.3;
 
 		//other
 		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);

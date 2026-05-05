@@ -15,7 +15,7 @@ import frc.robot.input.InputTypes.ButtonInput;
 
 public final class AutoInput extends Input {
 
-	public static final int DEFAULT_PRESS_DURATION_CYCLES = 5;
+	public static final double DEFAULT_PRESS_DURATION_SECONDS = 0.1;
 
 	private final Map<ButtonInput, Boolean> buttonValues;
 	private final Map<AxialInput, Double> axesValues;
@@ -53,7 +53,7 @@ public final class AutoInput extends Input {
 	 * @return the command
 	 */
 	public Command pressButtonCommand(ButtonInput button) {
-		return pressButtonCommand(button, DEFAULT_PRESS_DURATION_CYCLES);
+		return pressButtonCommand(button, DEFAULT_PRESS_DURATION_SECONDS);
 	}
 
 	/**
@@ -72,7 +72,7 @@ public final class AutoInput extends Input {
 	 * @param duration the duration of the press in seconds
 	 * @return the command
 	 */
-	public Command pressButtonCommand(ButtonInput button, int duration) {
+	public Command pressButtonCommand(ButtonInput button, double duration) {
 		return new SequentialCommandGroup(
 			toggleButtonCommand(button),
 			//new WaitCommand(duration * Robot.defaultPeriodSecs),
