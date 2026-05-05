@@ -32,7 +32,6 @@ import frc.robot.input.Input;
 import frc.robot.input.InputTypes.ButtonInput;
 import frc.robot.motors.TalonFXWrapper;
 import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.ShooterConstants;
 import frc.robot.HardwareMap;
 
 
@@ -93,10 +92,8 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 * the constructor is called only once when the robot boots.
 	 */
 	public IntakeFSMSystem() {
-
 		pivotMotionRequest = new MotionMagicVoltage(0);
 		intakeMotionRequest = new MotionMagicVelocityVoltage(0);
-
 
 		// Perform hardware init using a wrapper class
 		// this is so we can see motor outputs during simulatiuons
@@ -178,7 +175,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		var limit2Configs = new CurrentLimitsConfigs();
 
 		// enable stator current limit
-		limit2Configs.SupplyCurrentLimit = 25.0;
+		limit2Configs.SupplyCurrentLimit = IntakeConstants.LIMIT2_CURRENT_LIMIT;
 		limit2Configs.SupplyCurrentLimitEnable = true;
 		intakeMotor.getConfigurator().apply(limit2Configs);
 

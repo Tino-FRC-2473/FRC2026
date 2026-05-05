@@ -9,19 +9,12 @@ import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathfindingCommand;
-import com.pathplanner.lib.path.PathPlannerPath;
-
 import frc.robot.Constants.VisionConstants;
 import frc.robot.auto.AutoPaths;
-import frc.robot.imported.HubTracker;
 import frc.robot.imported.LimelightHelpers;
-import frc.robot.imported.FieldConstants.Hub;
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.CvSink;
-import edu.wpi.first.cscore.CvSource;
+
 
 // WPILib Imports
 
@@ -38,8 +31,6 @@ import frc.robot.systems.IntakeFSMSystem;
 import frc.robot.systems.PlaceholderFSMSystem;
 import frc.robot.systems.AgitatorFSMSystem;
 import frc.robot.systems.ShooterFSMSystem;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 //imports for auto chooser
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;

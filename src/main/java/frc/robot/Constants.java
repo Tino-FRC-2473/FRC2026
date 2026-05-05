@@ -68,6 +68,8 @@ public class Constants {
 
 		public static final double WAIT_TIMER = 15;
 
+		public static final boolean USE_SOTM_AIMING = true; //keep false unless otherwise
+
 
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
 		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speed, and so on
@@ -313,6 +315,7 @@ public class Constants {
 
 		//other
 		public static final double PIVOT_CURRENT_LIMIT = 20; //in amps
+		public static final double LIMIT2_CURRENT_LIMIT = 25;
 		public static final Frequency UPDATE_FREQUENCY = Units.Hertz.of(100);
 		public static final double SIM_UPDATE_SECONDS = 0.02;
 		public static final Angle SIM_LIMIT_SWITCH_BUFFER = Units.Radians.of(0.01);

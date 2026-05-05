@@ -49,7 +49,7 @@ public abstract class Input {
 	 */
 	public void reset() {
 		if (!buttonEvents.isEmpty()) {
-			return; 
+			return;
 		}
 
 		inputEventLoop.clear();

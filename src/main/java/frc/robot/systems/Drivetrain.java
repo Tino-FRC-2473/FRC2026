@@ -3,7 +3,6 @@ package frc.robot.systems;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static frc.robot.Constants.DrivetrainConstants.BLUE_ALLIANCE_TAG_26;
-import static frc.robot.Constants.DrivetrainConstants.BLUE_HUB_POSE;
 import static frc.robot.Constants.DrivetrainConstants.MAX_ANGULAR_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.MAX_SPEED;
 import static frc.robot.Constants.DrivetrainConstants.RED_ALLIANCE_TAG_10;
@@ -17,8 +16,6 @@ import static frc.robot.imported.FieldConstants.TAG_LAYOUT;
 
 
 import java.io.IOException;
-import java.sql.Driver;
-
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -44,10 +41,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -64,13 +59,10 @@ import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.imported.LaunchCalculator;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.numbers.N10;
 
 
 public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
-	//KEEP THIS BOOLEAN FALSE UNLESS OTHERWISE UNDERSTOOD
-	public static boolean USE_SOTM_AIMING = true;
 
 	/* ======================== Enums ======================== */
 	// region
@@ -78,7 +70,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	public enum DrivetrainState {
 		AUTONOMOUS,
 		CONTROLLED,
-		PATHFINDING, 
+		PATHFINDING,
 		FACE_HUB,
 		FACE_PASS,
 		BALL_SHAKE_FRONT,
@@ -441,6 +433,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		driveFacingAngle.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
 	}
 
+	/**
+	 * gets the hub pose.
+	 * @return position of robot
+	 */
 	public Pose2d getHubPose() {
 		var currentAlliance = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
 		return (currentAlliance == DriverStation.Alliance.Red) ? DrivetrainConstants.RED_HUB_POSE
@@ -639,10 +635,10 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		double flipAlliance = 0;
 
 		if (!Robot.IS_BLUE) {
-			flipAlliance = 0;//Math.PI;
+			flipAlliance = 0; //Math.PI;
 		}
 
-		if (USE_SOTM_AIMING) {
+		if (DrivetrainConstants.USE_SOTM_AIMING) {
 			boolean isPassing = (getCurrentState() == DrivetrainState.FACE_PASS);
 			var params = LaunchCalculator.getInstance().getParameters(
 				getPose(),
@@ -655,14 +651,15 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(
 				getRotationDouble() - targetAngle + flipAlliance)));
-			
+
 			Logger.recordOutput("Drivetrain/Target", targetAngle);
 			Logger.recordOutput("Drivetrain/Rotation", getRotationDouble());
 
 			// Pure targeting: stay locked perfectly on target without giving up at 10 degrees,
 			// otherwise the robot will drift out of aim!
 
-			if (Math.abs(MathUtil.angleModulus(getRotationDouble() - targetAngle)) > Math.toRadians(DrivetrainConstants.FACE_TARGET_DEADBAND)) {
+			if (Math.abs(MathUtil.angleModulus(getRotationDouble() - targetAngle))
+				> Math.toRadians(DrivetrainConstants.FACE_TARGET_DEADBAND)) {
 				drivetrain.setControl(
 					driveFacingAngle
 							.withTargetDirection(Rotation2d.fromRadians(targetAngle))
@@ -675,7 +672,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 						driveFieldCentric
 								.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 								.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-								//.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP));
+						//.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP));
 								.withRotationalRate(0));
 			}
 
@@ -722,7 +719,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 						driveFieldCentric
 								.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
 								.withVelocityY(ySpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)
-								//.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP));
+						//.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP));
 								.withRotationalRate(0));
 			}
 		}
