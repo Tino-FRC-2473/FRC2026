@@ -25,7 +25,6 @@ import edu.wpi.first.wpilibj.Timer;
 
 
 import frc.robot.Constants.ShooterConstants;
-import frc.robot.imported.FieldConstants;
 import frc.robot.imported.LaunchCalculator;
 import frc.robot.HardwareMap;
 import frc.robot.input.Input;
@@ -105,8 +104,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		feederMotor = new TalonFXWrapper(
 			HardwareMap.CAN_ID_FEEDER
 		);
-
-
 		flywheelMotorPos = flywheelMotor.getPosition();
 		feederMotorPos = feederMotor.getPosition();
 		flywheelMotorVel = flywheelMotor.getVelocity();
@@ -121,7 +118,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// enable stator current limit
 		limitConfigs.StatorCurrentLimit = ShooterConstants.SHOOTER_CURRENT_LIMIT;
 		limitConfigs.StatorCurrentLimitEnable = true;
-		limitConfigs.SupplyCurrentLimit = 35.0;
+		limitConfigs.SupplyCurrentLimit = ShooterConstants.SHOOTER_OTHER_CURRENT_LIMIT;
 
 		limitConfigs.SupplyCurrentLimitEnable = true;
 
@@ -137,7 +134,6 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		flywheel0Config.kI = ShooterConstants.FLYWHEEL_MM_CONSTANT_I;
 		//account for velocity error of 1rps
 		flywheel0Config.kD = ShooterConstants.FLYWHEEL_MM_CONSTANT_D;
-
 		var flywheelMotionMagicConfigs = flywheelConfigs.MotionMagic;
 		//160 rps/s
 		flywheelMotionMagicConfigs.MotionMagicAcceleration =
@@ -523,8 +519,8 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 		// 	correctTarget = outpostPose;
 		// }
 		// double flyspeed = calculateTargetPassSpeed(correctTarget);
-		flywheelTargetSpeed = RotationsPerSecond.of((double) 70.0);
-		
+		flywheelTargetSpeed = RotationsPerSecond.of(ShooterConstants.FLYWHEEL_TARGET_SPEED);
+
 		//RotationsPerSecond.of((double) flyspeed);
 		updateFlywheel();
 	}
@@ -609,7 +605,7 @@ public class ShooterFSMSystem extends FSMSystem<ShooterFSMSystem.ShooterFSMState
 
 		Logger.recordOutput("noFuelStored", noFuelStored);
 		Logger.recordOutput("isIntakeDown", modelIntake(input));
-		if (pastState == ShooterFSMState.SHOOTER_PREP_STATE){
+		if (pastState == ShooterFSMState.SHOOTER_PREP_STATE) {
 			double flyspeed = calculateTargetShootSpeed(drivetrain.getHubPose());
 			flywheelTargetSpeed = RotationsPerSecond.of((double) flyspeed);
 			updateFlywheel();

@@ -46,6 +46,8 @@ public class Constants {
 	public static final class AutoPathsConstants {
 		public static final double SHOOT_CLIMB_SECONDS = 10;
 		public static final double SHOOT_WAIT_TIME_SECONDS = 1.35;
+		public static final double S2_OUTPOST_WAIT_TIME = 7.0;
+		public static final double S3_NZ_WAIT_TIME = 3.0;
 	}
 
 	public static final class DrivetrainConstants {
@@ -194,10 +196,12 @@ public class Constants {
 		public static final double SPINDEX_GEAR_RATIO = 3;
 		public static final double FLYWHEEL_GEAR_RATIO = 1;
 		public static final double FEEDER_GEAR_RATIO = 3;
+		public static final double SHOOTER_OTHER_CURRENT_LIMIT = 35.0;
 
 		public static final double SHOOTER_CURRENT_LIMIT = 40; //Amps
 
 		public static final double TEMP_FLYSPEED = 50;
+		public static final double FLYWHEEL_TARGET_SPEED = 70.0;
 
 		private static final double JERK_MULT_CONSTANT = 100;
 		//constant to change the magnitude of jerk from acceleration
@@ -266,7 +270,8 @@ public class Constants {
 		//Targets for Pivot
 		public static final Angle UPPER_TARGET_ANGLE = Units.Radians.of(2.2);
 		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(0);
-		public static final Angle PARTIAL_OUT_TARGET_ANGLE =  Units.Radians.of(0); //Units.Radians.of(1.5);
+		public static final Angle PARTIAL_OUT_TARGET_ANGLE =
+			Units.Radians.of(0); //Units.Radians.of(1.5);
 
 		public static final double PIVOT_MAX_ROTATION = 2.09;
 		public static final double PIVOT_MIN_ROTATION = 0;
