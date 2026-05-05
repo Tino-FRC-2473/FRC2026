@@ -474,28 +474,28 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				this::getPose, // Robot pose supplier
 				// Method to reset odometry (will be called if your auto has a starting pose)
 				drivetrain::resetPose,
-				() -> {
-					return drivetrain.getState().Speeds;
-				}, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-				(speeds, feedforwards) -> {
+			() -> {
+				return drivetrain.getState().Speeds;
+			}, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+			(speeds, feedforwards) -> {
 
-					ChassisSpeeds speedINeedThis = new ChassisSpeeds(
-							speeds.vxMetersPerSecond,
-							speeds.vyMetersPerSecond,
-							-speeds.omegaRadiansPerSecond);
+				ChassisSpeeds speedINeedThis = new ChassisSpeeds(
+					speeds.vxMetersPerSecond,
+					speeds.vyMetersPerSecond,
+					-speeds.omegaRadiansPerSecond);
 
-					drivetrain.setControl(
-							applyRobotSpeeds
-									.withSpeeds(speedINeedThis.times(TRANSLATIONAL_DAMP))
-									.withWheelForceFeedforwardsX(
-											feedforwards.robotRelativeForcesXNewtons())
-									.withWheelForceFeedforwardsY(
-											feedforwards.robotRelativeForcesYNewtons()));
+				drivetrain.setControl(
+					applyRobotSpeeds
+						.withSpeeds(speedINeedThis.times(TRANSLATIONAL_DAMP))
+						.withWheelForceFeedforwardsX(
+							feedforwards.robotRelativeForcesXNewtons())
+						.withWheelForceFeedforwardsY(
+							feedforwards.robotRelativeForcesYNewtons()));
 
-				}, /*
-					 * Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
-					 * optionally outputs individual module feedforwards
-					 */
+			},  /*
+				 * Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
+				 * optionally outputs individual module feedforwards
+				 */
 				new PPHolonomicDriveController(/*
 												 * PPHolonomicController is the built in path
 												 * following controller for holonomic drive trains
@@ -507,23 +507,23 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 						new PIDConstants(ModuleConstants.STEER_P,
 								ModuleConstants.STEER_I, ModuleConstants.STEER_D)),
 				config, // The robot configuration
-				() -> {
-					/*
-					 * Boolean supplier that controls when the
-					 * path will be mirrored for the red alliance
-					 */
-					// This will flip the path being followed to the red side of the field.
-					// THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+			() -> {
+				/*
+				 * Boolean supplier that controls when the
+				 * path will be mirrored for the red alliance
+				 */
+				// This will flip the path being followed to the red side of the field.
+				// THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
-					return !Robot.IS_BLUE;
+				return !Robot.IS_BLUE;
 
-					// var detectedAlliance = DriverStation.getAlliance();
-					// if (detectedAlliance.isPresent()) {
-					// 	return detectedAlliance.get() == DriverStation.Alliance.Red;
-					// }
-					// System.out.println("Alliance not detected! Defaulting to blue. Good luck.");
-					// return false;
-				},
+				// var detectedAlliance = DriverStation.getAlliance();
+				// if (detectedAlliance.isPresent()) {
+				// 	return detectedAlliance.get() == DriverStation.Alliance.Red;
+				// }
+				// System.out.println("Alliance not detected! Defaulting to blue. Good luck.");
+				// return false;
+			},
 				drivetrain // Reference to the subsystem to set requirements
 		);
 	}
@@ -832,7 +832,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	 */
 	public void stop() {
 		drivetrain.applyRequest(
-				() -> driveFieldCentric.withVelocityX(0).withVelocityY(0).withRotationalRate(0));
+			() -> driveFieldCentric.withVelocityX(0).withVelocityY(0).withRotationalRate(0));
 	}
 
 	/**
