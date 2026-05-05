@@ -276,6 +276,18 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				} else {
 					return DrivetrainState.CONTROLLED;
 				}
+			case BALL_SHAKE_FRONT:
+				if (input.getButtonValue(ButtonInput.BALL_SHAKE_FRONT)) {
+					return DrivetrainState.BALL_SHAKE_FRONT;
+				} else {
+					return DrivetrainState.CONTROLLED;
+				}
+			case BALL_SHAKE_SIDE:
+				if (input.getButtonValue(ButtonInput.BALL_SHAKE_SIDE)) {
+					return DrivetrainState.BALL_SHAKE_SIDE;
+				} else {
+					return DrivetrainState.CONTROLLED;
+				}
 			default:
 				throw new IllegalStateException(
 						"[DRIVETRAIN] Cannot get next state from an invalud state: "
@@ -722,6 +734,24 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 						//.withRotationalRate(thetaSpeed * DrivetrainConstants.ROTATIONAL_DAMP));
 								.withRotationalRate(0));
 			}
+		}
+	}
+
+	private void handleBallShake(Input input) {
+		//calculate how much to change position by
+		double shakeSpeed = Math.sin(edu.wpi.first.wpilibj.Timer.getFPGATimestamp()
+						* DrivetrainConstants.SHAKE_FREQUENCY * 2.0 * Math.PI)
+						* DrivetrainConstants.SHAKE_MAGNITUDE;
+
+		//Apply the shakey shakey
+		if (getCurrentState() == DrivetrainState.BALL_SHAKE_FRONT) {
+			drivetrain.setControl(
+				applyRobotSpeeds.withSpeeds(new ChassisSpeeds(shakeSpeed, 0, 0))
+			);
+		} else {
+			drivetrain.setControl(
+				applyRobotSpeeds.withSpeeds(new ChassisSpeeds(0, shakeSpeed, 0))
+			);
 		}
 	}
 
