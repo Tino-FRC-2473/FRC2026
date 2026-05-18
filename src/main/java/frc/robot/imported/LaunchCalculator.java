@@ -17,7 +17,7 @@ public class LaunchCalculator {
 	private static LaunchCalculator instance;
 
 	//KEEP THIS BOOLEAN FALSE UNLESS OTHERWISE UNDERSTOOD
-	public static boolean ENABLE_SOTM = true;
+	public static boolean ENABLE_SOTM = false;
 
 	public static LaunchCalculator getInstance() {
 		if (instance == null) instance = new LaunchCalculator();
@@ -62,25 +62,20 @@ public class LaunchCalculator {
 
 	static {
 
-		//DIRECT HUB SHOOTING DATA HERE
+		// FLAT TARGET (GROUND-LEVEL BOX) SHOOTING DATA — MUST BE EMPIRICALLY MEASURED
+		// Use MANUAL_PREP_STATE to find correct RPS at each distance, then fill in below.
 		// Format: .put(Distance_in_Meters, Target_RPS)
-		flywheelSpeedMap.put(1.88, 42.5);
-		flywheelSpeedMap.put(1.955, 43.5);
-		flywheelSpeedMap.put(2.032,44.0);
-		flywheelSpeedMap.put(2.285, 44.0);
-		flywheelSpeedMap.put(2.921, 50.0);
-		flywheelSpeedMap.put(3.12,47.5);
-		flywheelSpeedMap.put(3.505, 53.0);
-		flywheelSpeedMap.put(3.88, 57.5);
-		flywheelSpeedMap.put(4.22, 60.0);
-
-
+		flywheelSpeedMap.put(1.0, 0.0);  // TODO: measure
+		flywheelSpeedMap.put(2.0, 0.0);  // TODO: measure
+		flywheelSpeedMap.put(3.0, 0.0);  // TODO: measure
+		flywheelSpeedMap.put(4.0, 0.0);  // TODO: measure
+		flywheelSpeedMap.put(5.0, 0.0);  // TODO: measure
 
 		// Format: .put(Distance_in_Meters, TimeOfFlight_in_Sec)
-		//CURRENTLY NOT OUR TOF, ANYTHING BELOW THIS COMMENT = MECHADV
-		timeOfFlightMap.put(2.38, 0.70);
-		timeOfFlightMap.put(3.12, 0.91);
-		timeOfFlightMap.put(3.88, 1.06);
+		// SOTM disabled — these values unused. Fill in if SOTM is re-enabled later.
+		timeOfFlightMap.put(1.0, 0.5);
+		timeOfFlightMap.put(3.0, 0.8);
+		timeOfFlightMap.put(5.0, 1.1);
 		
 
 		// INPUT DIRECT PASSING DATA HERE
@@ -132,7 +127,7 @@ public class LaunchCalculator {
 			Logger.recordOutput("Launch Calculator Velocity", flywheelVelocity);
 			double solvedTOF = getEffectiveTOF(launcherToTargetDistance, isPassing);
 			
-			boolean isValid = launcherToTargetDistance >= 0.9 && launcherToTargetDistance <= 17.16;
+			boolean isValid = launcherToTargetDistance >= 0.5 && launcherToTargetDistance <= 5.0;
 
 			latestParameters = new LaunchingParameters(
 					isValid,
