@@ -632,12 +632,6 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		handleDriveInputs(input);
 
-		double flipAlliance = 0;
-
-		if (!Robot.IS_BLUE) {
-			flipAlliance = 0; //Math.PI;
-		}
-
 		if (DrivetrainConstants.USE_SOTM_AIMING) {
 			boolean isPassing = (getCurrentState() == DrivetrainState.FACE_PASS);
 			var params = LaunchCalculator.getInstance().getParameters(
@@ -650,7 +644,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			//pigeon odomtery is backwards
 
 			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(
-				getRotationDouble() - targetAngle + flipAlliance)));
+				getRotationDouble() - targetAngle)));
 
 			Logger.recordOutput("Drivetrain/Target", targetAngle);
 			Logger.recordOutput("Drivetrain/Rotation", getRotationDouble());
@@ -678,36 +672,27 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 
 		} else {
 
-			// Transform2d distance = targetPose.minus(getPose());
-			// Using angleModulus to prevent wrap-around issues with filtering
+			// Shooter mounted opposite pigeon front: shooter heading = pose rotation + PI.
+			// getRotationDouble() already returns shooter heading (pigeon + PI).
+			// Field bearing from robot to target is the desired shooter heading.
+			// Swerve FieldCentricFacingAngle controls pose rotation (pigeon frame),
+			// so command target = targetAngle + PI.
 			Translation2d robotTranslation = getPose().getTranslation();
 			Translation2d targetTranslation = targetPose.getTranslation();
 			Translation2d diff = targetTranslation.minus(robotTranslation);
 			targetAngle = Math.atan2(diff.getY(), diff.getX());
-			// double currentAngle = getRotation();
-			// double rawTarget = Math.atan2(distance.getY(), distance.getX());
 
-			// double error = MathUtil.angleModulus(rawTarget - currentAngle);
+			double error = MathUtil.angleModulus(getRotationDouble() - targetAngle);
+			Logger.recordOutput("Drivetrain/Error", Math.abs(error));
+			Logger.recordOutput("Drivetrain/Target", targetAngle);
+			Logger.recordOutput("Drivetrain/Rotation", getRotationDouble());
 
-			// if(Math.abs(error) > Math.PI / 2) {
-			// rawTarget = MathUtil.angleModulus(rawTarget + Math.PI);
-			// }
-
-			// targetAngle = MathUtil.angleModulus(rawTarget);
-
-			// double currentAngle = drivetrain.getState().Pose.getRotation().getRadians();
-			// double angleError = Math.abs(MathUtil.angleModulus(targetAngle -
-			// currentAngle));
-			Logger.recordOutput("Drivetrain/Error", Math.abs(MathUtil.angleModulus(
-				getRotationDouble() - targetAngle - Math.PI / 2)));
-
-			if (Math.abs(MathUtil.angleModulus(
-				getRotationDouble() - targetAngle - Math.PI / 2))
+			if (Math.abs(error)
 				> Math.toRadians(DrivetrainConstants.FACE_TARGET_DEADBAND)) {
-				// System.out.println("aaa");
 				drivetrain.setControl(
 						driveFacingAngle
-								.withTargetDirection(Rotation2d.fromRadians(targetAngle))
+								.withTargetDirection(
+									Rotation2d.fromRadians(targetAngle + Math.PI))
 								.withHeadingPID(DrivetrainConstants.FACE_HUB_P,
 									DrivetrainConstants.FACE_HUB_I, DrivetrainConstants.FACE_HUB_D)
 								.withVelocityX(xSpeed * DrivetrainConstants.TRANSLATIONAL_DAMP)

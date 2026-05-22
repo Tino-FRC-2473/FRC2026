@@ -13,6 +13,7 @@ import edu.wpi.first.units.measure.MomentOfInertia;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Hertz;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
@@ -70,7 +71,7 @@ public class Constants {
 
 		public static final double WAIT_TIMER = 15;
 
-		public static final boolean USE_SOTM_AIMING = true; //keep false unless otherwise
+		public static final boolean USE_SOTM_AIMING = false; //keep false unless otherwise
 
 
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
@@ -113,22 +114,33 @@ public class Constants {
 		public static final double FACE_HUB_I = 0.0;
 		public static final double FACE_HUB_D = 0.3;
 
-		// Demo target: box center is 1m from wall (+x), 2m right of origin (-y)
-		// Box is 2ft cube; tags are 1ft off the ground
-		private static final double BOX_X_M = Meters.of(1.0).in(Meters);
-		private static final double BOX_Y_M = Meters.of(-2.0).in(Meters);
-		public static final double BOX_HALF_SIDE_M = Feet.of(2.0).in(Meters) / 2.0;
+		// Library demo coordinate frame (WPILib field convention):
+		//   Origin: floor at center of middle wall tag (tag 2), on wall plane.
+		//   +X: away from wall (into room).
+		//   +Y: to the LEFT when standing at origin looking +X (into room).
+		//        i.e. box (right of tags from a viewer facing the wall) sits at -Y.
+		//   +Z: up.
+		//   Yaw 0 rad = +X, CCW positive.
+		//
+		// Box base 20" (X-depth) by 24" (Y-width). Long side faces +/-X.
+		// Box near face at X = 1.0 m, center Y = -1.0 m.
+		public static final double BOX_DEPTH_X_M = Inches.of(20).in(Meters);   // 0.508
+		public static final double BOX_WIDTH_Y_M = Inches.of(24).in(Meters);   // 0.6096
+		public static final double BOX_NEAR_FACE_X_M = 1.0;
+		public static final double BOX_CENTER_Y_M = -1.0;
+		private static final double BOX_CENTER_X_M = BOX_NEAR_FACE_X_M + BOX_DEPTH_X_M / 2.0;
 		public static final double DEMO_TAG_HEIGHT_M = Feet.of(1.0).in(Meters);
 
+		// Demo has no alliance — both poses identical, point at box center.
 		public static final Pose2d RED_HUB_POSE =
-			new Pose2d(BOX_X_M, BOX_Y_M, new Rotation2d());
+			new Pose2d(BOX_CENTER_X_M, BOX_CENTER_Y_M, new Rotation2d());
 		public static final Pose2d RED_OUTPOST_POSE =
 			new Pose2d(8.2741742, 2.0346376, new Rotation2d());
 		public static final Pose2d RED_TARGET3_POSE =
 			new Pose2d(2.54, 6.0346376, new Rotation2d());
 
 		public static final Pose2d BLUE_HUB_POSE =
-			new Pose2d(BOX_X_M, BOX_Y_M, new Rotation2d());
+			new Pose2d(BOX_CENTER_X_M, BOX_CENTER_Y_M, new Rotation2d());
 		public static final Pose2d BLUE_OUTPOST_POSE =
 			new Pose2d(2.54, 2.0346376, new Rotation2d());
 		public static final Pose2d BLUE_TARGET3_POSE =
