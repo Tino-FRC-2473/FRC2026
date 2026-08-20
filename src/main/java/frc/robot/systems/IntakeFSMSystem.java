@@ -252,7 +252,7 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 	 * resets the FSM_STATE.
 	 */
 	public void reset() {
-		// TODO: Verify IDLE_OUT_STATE is mechanically safe whenever the robot resets or enables.
+
 		setCurrentState(IntakeFSMState.IDLE_OUT_STATE);
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
