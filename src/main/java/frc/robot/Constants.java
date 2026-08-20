@@ -347,7 +347,7 @@ public class Constants {
 			0.02, 0.02, Math.toRadians(1));
 		//TODO: Measure this on the bot
 		public static final Pose3d LL4_OFFSET =
-			new Pose3d(0.096, -0.03, 0.55, new Rotation3d(0, 0, 270));
+			new Pose3d(0.096, -0.03, 0.55, new Rotation3d(0, 0, Math.PI*3/2));
 	}
 
 	public static final class AgitatorConstants {

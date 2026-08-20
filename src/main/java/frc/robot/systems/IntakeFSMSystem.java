@@ -284,13 +284,13 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 		);
 
 		switch (getCurrentState()) {
-			case IDLE_IN_STATE:
-				handleIdleState(input);
-				break;
+			// case IDLE_IN_STATE:
+			// 	handleIdleState(input);
+			// 	break;
 
-			case FOLD_OUT_STATE:
-				handleFoldOutState(input);
-				break;
+			// case FOLD_OUT_STATE:
+			// 	handleFoldOutState(input);
+			// 	break;
 
 			case IDLE_OUT_STATE:
 				handleIdleState(input);
@@ -304,13 +304,13 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				handleOuttakeState(input);
 				break;
 
-			case FOLD_IN_STATE:
-				handleFoldInState(input);
-				break;
+			// case FOLD_IN_STATE:
+			// 	handleFoldInState(input);
+			// 	break;
 
-			case PARTIAL_OUT_STATE:
-				handlePartialOutState(input);
-				break;
+			// case PARTIAL_OUT_STATE:
+			// 	handlePartialOutState(input);
+			// 	break;
 
 			default:
 				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
@@ -418,38 +418,38 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 			return IntakeFSMState.IDLE_IN_STATE;
 		}
 		switch (getCurrentState()) {
-			case IDLE_IN_STATE:
-				if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
-					return IntakeFSMState.FOLD_OUT_STATE;
-				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
-					return IntakeFSMState.PARTIAL_OUT_STATE;
-				} else {
-					return IntakeFSMState.IDLE_IN_STATE;
-				}
+			// case IDLE_IN_STATE:
+			// 	if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
+			// 		return IntakeFSMState.FOLD_OUT_STATE;
+			// 	} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
+			// 		return IntakeFSMState.PARTIAL_OUT_STATE;
+			// 	} else {
+			// 		return IntakeFSMState.IDLE_IN_STATE;
+			// 	}
 
-			case FOLD_OUT_STATE:
-				if (isBottomLimitReached()) {
-					return IntakeFSMState.IDLE_OUT_STATE;
-				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
-					return IntakeFSMState.FOLD_IN_STATE;
-				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
-					return IntakeFSMState.PARTIAL_OUT_STATE;
-				} else {
-					return IntakeFSMState.FOLD_OUT_STATE;
-				}
+			// case FOLD_OUT_STATE:
+			// 	if (isBottomLimitReached()) {
+			// 		return IntakeFSMState.IDLE_OUT_STATE;
+			// 	} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
+			// 		return IntakeFSMState.FOLD_IN_STATE;
+			// 	} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
+			// 		return IntakeFSMState.PARTIAL_OUT_STATE;
+			// 	} else {
+			// 		return IntakeFSMState.FOLD_OUT_STATE;
+			// 	}
 
-			case PARTIAL_OUT_STATE:
-				if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
-					return IntakeFSMState.FOLD_OUT_STATE;
-				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
-					return IntakeFSMState.FOLD_IN_STATE;
-				} else if (input.getButtonPressed(ButtonInput.INTAKE_BUTTON)) {
-					return IntakeFSMState.INTAKE_STATE;
-				} else if (input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON)) {
-					return IntakeFSMState.OUTTAKE_STATE;
-				} else {
-					return IntakeFSMState.PARTIAL_OUT_STATE;
-				}
+			// case PARTIAL_OUT_STATE:
+			// 	if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
+			// 		return IntakeFSMState.FOLD_OUT_STATE;
+			// 	} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
+			// 		return IntakeFSMState.FOLD_IN_STATE;
+			// 	} else if (input.getButtonPressed(ButtonInput.INTAKE_BUTTON)) {
+			// 		return IntakeFSMState.INTAKE_STATE;
+			// 	} else if (input.getButtonPressed(ButtonInput.OUTTAKE_BUTTON)) {
+			// 		return IntakeFSMState.OUTTAKE_STATE;
+			// 	} else {
+			// 		return IntakeFSMState.PARTIAL_OUT_STATE;
+			// 	}
 
 			case IDLE_OUT_STATE:
 				if (input.getButtonPressed(ButtonInput.INTAKE_BUTTON)
@@ -462,38 +462,38 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 					&& !input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)
 					&& !input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
 					return IntakeFSMState.OUTTAKE_STATE;
-				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
-					return IntakeFSMState.FOLD_IN_STATE;
-				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
-					return IntakeFSMState.PARTIAL_OUT_STATE;
+				// } else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
+				// 	return IntakeFSMState.FOLD_IN_STATE;
+				// } else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
+				// 	return IntakeFSMState.PARTIAL_OUT_STATE;
 				} else {
 					return IntakeFSMState.IDLE_OUT_STATE;
 				}
 
 			case INTAKE_STATE:
 				if (input.getButtonReleased(ButtonInput.INTAKE_BUTTON)) {
-					return IntakeFSMState.PARTIAL_OUT_STATE;
+					return IntakeFSMState.IDLE_OUT_STATE;
 				} else {
 					return IntakeFSMState.INTAKE_STATE;
 				}
 
 			case OUTTAKE_STATE:
 				if (input.getButtonReleased(ButtonInput.OUTTAKE_BUTTON)) {
-					return IntakeFSMState.PARTIAL_OUT_STATE;
+					return IntakeFSMState.IDLE_OUT_STATE;
 				} else {
 					return IntakeFSMState.OUTTAKE_STATE;
 				}
 
-			case FOLD_IN_STATE:
-				if (isTopLimitReached()) {
-					return IntakeFSMState.IDLE_IN_STATE;
-				} else if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
-					return IntakeFSMState.FOLD_OUT_STATE;
-				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
-					return IntakeFSMState.PARTIAL_OUT_STATE;
-				}  else {
-					return IntakeFSMState.FOLD_IN_STATE;
-				}
+			// case FOLD_IN_STATE:
+			// 	if (isTopLimitReached()) {
+			// 		return IntakeFSMState.IDLE_IN_STATE;
+			// 	} else if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
+			// 		return IntakeFSMState.FOLD_OUT_STATE;
+			// 	} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
+			// 		return IntakeFSMState.PARTIAL_OUT_STATE;
+			// 	}  else {
+			// 		return IntakeFSMState.FOLD_IN_STATE;
+			// 	}
 
 			default:
 				throw new IllegalStateException("Invalid state: " + getCurrentState().toString());
