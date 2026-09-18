@@ -1,83 +1,70 @@
 package frc.robot.motors;
 
-import com.revrobotics.sim.SparkMaxSim;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.sim.SparkMaxSim;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.Robot;
 
 /**
- * Spark max wrapper class, using SparkMaxSim.
+ * Updated SparkMaxWrapper for 2026.
+ * Implements the new declarative configuration API and LoggedMotor interface.
  */
 public class SparkMaxWrapper extends SparkMax implements LoggedMotor {
 
-	// Components
-	private final DCMotor configs;
-	private final SparkMaxSim motorSim;
+    private final DCMotor motorPlant;
+    private final SparkMaxSim motorSim;
+    
+    // Config object for 2026 API
+    private final SparkMaxConfig config;
 
-	public static final double LOOP_PERIOD_MS = 0.020;
+    // WPILib standard loop is 20ms (0.020s)
+    public static final double LOOP_PERIOD_SECONDS = 0.020;
 
-	private double targetVelocity = 0;
+    private double targetVelocityRadPerSec = 0;
 
-	/**
-	 * Constructor for CAN ID and motor type.
-	 * @param deviceId the CAN ID of the motor
-	 * @param type the type of motor
-	 */
-	public SparkMaxWrapper(int deviceId, MotorType type) {
-		// Initialize motor
-		super(deviceId, type);
-		init();
+	public SparkMaxWrapper(int deviceId, MotorType type, DCMotor motorPlant) {
+        super(deviceId, type);
+        
+        this.motorPlant = motorPlant;
+        this.config = new SparkMaxConfig();
 
-		// only allow brushless motors
-		// this can be safely removed if neccesary
-		if (type != MotorType.kBrushless) {
-			throw new IllegalArgumentException("Only brushless motors are supported");
-		}
+      
+        config.smartCurrentLimit(40)
+              .idleMode(SparkMaxConfig.IdleMode.kBrake);
 
-		// Create sim instance
-		configs = MotorConstants.DEFAULT_SPARK_CONFIG;
-		motorSim = new SparkMaxSim(this, configs);
-	}
+        this.configure(config, com.revrobotics.ResetMode.kResetSafeParameters, com.revrobotics.PersistMode.kPersistParameters);
 
-	/**
-	 * Constructor for CAN ID, motor type and an instance of DCMotor.
-	 * @param deviceId the CAN ID of the motor
-	 * @param type the type of motor
-	 * @param motorConfigs the instance of DCMotor to use for sim calculations
-	 */
-	public SparkMaxWrapper(int deviceId, MotorType type, DCMotor motorConfigs) {
-		// Initialize motor
-		super(deviceId, type);
-		init();
 
-		// Create sim instance
-		configs = motorConfigs;
-		motorSim = new SparkMaxSim(this, configs);
-	}
+        // 3. Initialize Sim
+        this.motorSim = new SparkMaxSim(this, motorPlant);
 
-	@Override
-	public void updateSimState() {
-		// Update sim instance
-		motorSim.iterate(targetVelocity, RobotController.getBatteryVoltage(), LOOP_PERIOD_MS);
-	}
 
-	@Override
-	public void set(double speed) {
-		// Set real motor speed
-		super.set(speed);
+        init();
+    }
 
-		// Add speed to buffer for sim
-		this.targetVelocity = speed * configs.freeSpeedRadPerSec;
-	}
+    @Override
+    public void updateSimState() {
+        // Iterate physics: (applied_velocity, bus_voltage, dt)
+        motorSim.iterate(targetVelocityRadPerSec, RobotController.getBatteryVoltage(), LOOP_PERIOD_SECONDS);
+    }
 
-	@Override
-	public String getIdentifier() {
-		return Integer.toString(this.getDeviceId());
-	}
+    @Override
+    public void set(double speed) {
+        super.set(speed);
+        this.targetVelocityRadPerSec = speed * motorPlant.freeSpeedRadPerSec;
+    }
 
-	@Override
+    @Override
+    public String getIdentifier() {
+        return Integer.toString(this.getDeviceId());
+    }
+
+    @Override
 	public double getLoggedPosition() {
 		// Sim motor
 		if (Robot.isSimulation()) {
@@ -113,5 +100,4 @@ public class SparkMaxWrapper extends SparkMax implements LoggedMotor {
 	public double getLoggedCurrent() {
 		return motorSim.getMotorCurrent();
 	}
-
 }
