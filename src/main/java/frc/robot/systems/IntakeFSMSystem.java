@@ -471,14 +471,15 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				}
 
 			case INTAKE_STATE:
-				if (input.getButtonReleased(ButtonInput.INTAKE_BUTTON)) {
+				if (input.getButtonReleased(ButtonInput.INTAKE_BUTTON) || topLimitSwitch.get()) {
 					return IntakeFSMState.IDLE_OUT_STATE;
 				} else {
 					return IntakeFSMState.INTAKE_STATE;
 				}
 
 			case OUTTAKE_STATE:
-				if (input.getButtonReleased(ButtonInput.OUTTAKE_BUTTON)) {
+				if (input.getButtonReleased(ButtonInput.OUTTAKE_BUTTON)
+					|| groundLimitSwitch.get()) {
 					return IntakeFSMState.IDLE_OUT_STATE;
 				} else {
 					return IntakeFSMState.OUTTAKE_STATE;
