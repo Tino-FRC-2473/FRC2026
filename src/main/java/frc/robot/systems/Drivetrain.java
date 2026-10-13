@@ -116,7 +116,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private Field2d simulatedField = new Field2d();
 
 	private Alliance alliance;
-	private boolean invertControls = false;
+	private boolean invertControls = true;
 	private double xSpeed;
 	private double ySpeed;
 	private double thetaSpeed;
@@ -156,7 +156,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 		drivetrain.periodic();
 		CommandScheduler.getInstance().run();
 		simulatedField.setRobotPose(drivetrain.getState().Pose);
-
+		Logger.recordOutput("Drivetrain/Current State", getCurrentState());
 		switch (currentState) {
 			case AUTONOMOUS:
 			case PATHFINDING:
@@ -241,7 +241,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 				if (input.getButtonValue(ButtonInput.DRIVETRAIN_PATHFIND)) {
 					return DrivetrainState.PATHFINDING;
 				} else {
-					pathfindCommand.cancel();
+					if (pathfindCommand != null) {
+						pathfindCommand.cancel();
+					}
 					return DrivetrainState.CONTROLLED;
 				}
 			case FACE_HUB:
@@ -622,6 +624,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private void startPathfinding() {
 		// Pose2d target = getPathfindingTarget();
 		// pathfindCommand = AutoBuilder.pathfindToPose(target, PATH_CONSTRAINTS);
+		if (pathfindCommand != null)
 		CommandScheduler.getInstance().schedule(pathfindCommand);
 	}
 
@@ -683,7 +686,7 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 			Translation2d robotTranslation = getPose().getTranslation();
 			Translation2d targetTranslation = targetPose.getTranslation();
 			Translation2d diff = targetTranslation.minus(robotTranslation);
-			targetAngle = Math.atan2(diff.getY(), diff.getX());
+			targetAngle = Math.atan2(-diff.getY(), -diff.getX());
 			// double currentAngle = getRotation();
 			// double rawTarget = Math.atan2(distance.getY(), distance.getX());
 
