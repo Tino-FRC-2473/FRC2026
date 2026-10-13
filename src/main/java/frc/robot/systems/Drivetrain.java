@@ -624,8 +624,9 @@ public class Drivetrain extends FSMSystem<Drivetrain.DrivetrainState> {
 	private void startPathfinding() {
 		// Pose2d target = getPathfindingTarget();
 		// pathfindCommand = AutoBuilder.pathfindToPose(target, PATH_CONSTRAINTS);
-		if (pathfindCommand != null)
-		CommandScheduler.getInstance().schedule(pathfindCommand);
+		if (pathfindCommand != null) {
+			CommandScheduler.getInstance().schedule(pathfindCommand);
+		}
 	}
 
 	private void handleFaceTarget(Input input, Pose2d targetPose) {
