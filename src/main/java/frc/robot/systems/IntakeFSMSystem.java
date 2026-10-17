@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 
@@ -434,8 +435,10 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 
 			case FOLD_OUT_STATE:
 				if (isBottomLimitReached()
-					|| pivotMotorRight.getPosition().getValue()
-					.isNear(IntakeConstants.GROUND_TARGET_ANGLE, IntakeConstants.PIVOT_TOLERANCE)
+					|| (
+						IntakeConstants.PIVOT_TOLERANCE.in(Degrees) > 0
+						&& pivotMotorRight.getPosition().getValue()
+					.isNear(IntakeConstants.GROUND_TARGET_ANGLE, IntakeConstants.PIVOT_TOLERANCE))
 					|| ticksSinceFoldOutStarted++ > IntakeConstants.TICKS_TILL_FOLD_OUT_QUIT
 					) {
 					return IntakeFSMState.IDLE_OUT_STATE;
@@ -475,6 +478,9 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 					return IntakeFSMState.FOLD_IN_STATE;
 				} else if (input.getButtonPressed(ButtonInput.PARTIAL_OUT_BUTTON)) {
 					return IntakeFSMState.PARTIAL_OUT_STATE;
+				} else if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
+					return IntakeFSMState.FOLD_OUT_STATE;
+				}
 				} else {
 					return IntakeFSMState.IDLE_OUT_STATE;
 				}
