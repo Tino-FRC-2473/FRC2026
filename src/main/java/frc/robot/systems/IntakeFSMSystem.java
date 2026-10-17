@@ -412,10 +412,15 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 
 	/* ======================== Protected methods ======================== */
 
+	private int ticksSinceFoldOutStarted = 0;
+
 
 	protected IntakeFSMState nextState(Input input) {
 		if (input == null) {
 			return IntakeFSMState.IDLE_IN_STATE;
+		}
+		if (input.getButtonValue(ButtonInput.FOLD_OUT_BUTTON)) {
+			ticksSinceFoldOutStarted = 0;
 		}
 		switch (getCurrentState()) {
 			case IDLE_IN_STATE:
@@ -428,7 +433,11 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 				}
 
 			case FOLD_OUT_STATE:
-				if (isBottomLimitReached()) {
+				if (isBottomLimitReached()
+					|| pivotMotorRight.getPosition().getValue()
+					.isNear(IntakeConstants.GROUND_TARGET_ANGLE, IntakeConstants.PIVOT_TOLERANCE)
+					|| ticksSinceFoldOutStarted++ > IntakeConstants.TICKS_TILL_FOLD_OUT_QUIT
+					) {
 					return IntakeFSMState.IDLE_OUT_STATE;
 				} else if (input.getButtonPressed(ButtonInput.FOLD_IN_BUTTON)) {
 					return IntakeFSMState.FOLD_IN_STATE;

@@ -275,6 +275,10 @@ public class Constants {
 		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(0);
 		public static final Angle PARTIAL_OUT_TARGET_ANGLE =
 			Units.Radians.of(0); //Units.Radians.of(1.5);
+		public static final Angle PIVOT_TOLERANCE = Units.Degrees.of(10);
+
+		// 1 tick = 20 ms
+		public static final int TICKS_TILL_FOLD_OUT_QUIT = 40;
 
 		public static final double PIVOT_MAX_ROTATION = 2.09;
 		public static final double PIVOT_MIN_ROTATION = 0;
