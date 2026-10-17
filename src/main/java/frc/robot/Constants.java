@@ -74,8 +74,9 @@ public class Constants {
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
 		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speed, and so on
 
-		public static final double TRANSLATIONAL_DAMP = 0.5;
-		public static final double ROTATIONAL_DAMP = 1;
+		public static final double TRANSLATIONAL_DAMP = 0.45;
+		public static final double ROTATIONAL_DAMP = 85;
+		
 
 		public static final String CANBUS_NAME = "Drivetrain";
 		public static final int SWERVE_MODULE_COUNT = 4;
@@ -275,10 +276,11 @@ public class Constants {
 		public static final Angle GROUND_TARGET_ANGLE = Units.Radians.of(0);
 		public static final Angle PARTIAL_OUT_TARGET_ANGLE =
 			Units.Radians.of(0); //Units.Radians.of(1.5);
-		public static final Angle PIVOT_TOLERANCE = Units.Degrees.of(10);
+		public static final Angle PIVOT_TOLERANCE = Units.Degrees.of(0); // Intake will be within this value => thinks its outtaken
+		// put 0 to disable
 
 		// 1 tick = 20 ms
-		public static final int TICKS_TILL_FOLD_OUT_QUIT = 40;
+		public static final int TICKS_TILL_FOLD_OUT_QUIT = 60; // After this amount of time, we assume it's fully out
 
 		public static final double PIVOT_MAX_ROTATION = 2.09;
 		public static final double PIVOT_MIN_ROTATION = 0;
