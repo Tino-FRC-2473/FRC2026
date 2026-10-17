@@ -480,7 +480,6 @@ public class IntakeFSMSystem extends FSMSystem<IntakeFSMSystem.IntakeFSMState> {
 					return IntakeFSMState.PARTIAL_OUT_STATE;
 				} else if (input.getButtonPressed(ButtonInput.FOLD_OUT_BUTTON)) {
 					return IntakeFSMState.FOLD_OUT_STATE;
-				}
 				} else {
 					return IntakeFSMState.IDLE_OUT_STATE;
 				}
